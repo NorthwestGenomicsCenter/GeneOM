@@ -1,0 +1,18 @@
+logging:
+  level:
+    org:
+      springframework:
+        security: TRACE
+management:
+  endpoints:
+    web:
+      exposure:
+        include=*:
+spring:
+  mvc:
+    servlet:
+      path: /
+server:
+  port: 3005
+  servlet:
+    context-path: /multiomics/api/
