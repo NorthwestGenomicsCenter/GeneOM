@@ -2,5 +2,7 @@ package org.uw.nwgc.multiomics.core.sample;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SampleRepository extends JpaRepository<Sample, Integer> {
+import java.util.UUID;
+
+public interface SampleRepository extends JpaRepository<Sample, UUID> {
 }

@@ -1,4 +1,4 @@
-package org.uw.nwgc.multiomics.core.project;
+package org.uw.nwgc.multiomics.core.cohort;
 
 import org.springframework.stereotype.Service;
 
@@ -6,10 +6,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ProjectService {
+public class CohortService {
 
-    private List<Project> buildTestProjects() {
-        List<Project> projects = new ArrayList<>();
+    private final CohortRepository cohortRepository;
+
+    public CohortService(CohortRepository cohortRepository) {
+        this.cohortRepository = cohortRepository;
+    }
+
+    public Cohort create(Cohort cohort) {
+        return cohortRepository.save(cohort);
+    }
+
+    public List<Cohort> getAll() {
+        return cohortRepository.findAll();
+    }
+
+
+    private List<Cohort> buildTestProjects() {
+        List<Cohort> projects = new ArrayList<>();
 
         // Define sample names
         String[] projectNames = {
@@ -90,21 +105,20 @@ public class ProjectService {
         };
 
         // Generate samples
-        for (int i = 0; i < projectNames.length; i++) {
-            Project prj = new Project();
-            prj.setId(i);
-            prj.setName(projectNames[i]);
-            prj.setExternalProjectId("Project: " + i);
+        for (String projectName : projectNames) {
+            Cohort prj = new Cohort();
+            prj.setName(projectName);
             projects.add(prj);
         }
 
         return projects;
     }
 
-    public List<Project> fuzzyFindByName(String name, Integer limit) {
+    public List<Cohort> fuzzyFindByName(String name, Integer limit) {
         return buildTestProjects().stream()
                 .filter(prj -> prj.getName().toLowerCase().contains(name.toLowerCase()))
                 .limit(limit)
                 .toList();
     }
+
 }

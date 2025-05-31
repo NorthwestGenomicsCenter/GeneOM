@@ -1,0 +1,14 @@
+.bordered {
+    background-color: white;
+    border: rgb(224 224 224) 1px solid;
+    border-radius: 0.75em;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1em;
+    padding: 1em;
+    min-width: 85em;
+}
+
+.centered {
+    text-align: center;
+}

@@ -16,7 +16,7 @@ public class IntegrationService {
     }
 
     public List<SampleFileDto> queryIntegration(String queryString) {
-        List<SampleFileDto> sampleFileDtos = new ArrayList<SampleFileDto>();
+        List<SampleFileDto> sampleFileDtos = new ArrayList<>();
 
         for (Integration integration : integrations) {
             sampleFileDtos.addAll(integration.querySampleFiles(queryString));
@@ -26,7 +26,7 @@ public class IntegrationService {
     }
 
     public List<ExternalSampleDto> querySampleIntegration(String queryString) {
-        List<ExternalSampleDto> sampleFileDtos = new ArrayList<ExternalSampleDto>();
+        List<ExternalSampleDto> sampleFileDtos = new ArrayList<>();
 
         for (Integration integration : integrations) {
             sampleFileDtos.addAll(integration.queryExternalSamples(queryString));

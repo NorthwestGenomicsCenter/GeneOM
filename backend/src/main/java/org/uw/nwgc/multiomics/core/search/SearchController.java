@@ -9,7 +9,7 @@ import org.uw.nwgc.multiomics.core.genes.GeneService;
 import org.uw.nwgc.multiomics.core.integrations.ExternalSampleDto;
 import org.uw.nwgc.multiomics.core.integrations.IntegrationService;
 import org.uw.nwgc.multiomics.core.integrations.SampleFileDto;
-import org.uw.nwgc.multiomics.core.project.ProjectService;
+import org.uw.nwgc.multiomics.core.cohort.CohortService;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 
 import java.util.ArrayList;
@@ -19,19 +19,19 @@ import java.util.List;
 public class SearchController {
 
     private final SampleService sampleService;
-    private final ProjectService projectService;
+    private final CohortService cohortService;
     private final GeneService geneService;
     private final IntegrationService integrationService;
 
     @Autowired
     public SearchController(
             SampleService sampleService,
-            ProjectService projectService,
+            CohortService cohortService,
             GeneService geneService,
             IntegrationService integrationService
     ) {
         this.sampleService = sampleService;
-        this.projectService = projectService;
+        this.cohortService = cohortService;
         this.geneService = geneService;
         this.integrationService = integrationService;
     }
@@ -48,7 +48,7 @@ public class SearchController {
         response.add(samples);
 
         SearchResponseDTO projects = new SearchResponseDTO("Projects");
-        projects.addAll(projectService.fuzzyFindByName(query, 5));
+        projects.addAll(cohortService.fuzzyFindByName(query, 5));
         response.add(projects);
 
         return ResponseEntity.ok(response);

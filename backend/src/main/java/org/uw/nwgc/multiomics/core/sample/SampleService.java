@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class SampleService {
@@ -15,6 +16,14 @@ public class SampleService {
     @Autowired
     public SampleService(SampleRepository sampleRepository) {
         this.sampleRepository = sampleRepository;
+    }
+
+    public Optional<Sample> getById(UUID id) {
+        return sampleRepository.findById(id);
+    }
+
+    public List<Sample> getAll() {
+        return sampleRepository.findAll();
     }
 
     private List<Sample> buildTestSamples() {
@@ -45,7 +54,7 @@ public class SampleService {
         // Generate samples
         for (int i = 0; i < sampleNames.length; i++) {
             Sample sample = new Sample();
-            sample.setId(i + 1); // Generate unique ID
+            sample.setId(UUID.randomUUID()); // Generate unique ID
             sample.setName("Sample " + (i + 1));
             sample.setExternalLimsId(sampleNames[i]);
             samples.add(sample);
@@ -61,7 +70,4 @@ public class SampleService {
                 .toList();
     }
 
-    public Optional<Sample> getById(Integer id) {
-        return sampleRepository.findById(id);
-    }
 }

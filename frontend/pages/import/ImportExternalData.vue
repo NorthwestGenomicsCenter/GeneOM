@@ -12,18 +12,22 @@
   </section>
 
   <section class="bordered centered">
-    <Button label="Search External Samples" @click="querySamples" />
     <DataTable
         selection-mode="single"
         :value="sampleSearch"
         :rows="20"
         :rowsPerPageOptions="[20,30,50]">
-      <Column selectionMode="single" headerStyle="width: 3rem"></Column>
       <Column header="Sample Id" field="sample_id" />
       <Column header="Sample Name" field="sample_name" />
       <Column header="Description" field="sample_description" />
       <Column header="Project Name" field="project_name" />
+      <Column header="Create">
+        <template #body="{data}">
+          <Button size="small" label="Create Sample" @click="createSample(data)" />
+        </template>
+      </Column>
     </DataTable>
+    <Button label="Search External Samples" @click="querySamples" outlined />
   </section>
 
   <section class="bordered centered">
@@ -49,6 +53,29 @@ const querySamples = async () => {
   sampleSearch.value = res.data.value;
 }
 
+interface SampleDTO {
+  id: string;
+  name: string;
+  external_lims_id: string;
+  external_project_name: string;
+  description: string;
+}
+
+const createSample = async (data) => {
+  const dto : SampleDTO = {
+    id: null,
+    name: data.sample_name,
+    external_lims_id: data.sample_id,
+    external_project_name: data.project_name,
+    description: data.description
+  }
+
+  const res = await useFetch('/api/sample/save', {
+    method: "POST",
+    body: dto
+  })
+}
+
 const testing = ref();
 const test = async () => {
   const res = await useFetch('/api/omic/save', {
@@ -65,15 +92,5 @@ const test = async () => {
 </script>
 
 <style scoped>
-.bordered {
-  background-color: white;
-  border: rgb(224 224 224) 1px solid;
-  border-radius: 0.75em;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 1em;
-  padding: 1em;
-  min-width: 85em;
-}
 
 </style>

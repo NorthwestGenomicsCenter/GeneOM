@@ -9,12 +9,13 @@ import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/omic")
 public class OmicController {
 
-    public record OmicResourceDto(String sampleid, String path, String type) {};
+    public record OmicResourceDto(UUID sampleid, String path, String type) {};
     private final OmicService omicService;
     private final SampleService sampleService;
 
@@ -29,7 +30,7 @@ public class OmicController {
     @PostMapping("/save")
     public ResponseEntity<?> saveOmics(@RequestBody OmicResourceDto dto) {
         System.out.println("dto = " + dto);
-        Optional<Sample> sample = sampleService.getById(Integer.valueOf(dto.sampleid));
+        Optional<Sample> sample = sampleService.getById(dto.sampleid);
         if (sample.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }

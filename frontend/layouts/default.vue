@@ -21,54 +21,7 @@
     <div :class="{'main-content': true, 'collapsed': !isNavBarOpen}">
       <div class="navbar" v-if="isNavBarOpen">
         <nav>
-          <ul>
-            <li>
-              <button class="sidebar-button" @click="toggleNavBar">
-                <span class="icon">{{ isNavBarOpen ? '◀' : '▶' }}</span>
-                <span class="text">{{ isNavBarOpen ? 'Hide' : '' }}</span>
-              </button>
-            </li>
-            <li>
-              <h3 class="menu-section">Assays</h3>
-            </li>
-            <li v-for="item in sidebarItems" :key="item.name">
-              <NuxtLink :href="item.url" class="sidebar-button" :title="item.name">
-                <span class="icon">{{ item.icon }}</span>
-                <span class="text">{{ item.name }}</span>
-              </NuxtLink>
-            </li>
-
-            <li>
-              <h3 class="menu-section">Samples</h3>
-            </li>
-            <li>
-              <NuxtLink :href="`/manage-samples`" class="sidebar-button" title="Manage Users">
-                <span class="icon"></span>
-                <span class="text">Manage Samples</span>
-              </NuxtLink>
-              <NuxtLink :href="`/manage-projects`" class="sidebar-button" title="Manage Users">
-                <span class="icon"></span>
-                <span class="text">Manage Projects</span>
-              </NuxtLink>
-            </li>
-
-            <template v-if="isAdmin">
-              <li>
-                <h3 class="menu-section">Admin</h3>
-              </li>
-              <li>
-                <NuxtLink :href="`/manage-users`" class="sidebar-button" title="Manage Users">
-                  <span class="icon"></span>
-                  <span class="text">Manage Users</span>
-                </NuxtLink>
-              </li>
-            </template>
-
-            <NuxtLink :href="`/import/ImportExternalData`" class="sidebar-button" title="Import External">
-              <span class="icon"></span>
-              <span class="text">Import External Data</span>
-            </NuxtLink>
-          </ul>
+          <Multiomics-Menu/>
 
         </nav>
       </div>
@@ -120,10 +73,11 @@
 </template>
 
 <script setup type="ts">
-import { ref } from 'vue'
-import { useGlobalStore } from "~/composables/useGlobal.ts";
+import {ref} from 'vue'
+import {useGlobalStore} from "~/composables/useGlobal.ts";
 import StatusBarLogin from "~/components/users/StatusBarLogin.vue";
 import {useAuth} from "~/composables/useAuth.js";
+import MultiomicsMenu from "~/components/common/MultiomicsMenu.vue";
 
 const auth = useAuth();
 const user = auth.user;
@@ -161,15 +115,6 @@ const isNavBarOpen = ref(true);
 const toggleNavBar = () => {
   isNavBarOpen.value = !isNavBarOpen.value;
 }
-
-const sidebarItems = [
-  { name: 'Assay', icon: '🧬', url: "/assay" },
-  { name: 'Upload', icon: '🔬', url: "/import/ImportData" },
-  { name: 'Gene Annotations', icon: '📝' },
-  { name: 'Variant Calls', icon: '🔬' },
-  { name: 'ChIP-seq Data', icon: '📊' },
-  { name: 'RNA-seq Data', icon: '🧬' }
-]
 
 const isSidebarOpen = ref(false)
 const toggleSidebar = () => {
@@ -336,41 +281,13 @@ body {
   gap: 0.5rem;
 }
 
-.sidebar-button {
-  align-items: center;
-  background: none;
-  border: none;
-  color: #666666;
-  cursor: pointer;
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  text-align: left;
-  text-decoration: none;
-  width: 100%;
-}
-
 .sidebar-icon {
   font-size: x-large;
   padding: 0.5em 0.75em 0.5em 0.25em;
 }
 
-.sidebar-collapsed .sidebar-button {
-  justify-content: center;
-}
-
-.sidebar-button:hover {
-  background-color: #e0e0e0;
-}
-
 .sidebar-collapsed .sidebar-button .text {
   display: none;
-}
-
-.sidebar-button .icon {
-  font-size: 1.2rem;
-  width: 1.5rem;
-  text-align: center;
 }
 
 .title {
@@ -390,15 +307,6 @@ body {
   margin-top: auto;
   margin-bottom: auto;
   margin-right: 2em;
-}
-
-.menu-section {
-  font-size: medium;
-  text-align: left;
-  padding-left: 1em;
-  text-transform: uppercase;
-  color: #666;
-  font-weight: 900;
 }
 
 .filter-bar {

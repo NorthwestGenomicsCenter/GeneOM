@@ -45,8 +45,8 @@ public class GeneController {
         List<SearchResponse> responses = new ArrayList<>();
 
         SearchResponse projects = new SearchResponse("projects");
-        var project1 = new Project("Liver Project", 1, 2);
-        var project2 = new Project("Brain Project", 1, 4);
+        var project1 = new Project("Liver Cohort", 1, 2);
+        var project2 = new Project("Brain Cohort", 1, 4);
         projects.add(project1);
         projects.add(project2);
         responses.add(projects);

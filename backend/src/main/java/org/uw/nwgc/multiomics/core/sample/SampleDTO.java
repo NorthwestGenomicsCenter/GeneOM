@@ -4,12 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class SampleDTO {
-    public Integer id;
-    public String name;
-    public String externalLimsId;
-    public Integer projectId;
+    private UUID id;
+    private String name;
+    private String externalLimsId;
+    private String externalProjectName;
+    private String description;
 }

@@ -6,6 +6,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   css: [
     'primeicons/primeicons.css',
+    'assets/css/main.css'
   ],
   devtools: { enabled: true },
   modules: [
@@ -40,11 +41,6 @@ export default defineNuxtConfig({
       { route: '/igv_data/**', handler: '~/server/middleware/proxy-igv' },
       { route: '/api/**', handler: '~/server/middleware/proxy-api' },
     ],
-    // routeRules: {
-    //   '/api/**': {
-    //     proxy: () => process.env.API_URL // `http://localhost:3005/multiomics/api/**`  // Rewrites /api/* to your backend
-    //   }
-    // },
     output: {
       serverDir: './.output/',
       publicDir: './.output/public'
