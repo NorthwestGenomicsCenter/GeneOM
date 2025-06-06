@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
 	id 'java'
 	id 'war'
@@ -24,6 +26,9 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven {
+		url 'https://plugins.gradle.org/m2/'
+	}
 }
 
 ext {
@@ -71,6 +76,20 @@ hibernate {
 	}
 }
 
+/***
+ * osAdaptiveCommand helper function allows the same command to be run on
+ * Windows and *nix based OSes without branching logic.
+ */
+private static Iterable<String> osAdaptiveCommand(String... commands) {
+	def newCommands = []
+	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+		newCommands = ['cmd', '/c']
+	}
+
+	newCommands.addAll(commands)
+	return newCommands
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
@@ -88,3 +107,17 @@ task admin(type: JavaExec) {
 	systemProperty "spring.main.web-application-type", "NONE"
 	standardInput = System.in
 }
+
+tasks.register('generateViewNamesJson', Exec) {
+	workingDir '../shared'
+	commandLine osAdaptiveCommand('npm', 'run', 'generate-json')
+}
+
+tasks.register('copyViewNamesJson', Copy) {
+	from('../shared/viewNames.json')
+	into("./build/resources/main")
+}
+
+copyViewNamesJson.dependsOn(generateViewNamesJson)
+processResources.dependsOn(copyViewNamesJson)
+

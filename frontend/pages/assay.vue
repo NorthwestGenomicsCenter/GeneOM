@@ -1,7 +1,7 @@
 <template>
     <div>
       <section class="bordered centered">
-        <DifferentialExpression />
+        <DynamicViewRenderer viewName="differential-expression"/>
       </section>
       <section class="bordered centered">
         <DifferentialPeak />

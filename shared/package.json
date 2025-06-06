@@ -1,0 +1,13 @@
+{
+  "name": "shared",
+  "scripts": {
+    "generate-json": "tsx scripts/generateViewNamesJson.ts"
+  },
+  "dependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "tsx": "^4.19.4"
+  }
+}
