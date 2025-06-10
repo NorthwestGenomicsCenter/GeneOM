@@ -5,7 +5,7 @@ export const useAuth = () => {
 	const isAuthenticated = useState('isAuthenticated', () => false)
 	
 	const getToken = (): any => {
-		const cookie = useCookie('access_token');
+		const cookie = useCookie('refresh_token');
 		const token = cookie.value;
 		
 		if (!token) {
@@ -82,10 +82,31 @@ export const useAuth = () => {
 		accessCookie.value = null;
 		const refreshCookie = useCookie('refresh_token');
 		refreshCookie.value = null;
+		
+		isAuthenticated.value = false;
+		user.value = null;
+		
+		const router = useRouter();
+		await router.push({path: "/login"})
 	}
 	
 	const user = ref(getToken())
 	
+	const expire = computed(() => {
+		const expire = new Date(getToken().exp * 1000);
+		const now = new Date();
+		const delay = expire.getTime() - now.getTime();
+		
+		if (delay <= 0) {
+			// If the target date is in the past, execute the callback immediately
+			logout();
+		} else {
+			setTimeout(logout, delay);
+		}
+		
+		return delay
+	})
+	
 	// return { isAuthenticated, checkAuth, login, logout, getToken, user }
-	return {login, logout, getToken, setAuthCookies, isAuthenticated, user}
+	return {login, logout, getToken, setAuthCookies, isAuthenticated, user, expire}
 }

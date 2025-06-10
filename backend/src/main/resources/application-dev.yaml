@@ -9,6 +9,8 @@ management:
       exposure:
         include=*:
 spring:
+  config:
+    import: optional:classpath:.env.local[.properties]
   mvc:
     servlet:
       path: /

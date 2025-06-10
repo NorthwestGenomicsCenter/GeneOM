@@ -1,5 +1,8 @@
 package org.uw.nwgc.multiomics.core.sample;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -7,17 +10,28 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.UuidGenerator;
+import org.uw.nwgc.multiomics.core.resources.OmicResource;
+import org.uw.nwgc.multiomics.core.resources.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.user.User;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -32,18 +46,69 @@ public class Sample {
     private UUID id;
     private String name;
     private String externalLimsId;
+    private String integrationSource;
     private String description;
     private String externalProjectName;
 
+    @OneToMany
+    @JsonManagedReference
+    private Set<OmicResource> omicResources;
+
     @ManyToMany
-    private List<User> users;
+    private Set<User> users = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Tag> tags = new HashSet<>();
 
     protected Sample update(SampleDTO dto) {
         this.name = dto.getName();
+        this.integrationSource = dto.getIntegrationSource();
         this.externalLimsId = dto.getExternalLimsId();
         this.description = dto.getDescription();
         this.externalProjectName = dto.getExternalProjectName();
 
+        updateTags(dto);
+        updateOmicResources(dto);
+
         return this;
+    }
+
+    private void updateOmicResources(SampleDTO dto) {
+        Map<UUID, OmicResource> existingOmicResources = omicResources
+                .stream()
+                .collect(Collectors.toMap(OmicResource::getId, Function.identity()));
+
+        if (dto.getOmicResources() != null && !dto.getOmicResources().isEmpty()) {
+            for (OmicResourceDTO omicResourceDTO : dto.getOmicResources()) {
+                OmicResource omicResource;
+                if (omicResourceDTO.getOmicResourceId() == null) {
+                    omicResource = new OmicResource();
+                } else {
+                    omicResource = existingOmicResources.computeIfAbsent(omicResourceDTO.getOmicResourceId(), k -> new OmicResource());
+                }
+
+                omicResource.update(omicResourceDTO);
+                omicResources.add(omicResource);
+            }
+        }
+    }
+
+    private void updateTags(SampleDTO dto) {
+        Map<UUID, Tag> existingTags = tags
+                .stream()
+                .collect(Collectors.toMap(Tag::getId, Function.identity()));
+        if (dto.getTags() != null && !dto.getTags().isEmpty()) {
+            for (var tagDTO : dto.getTags()) {
+                Tag tag;
+                if (tagDTO.id() == null) {
+                    tag = new Tag();
+                } else {
+                    tag = existingTags.computeIfAbsent(tagDTO.id(), k -> new Tag());
+                }
+
+                tag.updateTag(tagDTO);
+                tags.add(tag);
+            }
+        }
     }
 }

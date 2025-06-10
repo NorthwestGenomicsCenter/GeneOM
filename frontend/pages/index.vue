@@ -22,6 +22,7 @@
       <p>Apply filters to refine data across all assay types.</p>
     </section>
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -29,6 +30,7 @@ definePageMeta({
   layout: 'default'
 })
 
+const auth = useAuth();
 
 </script>
 

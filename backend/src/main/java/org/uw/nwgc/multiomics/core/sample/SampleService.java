@@ -1,7 +1,15 @@
 package org.uw.nwgc.multiomics.core.sample;
 
+import jakarta.security.auth.message.AuthException;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.uw.nwgc.multiomics.core.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,10 +20,11 @@ import java.util.UUID;
 public class SampleService {
 
     private final SampleRepository sampleRepository;
+    private final TagRepository tagRepository;
 
-    @Autowired
-    public SampleService(SampleRepository sampleRepository) {
+    public SampleService(SampleRepository sampleRepository, TagRepository tagRepository) {
         this.sampleRepository = sampleRepository;
+        this.tagRepository = tagRepository;
     }
 
     public Optional<Sample> getById(UUID id) {
@@ -26,48 +35,63 @@ public class SampleService {
         return sampleRepository.findAll();
     }
 
-    private List<Sample> buildTestSamples() {
-        List<Sample> samples = new ArrayList<>();
+    public List<Sample> fuzzyFindByName(String name, Integer limit) {
+        Pageable page = PageRequest.of(0, limit);
 
-        // Define sample names
-        String[] sampleNames = {
-                "UDN178694",
-                "UDN687128",
-                "BCH_1877-01",
-                "BCH_2410-01",
-                "UDN633333",
-                "UDN121217",
-                "BCH_2275-01",
-                "UDN052264",
-                "UDN212054",
-                "BCH_2443-01",
-                "UDN215640",
-                "BCH_2401-01",
-                "BCH_1986-01",
-                "UDN374570",
-                "BCH_1199-01",
-                "BCH_310-01",
-                "BCH_0252-01",
-                "UDN318336"
-        };
-
-        // Generate samples
-        for (int i = 0; i < sampleNames.length; i++) {
-            Sample sample = new Sample();
-            sample.setId(UUID.randomUUID()); // Generate unique ID
-            sample.setName("Sample " + (i + 1));
-            sample.setExternalLimsId(sampleNames[i]);
-            samples.add(sample);
-        }
-
-        return samples;
+        return sampleRepository.findByNameContainingIgnoreCase(name);
     }
 
-    public List<Sample> fuzzyFindByName(String name, Integer limit) {
-        return buildTestSamples().stream()
-                .filter(sample -> sample.getExternalLimsId().toLowerCase().contains(name.toLowerCase()))
-                .limit(limit)
-                .toList();
+    public Optional<Sample> findExistingIntegrationSample(String externalLimsId, String integrationSource) {
+        List<Sample> samples = sampleRepository.findByExternalLimsIdAndIntegrationSource(externalLimsId, integrationSource);
+        if (samples.size() == 1) {
+            return Optional.of(samples.getFirst());
+        }
+
+        return Optional.empty();
+    }
+
+
+    public Sample save(SampleDTO sampleDTO) throws AuthException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) auth.getPrincipal();
+
+        Sample sample = new Sample();
+        if (sampleDTO.getId() != null) {
+            sample = getById(sampleDTO.getId()).orElseThrow(() -> new ObjectNotFoundException("Sample not found", sampleDTO.getId()));
+
+            if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
+                throw new AuthException("User not allowed to update Sample");
+            }
+        }
+
+        sample.update(sampleDTO);
+        sample.getUsers().add(user);
+        return sampleRepository.save(sample);
+    }
+
+    public Sample deleteTag(SampleDTO sampleDTO, UUID tagId) throws AuthException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) auth.getPrincipal();
+
+        Sample sample = new Sample();
+        if (sampleDTO.getId() != null) {
+            sample = getById(sampleDTO.getId()).orElseThrow(() -> new ObjectNotFoundException("Sample not found", sampleDTO.getId()));
+
+            if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
+                throw new AuthException("User not allowed to update Sample");
+            }
+        }
+
+        Optional<Tag> optionalTag = sample.getTags().stream()
+                .filter(tag -> tagId.equals(tag.getId()))
+                .findFirst();
+        if (optionalTag.isPresent()) {
+            sample.getTags().remove(optionalTag.get());
+            sample = sampleRepository.save(sample);
+            tagRepository.delete(optionalTag.get());
+        }
+
+        return sample;
     }
 
 }

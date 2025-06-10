@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.uw.nwgc.multiomics.core.genes.GeneService;
 import org.uw.nwgc.multiomics.core.integrations.ExternalSampleDto;
 import org.uw.nwgc.multiomics.core.integrations.IntegrationService;
-import org.uw.nwgc.multiomics.core.integrations.SampleFileDto;
+import org.uw.nwgc.multiomics.core.integrations.SampleFileDTO;
 import org.uw.nwgc.multiomics.core.cohort.CohortService;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 
@@ -55,8 +55,8 @@ public class SearchController {
     }
 
     @GetMapping("/search/integrations/{query}")
-    private ResponseEntity<List<SampleFileDto>> searchIntegrations(@PathVariable String query) {
-        List<SampleFileDto> response = new ArrayList<>(integrationService.queryIntegration(query));
+    private ResponseEntity<List<SampleFileDTO>> searchIntegrations(@PathVariable String query) {
+        List<SampleFileDTO> response = new ArrayList<>(integrationService.queryIntegration(query));
 
         return ResponseEntity.ok(response);
     }

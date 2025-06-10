@@ -30,7 +30,6 @@ const router = useRouter()
 
 const logout = () => {
   auth.logout();
-  router.push('/login');
 }
 
 const props = defineProps({

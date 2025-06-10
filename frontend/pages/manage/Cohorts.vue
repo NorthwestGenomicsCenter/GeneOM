@@ -34,15 +34,6 @@ interface Cohort {
 }
 
 const cohorts = ref([])
-// onMounted(async () =>  {
-//   console.log("HERE")
-//   const res = await useFetch("/api/cohort/all", {
-//     method: "GET"
-//   });
-//   cohorts.value = res.data.value;
-//
-//   //
-// })
 
 const query = async () => {
   const res = await useFetch("/api/cohort/all", {

@@ -1,5 +1,6 @@
 package org.uw.nwgc.multiomics.core.resources;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,11 +10,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 import org.uw.nwgc.multiomics.core.sample.Sample;
+
+import java.util.List;
+import java.util.UUID;
 
 @Setter
 @Getter
@@ -24,17 +28,40 @@ import org.uw.nwgc.multiomics.core.sample.Sample;
 public class OmicResource {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "id", nullable = false)
-    private Long id;
+    @UuidGenerator
+    @Column(columnDefinition = "UUID", updatable = false, nullable = false)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "sample_id")
+    @JsonBackReference
     private Sample sample;
 
     private String path;
 
-    public OmicResource(OmicController.OmicResourceDto dto) {
-        this.path = dto.path();
+    private Boolean igvTrack;
+
+    private Class<? extends VizTransformer> vizTransformer;
+
+    public OmicResource(OmicResourceDTO dto, Sample sample) {
+        this.path = dto.getPath();
+        this.sample = sample;
+        this.vizTransformer = DiffExpression.class;
+    }
+
+    public List<String> getVisualizers() {
+        try {
+            VizTransformer transformer = vizTransformer.getDeclaredConstructor()
+                    .newInstance();
+            return transformer.visualizationComponents();
+
+        } catch (Exception ignored) {}
+
+        return null;
+    }
+
+    public void update(OmicResourceDTO omicResourceDTO) {
+        this.path = omicResourceDTO.getPath();
+        this.igvTrack = omicResourceDTO.getIgvTrack();
     }
 }

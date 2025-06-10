@@ -18,7 +18,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        System.out.println("Incoming request: " + request.getMethod() + " " + request.getRequestURI());
+//        System.out.println("Incoming request: " + request.getMethod() + " " + request.getRequestURI());
         filterChain.doFilter(request, response);
     }
 }

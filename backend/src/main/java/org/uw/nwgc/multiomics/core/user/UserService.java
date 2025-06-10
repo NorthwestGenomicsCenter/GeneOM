@@ -25,9 +25,4 @@ public class UserService implements UserDetailsService {
         return userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found with username" + username));
     }
 
-//    public User loadUserByUsername(String username) throws UsernameNotFoundException {
-//        var password = new BCryptPasswordEncoder().encode("12345");
-//        return new User(1, "mr83", "Matt", "Richardson", password, List.of());
-//    }
-
 }

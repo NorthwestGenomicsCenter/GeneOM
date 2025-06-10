@@ -1,49 +1,36 @@
 <template>
   <ul>
-<!--    <li>-->
-<!--      <button class="sidebar-button" @click="toggleNavBar">-->
-<!--        <span class="icon">{{ isNavBarOpen ? '◀' : '▶' }}</span>-->
-<!--        <span class="text">{{ isNavBarOpen ? 'Hide' : '' }}</span>-->
-<!--      </button>-->
-<!--    </li>-->
+    <MenuItem to="/" text="Home" icon="" />
+
     <li>
       <h3 class="menu-section">Assays</h3>
     </li>
-    <li v-for="item in sidebarItems" :key="item.name">
-      <NuxtLink :href="item.url" class="sidebar-button" :title="item.name">
-        <span class="icon">{{ item.icon }}</span>
-        <span class="text">{{ item.name }}</span>
-      </NuxtLink>
+    <template v-for="item in sidebarItems" :key="item.name">
+      <MenuItem
+        :to="item.url"
+        :icon="item.icon"
+        :text="item.name" />
+    </template>
+
+    <!-- Begin Data Explorer Features-->
+    <li>
+      <h3 class="menu-section">Explore Data</h3>
     </li>
+    <MenuItem to="/Explore/Type" text="Find by type" icon="" />
+    <!-- End Data Explorer Features-->
 
     <li>
       <h3 class="menu-section">Manage</h3>
     </li>
-    <li>
-      <NuxtLink :href="`/manage/samples`" class="sidebar-button" title="Manage Users">
-        <span class="icon"></span>
-        <span class="text">Samples</span>
-      </NuxtLink>
-      <NuxtLink :href="`/manage/cohorts`" class="sidebar-button" title="Manage Cohorts">
-        <span class="icon"></span>
-        <span class="text">Cohorts</span>
-      </NuxtLink>
-      <NuxtLink :href="`/import/ImportExternalData`" class="sidebar-button" title="Import External">
-        <span class="icon"></span>
-        <span class="text">Import External Data</span>
-      </NuxtLink>
-    </li>
+    <MenuItem to="/manage/samples" text="Samples" icon="" />
+    <MenuItem to="/manage/cohorts" text="Cohorts" icon="" />
+    <MenuItem to="/import/ImportExternalData" text="Import External Data" icon="" />
 
     <template v-if="isAdmin">
       <li>
         <h3 class="menu-section">Admin</h3>
       </li>
-      <li>
-        <NuxtLink :href="`/manage-users`" class="sidebar-button" title="Manage Users">
-          <span class="icon"></span>
-          <span class="text">Manage Users</span>
-        </NuxtLink>
-      </li>
+      <MenuItem to="/manage/users" text="Manage Users" icon="" />
     </template>
 
   </ul>
@@ -51,6 +38,12 @@
 
 <script setup type="ts">
 import {useAuth} from "~/composables/useAuth";
+import MenuItem from "~/components/common/MenuItem.vue";
+
+const router = useRouter();
+const isCurrentPage = computed(() => {
+  return router.currentRoute.value.fullPath
+})
 
 const auth = useAuth();
 const user = auth.user;
@@ -91,21 +84,10 @@ body {
   --footer-height: 4em;
 }
 </style>
-<style scoped>
 
+<style scoped>
 .navbar ul {
   padding: 0;
-}
-
-.navbar li {
-  list-style: none;
-  padding: 0;
-  text-align: center;
-}
-
-:deep(.search-container input) {
-  width: 50vw;
-  max-width: 800px;
 }
 
 .sidebar ul {
@@ -113,34 +95,6 @@ body {
   padding: 0;
   display: grid;
   gap: 0.5rem;
-}
-
-.sidebar-button {
-  align-items: center;
-  background: none;
-  border: none;
-  color: #666666;
-  cursor: pointer;
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  text-align: left;
-  text-decoration: none;
-  width: 100%;
-}
-
-.sidebar-collapsed .sidebar-button {
-  justify-content: center;
-}
-
-.sidebar-button:hover {
-  background-color: #e0e0e0;
-}
-
-.sidebar-button .icon {
-  font-size: 1.2rem;
-  width: 1.5rem;
-  text-align: center;
 }
 
 .menu-section {

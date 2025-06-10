@@ -95,6 +95,7 @@ tasks.named('test') {
 }
 
 bootRun {
+	environment 'CATALINA_BASE', "$projectDir"
 	outputs.upToDateWhen { false }
 	args = ["--spring.profiles.active=dev"]
 }

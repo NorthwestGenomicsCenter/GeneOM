@@ -67,4 +67,8 @@ public class User implements UserDetails {
         return authorities;
     }
 
+    public boolean inUserList(Set<User> users) {
+        return users.stream().anyMatch(u -> u.getId().equals(id));
+    }
+
 }

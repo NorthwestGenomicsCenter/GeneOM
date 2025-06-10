@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SampleFileDto {
+public class SampleFileDTO {
     private String sampleId;
     private String path;
 }
