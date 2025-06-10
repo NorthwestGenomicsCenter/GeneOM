@@ -1,26 +1,5 @@
 <template>
   <InputText v-model="queryString" placeholder="Query..." />
-<!--  <section class="bordered centered">-->
-<!--    <Button label="Query" @click="query" />-->
-<!--    <DataTable-->
-<!--      :value="response"-->
-<!--      :rows="20"-->
-<!--      :rowsPerPageOptions="[20,30,50]">-->
-<!--      <Column header="Sample" field="sample_id" />-->
-<!--      <Column header="Path" field="path" />-->
-<!--      <Column header="Add Resource">-->
-<!--        <template #body="{data}">-->
-<!--          <Button-->
-<!--            label="Add"-->
-<!--            outlined-->
-<!--            raised-->
-<!--            severity="info"-->
-<!--            @click="addResource(data)"/>-->
-<!--        </template>-->
-<!--      </Column>-->
-<!--    </DataTable>-->
-<!--  </section>-->
-
   <section class="bordered centered">
     <DataTable
         selection-mode="single"
@@ -55,7 +34,8 @@
                   outlined
                   raised
                   severity="info"
-                  @click="addResource(data)"/>
+                  :disabled="slotProps.data.multiomics_sample_id == null"
+                  @click="addResource(data, slotProps.data)"/>
             </template>
           </Column>
         </DataTable>
@@ -103,6 +83,7 @@ const createSample = async (data) => {
   const dto : SampleDTO = {
     id: null,
     name: data.sample_name,
+    integration_source: data.integration_source,
     external_lims_id: data.sample_id,
     external_project_name: data.project_name,
     description: data.description,
@@ -116,11 +97,11 @@ const createSample = async (data) => {
 }
 
 const testing = ref();
-const addResource = async (data) => {
+const addResource = async (data, sample : SampleDTO) => {
   const res = await useFetch('/api/omic/save', {
     method: "POST",
     body: {
-      "sampleid": "04be3ce1-d672-4807-a276-d5d11681b351",
+      "sampleid": sample.multiomics_sample_id,
       "path": data.path,
       "type": "text_File"
     }

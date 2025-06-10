@@ -15,6 +15,7 @@ import java.util.UUID;
 public class OmicResourceDTO {
     private UUID omicResourceId;
     private UUID sampleid;
+    private String integrationSource;
     private String path;
     private Boolean igvTrack;
     private List<String> visualizers;

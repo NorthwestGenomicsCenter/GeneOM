@@ -52,7 +52,7 @@ public class Sample {
 
     @OneToMany
     @JsonManagedReference
-    private Set<OmicResource> omicResources;
+    private Set<OmicResource> omicResources = new HashSet<>();
 
     @ManyToMany
     private Set<User> users = new HashSet<>();

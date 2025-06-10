@@ -51,7 +51,6 @@ public class OmicController {
 
     @PostMapping("/save")
     public ResponseEntity<?> saveOmics(@RequestBody OmicResourceDTO dto) {
-        System.out.println("dto = " + dto);
         Optional<Sample> sample = sampleService.getById(dto.getSampleid());
         if (sample.isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -60,7 +59,6 @@ public class OmicController {
         OmicResource resource = new OmicResource(dto, sample.get());
         sample.get().getOmicResources().add(resource);
         OmicResource newResource = omicService.save(resource);
-//        sampleService.save(sample.get());
 
         return ResponseEntity.ok("Saved");
     }

@@ -43,6 +43,9 @@ public class SampleDTO {
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
         this.users = sample.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
-        this.omicResources = sample.getOmicResources().stream().map(OmicResourceDTO::new).toList();
+        this.omicResources = sample.getOmicResources().stream()
+                .filter(Objects::nonNull)
+                .map(OmicResourceDTO::new)
+                .toList();
     }
 }
