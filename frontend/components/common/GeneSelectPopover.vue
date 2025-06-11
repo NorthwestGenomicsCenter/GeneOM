@@ -18,12 +18,6 @@
             rounded
             outlined
             @click="addGene"/>
-<!--        <Button-->
-<!--            label="Highlight Related Genes"-->
-<!--            severity="secondary"-->
-<!--            raised-->
-<!--            rounded-->
-<!--            outlined/>-->
       </div>
     </div>
   </Popover>

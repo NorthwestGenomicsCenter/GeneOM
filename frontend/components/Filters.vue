@@ -1,22 +1,6 @@
 <template>
   Gene Names and Relations from <a href="https://www.genenames.org/">HUGO gene nomenclature committee</a>
 
-<!--  <div v-for="[ key, value ] in Object.entries(store.globalNav)" :key="setting">-->
-<!--    <template v-if="key == 'genes'">-->
-<!--      <h3>{{ key }}</h3>-->
-<!--      <p-->
-<!--          v-for="gene in value" :key="gene"-->
-<!--          @click="store.changeGene(gene)">-->
-<!--        {{ gene }}-->
-<!--        <Button label="Search Related" small @click="findRelatedGenes(gene)"/>-->
-<!--      </p>-->
-<!--    </template>-->
-<!--    <template v-else>-->
-<!--      <h3>{{ key }}</h3>-->
-<!--      <span>{{ value }}</span>-->
-<!--    </template>-->
-<!--  </div>-->
-
   <Accordion multiple>
     <h3>Genes</h3>
     <template v-for="gene in store.globalNav.genes" :key="gene">

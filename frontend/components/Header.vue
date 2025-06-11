@@ -11,16 +11,6 @@
         Login
       </div>
     </div>
-
-<!--    <div class="title" @click="toggleNavBar">-->
-<!--      UW Multiomics Browser-->
-<!--    </div>-->
-<!--    <div class="search-container">-->
-<!--      <Search/>-->
-<!--    </div>-->
-<!--    <div class="ui-user">-->
-<!--      Login-->
-<!--    </div>-->
   </header>
 </template>
 

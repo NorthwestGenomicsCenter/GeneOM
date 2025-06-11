@@ -5,7 +5,7 @@
   </FloatLabel>
 
   <FloatLabel variant="on" class="input">
-    <InputText id="project-name" v-model="sample.external_project_name"/>
+    <InputText id="project-name" v-model="sample.externalProjectName"/>
     <label for="project-name">Project Name</label>
   </FloatLabel>
 
@@ -50,7 +50,7 @@
   <h4>Files</h4>
   <div
       class="file-group"
-      v-for="[index, file] of sample.omic_resources.entries()"
+      v-for="[index, file] of sample.omicResources.entries()"
       :key="index">
     <FloatLabel variant="on" class="input">
       <InputText :id="`value-${index}`" v-model="file.path" style="width: 120ch;"/>
@@ -67,7 +67,7 @@
       <label :for="`label-${index}`">Visualization Type</label>
     </FloatLabel>
     <div>
-      <Checkbox :id="`igv-check-${index}`" binary v-model="file.igv_track"/>
+      <Checkbox :id="`igv-check-${index}`" binary v-model="file.igvTrack"/>
       <label :for="`igv-check-${index}`">&nbsp;&nbsp;Igv</label>
     </div>
   </div>
@@ -87,10 +87,10 @@
 interface Sample {
   id: string;
   name: string;
-  external_lims_id: string;
+  externalLimsId: string;
   description?: any;
-  external_project_name: string;
-  omic_resources: Omicresource[];
+  externalProjectName: string;
+  omicResources: Omicresource[];
   users: any[];
   tags: any[];
 }
@@ -98,9 +98,9 @@ interface Sample {
 interface Omicresource {
   id: number;
   path: string;
-  viz_transformer: string;
+  vizTransformer: string;
   visualizers: string[];
-  igv_track: boolean | null;
+  igvTrack: boolean | null;
 }
 
 const sample = defineModel<Sample>("sample", {required: true});

@@ -6,8 +6,8 @@
     <DataTable
         :value="samples">
       <Column header="Name" field="name" />
-      <Column header="External Lims Id" field="external_lims_id" />
-      <Column header="External Project Name" field="external_project_name" />
+      <Column header="External Lims Id" field="externalLimsId" />
+      <Column header="External Project Name" field="externalProjectName" />
       <Column header="Description" field="description" />
       <Column header="Owners" field="users">
         <template #body="{data}">

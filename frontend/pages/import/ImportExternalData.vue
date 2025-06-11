@@ -4,17 +4,17 @@
     <DataTable
         selection-mode="single"
         v-model:expandedRows="expandedRows"
-        data-key="sample_id"
+        data-key="sampleId"
         :value="sampleSearch"
         :rows="20"
         :rowsPerPageOptions="[20,30,50]">
       <Column expander style="width: 5rem" />
-      <Column header="Sample Id" field="sample_id" />
-      <Column header="Sample Id" field="multiomics_sample_id" />
-      <Column header="Sample Name" field="sample_name" />
-      <Column header="Source" field="integration_source" />
-      <Column header="Description" field="sample_description" />
-      <Column header="Project Name" field="project_name" />
+      <Column header="Sample Id" field="sampleId" />
+      <Column header="Sample Id" field="multiomicsSampleId" />
+      <Column header="Sample Name" field="sampleName" />
+      <Column header="Source" field="integrationSource" />
+      <Column header="Description" field="sampleDescription" />
+      <Column header="Project Name" field="projectName" />
       <Column header="Create">
         <template #body="{data}">
           <Button size="small" label="Create Sample" @click="createSample(data)" />
@@ -22,10 +22,10 @@
       </Column>
       <template #expansion="slotProps">
         <DataTable
-            :value="slotProps.data.sample_files"
+            :value="slotProps.data.sampleFiles"
             :rows="20"
             :rowsPerPageOptions="[20,30,50]">
-<!--          <Column header="Sample" field="sample_id" />-->
+<!--          <Column header="Sample" field="sampleId" />-->
           <Column header="Path" field="path" />
           <Column header="Add Resource">
             <template #body="{data}">
@@ -34,7 +34,7 @@
                   outlined
                   raised
                   severity="info"
-                  :disabled="slotProps.data.multiomics_sample_id == null"
+                  :disabled="slotProps.data.multiomicsSampleId == null"
                   @click="addResource(data, slotProps.data)"/>
             </template>
           </Column>
@@ -66,12 +66,12 @@ const querySamples = async () => {
 interface SampleDTO {
   id: string;
   name: string;
-  integration_source: string;
-  multiomics_sample_id: string;
-  external_lims_id: string;
-  external_project_name: string;
+  integrationSource: string;
+  multiomicsSampleId: string;
+  externalLimsId: string;
+  externalProjectName: string;
   description: string;
-  sample_files: FilePaths[];
+  sampleFiles: FilePaths[];
 }
 
 interface FilePaths {
@@ -82,12 +82,13 @@ interface FilePaths {
 const createSample = async (data) => {
   const dto : SampleDTO = {
     id: null,
-    name: data.sample_name,
-    integration_source: data.integration_source,
-    external_lims_id: data.sample_id,
-    external_project_name: data.project_name,
+    name: data.sampleName,
+    integrationSource: data.integrationSource,
+    externalLimsId: data.sampleId,
+    externalProjectName: data.projectName,
     description: data.description,
-    sample_files: null
+    sampleFiles: null,
+    multiomicsSampleId: null
   }
 
   const res = await useFetch('/api/sample/save', {
@@ -101,7 +102,7 @@ const addResource = async (data, sample : SampleDTO) => {
   const res = await useFetch('/api/omic/save', {
     method: "POST",
     body: {
-      "sampleid": sample.multiomics_sample_id,
+      "sampleid": sample.multiomicsSampleId,
       "path": data.path,
       "type": "text_File"
     }

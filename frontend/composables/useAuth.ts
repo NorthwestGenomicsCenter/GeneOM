@@ -5,7 +5,7 @@ export const useAuth = () => {
 	const isAuthenticated = useState('isAuthenticated', () => false)
 	
 	const getToken = (): any => {
-		const cookie = useCookie('refresh_token');
+		const cookie = useCookie('refreshToken');
 		const token = cookie.value;
 		
 		if (!token) {
@@ -23,7 +23,7 @@ export const useAuth = () => {
 	};
 	
 	const setAuthCookies = (accessToken : string, refreshToken : string) => {
-		const accessTokenCookie = useCookie('access_token', {
+		const accessTokenCookie = useCookie('accessToken', {
 			httpOnly: false, // Set to true if you want more security (but won't be accessible via JS)
 			secure: process.env.NODE_ENV === 'production', // HTTPS only in production
 			sameSite: 'strict',
@@ -35,7 +35,7 @@ export const useAuth = () => {
 			accessTokenCookie.value = accessToken
 		}
 		
-		const refreshTokenCookie = useCookie('refresh_token', {
+		const refreshTokenCookie = useCookie('refreshToken', {
 			httpOnly: false, // Set to true if you want more security (but won't be accessible via JS)
 			secure: process.env.NODE_ENV === 'production', // HTTPS only in production
 			sameSite: 'strict',
@@ -49,8 +49,8 @@ export const useAuth = () => {
 	}
 	
 	interface LoginResponse {
-		access_token: string;
-		refresh_token: string;
+		accessToken: string;
+		refreshToken: string;
 		type: string;
 		id: number;
 		username: string;
@@ -68,7 +68,7 @@ export const useAuth = () => {
 			const loginResponse: LoginResponse = data.value;
 			
 			// Set the token from response data
-			setAuthCookies(loginResponse.access_token, loginResponse.refresh_token)
+			setAuthCookies(loginResponse.accessToken, loginResponse.refreshToken)
 			
 			isAuthenticated.value = true;
 			user.value = getToken();
@@ -78,9 +78,9 @@ export const useAuth = () => {
 	}
 	
 	const logout = async () => {
-		const accessCookie = useCookie('access_token');
+		const accessCookie = useCookie('accessToken');
 		accessCookie.value = null;
-		const refreshCookie = useCookie('refresh_token');
+		const refreshCookie = useCookie('refreshToken');
 		refreshCookie.value = null;
 		
 		isAuthenticated.value = false;

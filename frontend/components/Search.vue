@@ -15,19 +15,19 @@
       <h3 id="search-group-header">{{ option.label }}</h3>
     </template>
     <template #option="{option}">
-      <div v-if="option['ensembl_gene_id'] !== undefined" class="flex items-center">
+      <div v-if="option['ensemblGeneId'] !== undefined" class="flex items-center">
         <div>
           Gene:
           <Tag>{{ option.symbol }}</Tag>
           Ensembl:
-          <Tag severity="secondary">{{ option.ensembl_gene_id }}</Tag>
+          <Tag severity="secondary">{{ option.ensemblGeneId }}</Tag>
         </div>
         <div>{{ option.name }}</div>
       </div>
-      <div v-else-if="option['external_lims_id'] !== undefined" class="flex items-center">
+      <div v-else-if="option['externalLimsId'] !== undefined" class="flex items-center">
         <div>
           Sample:
-          <Tag severity="info">{{ option.external_lims_id }}</Tag>
+          <Tag severity="info">{{ option.externalLimsId }}</Tag>
           Name:
           <Tag severity="secondary">{{ option.name }}</Tag>
         </div>

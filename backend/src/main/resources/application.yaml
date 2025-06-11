@@ -6,8 +6,8 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
   jackson:
-    property-naming-strategy: SNAKE_CASE
-#  flyway:
+    property-naming-strategy: LOWER_CAMEL_CASE
+  #  flyway:
 #    locations: classpath:/db/migration
 #    schemas: employees
 #    baselineOnMigrate: true

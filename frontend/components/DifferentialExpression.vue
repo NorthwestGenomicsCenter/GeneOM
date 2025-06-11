@@ -21,7 +21,7 @@
         row-hover
         filterDisplay="menu"
         @row-dblclick="rowClick">
-      <Column field="gene_name" header="gene" sortable/>
+      <Column field="geneName" header="gene" sortable/>
       <Column field="logFC" header="logFC" sortable>
         <template #body="{ data }">
           {{ data.logFC }}
@@ -64,7 +64,7 @@ interface DifferentialExpression {
   F: Number
   PValue: Number
   FDR: Number
-  gene_name: string
+  geneName: string
 }
 
 defineOptions({
@@ -119,7 +119,7 @@ const filters = computed(() => {
 
   return {
     global: { value: store.globalNav.gene, matchMode: FilterMatchMode.CONTAINS },
-    gene_name: { operator: FilterOperator.OR, constraints: applyGlobals.value ? geneFilterList : [] },
+    geneName: { operator: FilterOperator.OR, constraints: applyGlobals.value ? geneFilterList : [] },
   }
 })
 

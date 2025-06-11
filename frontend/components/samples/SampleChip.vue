@@ -3,10 +3,10 @@
     <span class="header-line">
       <Tag>{{ sample.name }}</Tag>
       <div class="sample-lims">
-        <strong>LIMS ID:</strong> {{ sample.external_lims_id }}
+        <strong>LIMS ID:</strong> {{ sample.externalLimsId }}
       </div>
     </span>
-    <p class="sample-project"><strong>Project:</strong> {{ sample.external_project_name }}</p>
+    <p class="sample-project"><strong>Project:</strong> {{ sample.externalProjectName }}</p>
     <p class="sample-description"><strong>Description:</strong> {{ sample.description }}</p>
   </div>
 </template>
@@ -15,19 +15,19 @@
 interface Sample {
   id: string;
   name: string;
-  external_lims_id: string;
-  external_project_name: string;
+  externalLimsId: string;
+  externalProjectName: string;
   description: string;
   tags: Tag[];
   users: User[];
-  omic_resources?: Omicresource[];
+  omicResources?: Omicresource[];
 }
 
 interface Omicresource {
-  omic_resource_id: string;
-  sampleid: string;
+  omicResourceId: string;
+  sampleId: string;
   path: string;
-  igv_track?: boolean;
+  igvTrack?: boolean;
   visualizers: string[];
 }
 
