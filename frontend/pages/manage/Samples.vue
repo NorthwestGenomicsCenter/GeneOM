@@ -44,7 +44,7 @@ definePageMeta({
   layout: 'default'
 })
 
-const samples = ref([]);
+const samples = ref<SampleDTO[]>([]);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
@@ -64,7 +64,7 @@ const editSample = (row) => {
   editVisible.value = true;
 }
 
-const fullName = (user) => {
+const fullName = (user : UserDTO) => {
   return `${user.firstName} ${user.lastName}`;
 }
 </script>

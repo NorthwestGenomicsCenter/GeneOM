@@ -12,41 +12,7 @@
 </template>
 
 <script setup lang="ts">
-interface Sample {
-  id: string;
-  name: string;
-  externalLimsId: string;
-  externalProjectName: string;
-  description: string;
-  tags: Tag[];
-  users: User[];
-  omicResources?: Omicresource[];
-}
-
-interface Omicresource {
-  omicResourceId: string;
-  sampleId: string;
-  path: string;
-  igvTrack?: boolean;
-  visualizers: string[];
-}
-
-interface User {
-  id: number;
-  userName: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  permissions: string[];
-}
-
-interface Tag {
-  id: string;
-  label: string;
-  value: string;
-}
-
-const { sample } = defineProps<{ sample: Sample }>();
+const { sample } = defineProps<{ sample: SampleDTO }>();
 </script>
 
 <style scoped>

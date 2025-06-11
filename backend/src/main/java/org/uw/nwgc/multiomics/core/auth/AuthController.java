@@ -51,7 +51,7 @@ public class AuthController {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
-        JwtResponse res = new JwtResponse();
+        LoginResponseDTO res = new LoginResponseDTO();
         res.setAccessToken(accessToken);
         res.setRefreshToken(refreshToken);
         res.setId(userDetails.getId());

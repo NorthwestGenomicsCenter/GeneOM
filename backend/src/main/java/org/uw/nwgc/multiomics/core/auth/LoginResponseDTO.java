@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class JwtResponse {
+public class LoginResponseDTO {
     private String accessToken;
     private String refreshToken;
     private String type = "Bearer";
