@@ -160,7 +160,7 @@ body {
   vertical-align: center;
   padding: 1rem;
   box-shadow: 0px 3px 15px -1px rgba(219,219,219,1);
-  background-image: url("~/public/dna3.png"), linear-gradient(to right, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #ba71ff, #ff71b8);;
+  background-image: url("~/dna3.png"), linear-gradient(to right, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #ba71ff, #ff71b8);
   background-repeat: no-repeat;
   position: sticky;
   width: 100%;

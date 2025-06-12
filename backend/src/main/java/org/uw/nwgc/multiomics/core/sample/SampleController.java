@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.uw.nwgc.multiomics.api.view.SampleViewDTO;
+import org.uw.nwgc.multiomics.api.view.SampleViewService;
 
 import java.util.List;
 import java.util.Map;
@@ -25,10 +27,14 @@ import java.util.stream.Collectors;
 public class SampleController {
 
     private final SampleService sampleService;
+    private final SampleRepository sampleRepository;
+    private final SampleViewService sampleViewService;
 
     @Autowired
-    public SampleController(SampleService sampleService) {
+    public SampleController(SampleService sampleService, SampleRepository sampleRepository, SampleViewService sampleViewService) {
         this.sampleService = sampleService;
+        this.sampleRepository = sampleRepository;
+        this.sampleViewService = sampleViewService;
     }
 
     @GetMapping("/search/{name}")
@@ -88,4 +94,18 @@ public class SampleController {
 //
 //        return ResponseEntity.ok("Sample Saved");
 //    }
+
+    @GetMapping("/{sampleId}/views")
+    public List<SampleViewDTO> getSampleViews(@PathVariable String sampleId) {
+        return sampleViewService.getAvailableTechnologyViewPairsForSample(sampleId);
+    }
+
+
+    @GetMapping("/{sampleId}/tviews")
+    public ResponseEntity<Map<String, List<String>>> getAvailableViewsByTechnologyForSample(
+            @PathVariable String sampleId
+    ) {
+        Map<String, List<String>> result = sampleViewService.getAvailableViewsByTechnologyForSample(sampleId);
+        return ResponseEntity.ok(result);
+    }
 }

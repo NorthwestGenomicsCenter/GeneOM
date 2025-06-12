@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Node ###
+/shared/node_modules/*

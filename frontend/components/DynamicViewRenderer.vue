@@ -1,12 +1,13 @@
-<!-- DynamicViewRenderer.vue -->
 <template>
-  <component
-      :is="ViewComponent"
-      v-bind="componentProps"
-      v-if="ViewComponent"
-  />
-  <div v-else>
-    Unsupported view: {{ viewName }}
+  <div class="w-full h-full overflow-auto p-4 bg-white rounded shadow">
+    <component
+        :is="ViewComponent"
+        v-bind="componentProps"
+        v-if="ViewComponent"
+    />
+    <div v-else>
+      Unsupported view: {{ viewName }}
+    </div>
   </div>
 </template>
 

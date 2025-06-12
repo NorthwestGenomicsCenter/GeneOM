@@ -94,13 +94,18 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+tasks.named("build") {
+	dependsOn("generateViewNamesTS")
+}
+
 bootRun {
 	environment 'CATALINA_BASE', "$projectDir"
 	outputs.upToDateWhen { false }
 	args = ["--spring.profiles.active=dev"]
+	dependsOn("generateViewNamesTS")
 }
 
-task admin(type: JavaExec) {
+tasks.register('admin', JavaExec) {
 	outputs.upToDateWhen { false }
 	args = ["--spring.profiles.active=dev"]
 	mainClass = 'org.uw.nwgc.multiomics.UwMultiomicsBrowserApplication'
@@ -109,16 +114,13 @@ task admin(type: JavaExec) {
 	standardInput = System.in
 }
 
-tasks.register('generateViewNamesJson', Exec) {
-	workingDir '../shared'
-	commandLine osAdaptiveCommand('npm', 'run', 'generate-json')
+tasks.register('generateViewNamesTS', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass.set("org.uw.nwgc.multiomics.api.GenerateTSFromEnum")
+	args = [
+			"org.uw.nwgc.multiomics.api.ViewName",
+			"${layout.projectDirectory}/../shared/viewNames.ts",
+			"VIEW_NAMES",
+			"ViewName"
+	]
 }
-
-tasks.register('copyViewNamesJson', Copy) {
-	from('../shared/viewNames.json')
-	into("./build/resources/main")
-}
-
-copyViewNamesJson.dependsOn(generateViewNamesJson)
-processResources.dependsOn(copyViewNamesJson)
-

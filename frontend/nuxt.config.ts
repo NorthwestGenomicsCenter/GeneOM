@@ -2,13 +2,14 @@
 import Aura from '@primevue/themes/aura';
 import Material from '@primevue/themes/material';
 import * as path from "node:path";
+import tailwindcss from "@tailwindcss/vite"
 
 export default defineNuxtConfig({
   alias: { '@shared': path.resolve(__dirname, '../shared') },
   compatibilityDate: '2024-04-03',
   css: [
     'primeicons/primeicons.css',
-    'assets/css/main.css'
+    '~/assets/css/main.css'
   ],
   devtools: { enabled: true },
   modules: [
@@ -18,6 +19,11 @@ export default defineNuxtConfig({
   plugins: [
     { src: '~/plugins/jquery.js', mode: 'client' },
   ],
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
   primevue: {
     options: {
       theme: {

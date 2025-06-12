@@ -1,48 +1,47 @@
 <template>
-  <Header title="Differential Expression" v-model="applyGlobals" />
-  <div>
-    <Chart
-        type="scatter"
-        :data="computeChartData"
-        :options="chartOptions"
-        :width="1000"
-        :height="400"
-        @select="select"
-        class="chart centered"
-        ref="differentialExpressionChart"
-    />
-  </div>
-  <div>
-    <DataTable
-        :value="table"
-        :paginator="true"
-        :rows="10"
-        :filters="filters"
-        row-hover
-        filterDisplay="menu"
-        @row-dblclick="rowClick">
-      <Column field="geneName" header="gene" sortable/>
-      <Column field="logFC" header="logFC" sortable>
-        <template #body="{ data }">
-          {{ data.logFC }}
+  <div class="de-container">
+    <Header title="Differential Expression" v-model="applyGlobals" />
+    <div class="chart-wrapper">
+      <Chart
+          type="scatter"
+          :data="computeChartData"
+          :options="chartOptions"
+          @select="select"
+          class="chart centered"
+          ref="differentialExpressionChart"
+      />
+    </div>
+    <div class="table-wrapper">
+      <DataTable
+          :value="table"
+          :paginator="true"
+          :rows="10"
+          :filters="filters"
+          row-hover
+          filterDisplay="menu"
+          @row-dblclick="rowClick">
+        <Column field="geneName" header="gene" sortable/>
+        <Column field="logFC" header="logFC" sortable>
+          <template #body="{ data }">
+            {{ data.logFC }}
+          </template>
+          <template #filter="{ filterModel }">
+            <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+          </template>
+        </Column>
+        <Column field="logCPM" header="logCPM" sortable></Column>
+        <Column field="F" header="F" sortable></Column>
+        <Column field="PValue" header="PValue" sortable></Column>
+        <Column field="FDR" header="FDR" sortable></Column>
+        <template #footer>
+
         </template>
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
-        </template>
-      </Column>
-      <Column field="logCPM" header="logCPM" sortable></Column>
-      <Column field="F" header="F" sortable></Column>
-      <Column field="PValue" header="PValue" sortable></Column>
-      <Column field="FDR" header="FDR" sortable></Column>
-      <template #footer>
+      </DataTable>
+    </div>
 
-      </template>
-    </DataTable>
+    <GeneSelectPopover :genes="genesList" ref="op" />
+    <div class="popover-anchor" style="position: absolute" ref="anchor"></div>
   </div>
-
-  <GeneSelectPopover :genes="genesList" ref="op" />
-  <div class="popover-anchor" style="position: absolute" ref="anchor"></div>
-
 </template>
 
 <script setup lang="ts">
@@ -295,4 +294,36 @@ function setChartOptions() {
   margin-left: auto;
   margin-right: auto;
 }
+
+:deep(.chart) {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+:deep(.chart > canvas) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.de-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 500px; /* ⬅️ This is your minimum height */
+  overflow: hidden;
+}
+
+.chart-wrapper {
+  flex: 1 1 60%;
+  min-height: 200px;
+  overflow: hidden;
+}
+
+.table-wrapper {
+  flex: 1 1 40%;
+  min-height: 200px;
+  overflow: auto;
+}
+
 </style>
