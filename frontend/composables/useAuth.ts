@@ -48,15 +48,6 @@ export const useAuth = () => {
 		}
 	}
 	
-	interface LoginResponse {
-		accessToken: string;
-		refreshToken: string;
-		type: string;
-		id: number;
-		username: string;
-		roles: any[];
-	}
-	
 	const login = async (credentials: { username: string, password: string }) => {
 		const {data, error}: { data: any, error: any } = await useFetch('/api/auth/login', {
 			method: 'POST',
@@ -65,7 +56,7 @@ export const useAuth = () => {
 		})
 		
 		if (data.value && !error.value) {
-			const loginResponse: LoginResponse = data.value;
+			const loginResponse: LoginResponseDTO = data.value;
 			
 			// Set the token from response data
 			setAuthCookies(loginResponse.accessToken, loginResponse.refreshToken)

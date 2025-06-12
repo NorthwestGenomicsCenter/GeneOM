@@ -72,28 +72,6 @@ public class SampleController {
         return ResponseEntity.ok(sample);
     }
 
-//    @PostMapping("/save/tags/{sampleId}")
-//    public ResponseEntity<String> saveTags(@PathVariable UUID sampleId, @RequestBody List<Tag.SampleTagDto> sampleTags) {
-//        Optional<Sample> query = sampleService.getById(sampleId);
-//        if (query.isEmpty()) {
-//            return ResponseEntity.badRequest().body("Sample Not Found");
-//        }
-//
-//        Sample sample = query.get();
-//        Map<UUID, Tag> existingTags = sample.getTags()
-//                .stream()
-//                .collect(Collectors.toMap(Tag::getId, Function.identity()));
-//
-//        for (Tag.SampleTagDto tagDto : sampleTags) {
-//            Tag tag = existingTags.computeIfAbsent(tagDto.id(), k -> new Tag());
-//            tag.updateTag(tagDto);
-//            sample.getTags().add(tag);
-//        }
-//
-//        sampleService.save(sample);
-//
-//        return ResponseEntity.ok("Sample Saved");
-//    }
 
     @GetMapping("/{sampleId}/views")
     public List<SampleViewDTO> getSampleViews(@PathVariable String sampleId) {

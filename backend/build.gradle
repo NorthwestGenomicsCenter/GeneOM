@@ -1,4 +1,5 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import cz.habarta.typescript.generator.gradle.GenerateTask
 
 plugins {
 	id 'java'
@@ -7,6 +8,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.6'
 	id 'org.hibernate.orm' version '6.5.3.Final'
 	id 'org.graalvm.buildtools.native' version '0.10.3'
+	id 'cz.habarta.typescript-generator' version '3.2.1263'
 }
 
 group = 'org.uw.nwgc'
@@ -98,8 +100,20 @@ tasks.named("build") {
 	dependsOn("generateViewNamesTS")
 }
 
+task generateTypescriptFromAnnotations(type: GenerateTask, dependsOn: [compileJava]) {
+	inputs.files('./src/**/*.java')
+//	 outputs.files('../shared/generated/dto_interfaces.d.ts')
+
+	jsonLibrary = 'jackson2'
+	classPatterns = [
+			'org.uw.nwgc.**.*DTO'
+	]
+	outputFileType = 'declarationFile'
+	outputFile = '../frontend/types/DTOTypes.d.ts'
+	outputKind = 'global'
+}
+
 bootRun {
-	environment 'CATALINA_BASE', "$projectDir"
 	outputs.upToDateWhen { false }
 	args = ["--spring.profiles.active=dev"]
 	dependsOn("generateViewNamesTS")

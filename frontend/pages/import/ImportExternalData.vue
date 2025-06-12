@@ -63,22 +63,6 @@ const querySamples = async () => {
   sampleSearch.value = res.data.value;
 }
 
-interface SampleDTO {
-  id: string;
-  name: string;
-  integrationSource: string;
-  multiomicsSampleId: string;
-  externalLimsId: string;
-  externalProjectName: string;
-  description: string;
-  sampleFiles: FilePaths[];
-}
-
-interface FilePaths {
-  sampleId: string;
-  path: string;
-}
-
 const createSample = async (data) => {
   const dto : SampleDTO = {
     id: null,
@@ -87,8 +71,9 @@ const createSample = async (data) => {
     externalLimsId: data.sampleId,
     externalProjectName: data.projectName,
     description: data.description,
-    sampleFiles: null,
-    multiomicsSampleId: null
+    omicResources: null,
+    tags: null,
+    users: null
   }
 
   const res = await useFetch('/api/sample/save', {
@@ -102,7 +87,7 @@ const addResource = async (data, sample : SampleDTO) => {
   const res = await useFetch('/api/omic/save', {
     method: "POST",
     body: {
-      "sampleid": sample.multiomicsSampleId,
+      "sampleid": sample.id,
       "path": data.path,
       "type": "text_File"
     }
