@@ -100,7 +100,7 @@ tasks.named("build") {
 	dependsOn("generateViewNamesTS")
 }
 
-task generateTypescriptFromAnnotations(type: GenerateTask, dependsOn: [compileJava]) {
+task generateTypescript(type: GenerateTask, dependsOn: [compileJava]) {
 	inputs.files('./src/**/*.java')
 //	 outputs.files('../shared/generated/dto_interfaces.d.ts')
 

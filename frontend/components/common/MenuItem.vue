@@ -25,7 +25,13 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const isActive = computed(() => router.currentRoute?.value?.fullPath === props.to)
+const isActive = computed(() => {
+  const to = props.to;
+  const fullPath = router.currentRoute?.value?.fullPath;
+  if (to == null || fullPath == null) return false;
+
+  return fullPath.startsWith(to);
+})
 
 </script>
 

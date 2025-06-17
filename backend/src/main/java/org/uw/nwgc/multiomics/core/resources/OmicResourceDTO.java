@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OmicResourceDTO {
     private UUID omicResourceId;
-    private UUID sampleid;
+    private UUID sampleId;
     private String integrationSource;
     private String path;
     private Boolean igvTrack;
@@ -22,7 +22,7 @@ public class OmicResourceDTO {
 
     public OmicResourceDTO(OmicResource omicResource) {
         this.omicResourceId = omicResource.getId();
-        this.sampleid = omicResource.getSample().getId();
+        this.sampleId = omicResource.getSample().getId();
         this.path = omicResource.getPath();
         this.visualizers = omicResource.getVisualizers();
         this.igvTrack = omicResource.getIgvTrack();

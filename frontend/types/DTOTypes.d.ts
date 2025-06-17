@@ -1,6 +1,11 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.2.1263 on 2025-06-11 14:10:02.
+// Generated using typescript-generator version 3.2.1263 on 2025-06-17 13:31:34.
+
+interface SampleViewDTO {
+    technology: string;
+    viewName: string;
+}
 
 interface IsoformCsvDTO {
     Isoform_PBid: string;
@@ -35,14 +40,47 @@ interface CohortDTO {
     count: number;
 }
 
+interface FinderFileDTO {
+    adapter: string;
+    type: string;
+    path: string;
+    lastModified: number;
+    fileSize: number;
+    basename: string;
+    extension: string;
+    extraMetadata: any[];
+    visibility: string;
+    storage: string;
+}
+
+interface FinderFolderDTO {
+    adapter: string;
+    basename: string;
+    path: string;
+}
+
+interface FinderMessageDTO {
+    adapter: string;
+    dirname: string;
+    files: FinderFileDTO[];
+    storages: string[];
+}
+
 interface SampleFileDTO {
     sampleId: string;
     path: string;
 }
 
+interface AddOmicsResourceDTO {
+    sampleId: string;
+    path: string;
+    visualizers: string[];
+    igvTrack: boolean;
+}
+
 interface OmicResourceDTO {
     omicResourceId: string;
-    sampleid: string;
+    sampleId: string;
     integrationSource: string;
     path: string;
     igvTrack: boolean;

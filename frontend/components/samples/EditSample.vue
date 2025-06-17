@@ -43,67 +43,36 @@
   </div>
   <a
     id="add-tag"
-    @click="sample.tags.push({})">
+    @click="addTag">
     Add Tag
   </a>
 
   <h4>Files</h4>
-  <div
+  <Button size="small" label="Add File" outlined raised @click="addVisible = true" />
+  <template
       class="file-group"
-      v-for="[index, file] of sample.omicResources.entries()"
+      v-for="file of sample.omicResources"
       :key="index">
-    <FloatLabel variant="on" class="input">
-      <InputText :id="`value-${index}`" v-model="file.path" style="width: 120ch;"/>
-      <label :for="`label-${index}`">File Path</label>
-    </FloatLabel>
-    <FloatLabel variant="on" class="input">
-      <MultiSelect
-          v-model="file.visualizers"
-          style="width: 120ch;"
-          class="input-width"
-          display="chip"
-          :id="`label-${index}`"
-          :options="['Differential Expression', 'Technology', 'Something Else']" />
-      <label :for="`label-${index}`">Visualization Type</label>
-    </FloatLabel>
-    <div>
-      <Checkbox :id="`igv-check-${index}`" binary v-model="file.igvTrack"/>
-      <label :for="`igv-check-${index}`">&nbsp;&nbsp;Igv</label>
-    </div>
-  </div>
-  <a
-      id="add-tag"
-      @click="sample.tags.push({})">
-    Add Tag
-  </a>
-
+    <Resource
+      :editing="false"
+      :resource="file"
+      :visualizer-options="['Differential Expression', 'Technology', 'Something Else']" />
+  </template>
   <Button label="Save Changes" @click="save"/>
 
-  <Toast />
+  <Dialog header="AddFile" modal v-model:visible="addVisible">
+    <Resource :resource="{} as OmicResourceDTO" :visualizer-options="['Differential Expression', 'Technology', 'Something Else']" />
+  </Dialog>
 
+  <Toast />
 </template>
 
 <script setup lang="ts">
-interface Sample {
-  id: string;
-  name: string;
-  externalLimsId: string;
-  description?: any;
-  externalProjectName: string;
-  omicResources: Omicresource[];
-  users: any[];
-  tags: any[];
-}
+import Resource from "~/components/samples/Resource.vue";
 
-interface Omicresource {
-  id: number;
-  path: string;
-  vizTransformer: string;
-  visualizers: string[];
-  igvTrack: boolean | null;
-}
+const addVisible = ref(true)
 
-const sample = defineModel<Sample>("sample", {required: true});
+const sample = defineModel<SampleDTO>("sample", {required: true});
 const visible = defineModel<boolean>("visible", {required: true});
 
 const deleteTag = async (tag) => {
@@ -115,8 +84,12 @@ const deleteTag = async (tag) => {
   sample.value = res.data.value;
 }
 
-const toast = useToast()
+const addTag = () => {
+  const newTag = {} as SampleTagDTO;
+  sample.value.tags.push(newTag);
+}
 
+const toast = useToast()
 const save = async () => {
   const res = await useFetch(`/api/sample/save`, {
     method: "POST",

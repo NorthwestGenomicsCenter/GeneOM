@@ -18,6 +18,7 @@
       </Column>
       <Column header="edit" >
         <template #body="{data}">
+          <NuxtLink :to="`/samples/edit/${data.id}`">Edit</NuxtLink>
           <Button label="Edit" size="small" @click="editSample(data)" />
         </template>
       </Column>

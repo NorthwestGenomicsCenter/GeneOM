@@ -2,8 +2,6 @@ package org.uw.nwgc.multiomics.core.sample;
 
 import jakarta.security.auth.message.AuthException;
 import org.hibernate.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -11,7 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.uw.nwgc.multiomics.core.user.User;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,6 +47,15 @@ public class SampleService {
         return Optional.empty();
     }
 
+    public Sample save(Sample sample) throws AuthException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) auth.getPrincipal();
+        if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
+            throw new AuthException("User not allowed to update Sample");
+        }
+
+        return sampleRepository.save(sample);
+    }
 
     public Sample save(SampleDTO sampleDTO) throws AuthException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

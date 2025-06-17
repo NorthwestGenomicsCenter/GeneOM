@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.uw.nwgc.multiomics.api.view.SampleViewDTO;
 import org.uw.nwgc.multiomics.api.view.SampleViewService;
@@ -19,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/sample")
@@ -35,6 +32,17 @@ public class SampleController {
         this.sampleService = sampleService;
         this.sampleRepository = sampleRepository;
         this.sampleViewService = sampleViewService;
+    }
+
+    @GetMapping("/{uuid}")
+    public ResponseEntity<SampleDTO> searchSampleByName(@PathVariable UUID uuid) {
+        Optional<Sample> optional = sampleService.getById(uuid);
+        if  (optional.isPresent()) {
+            Sample sample = optional.get();
+            return ResponseEntity.ok(new SampleDTO(sample));
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/search/{name}")
@@ -71,7 +79,6 @@ public class SampleController {
         Sample sample = sampleService.deleteTag(sampleDTO, tagId);
         return ResponseEntity.ok(sample);
     }
-
 
     @GetMapping("/{sampleId}/views")
     public List<SampleViewDTO> getSampleViews(@PathVariable String sampleId) {

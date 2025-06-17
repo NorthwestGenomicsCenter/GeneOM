@@ -1,10 +1,9 @@
 package org.uw.nwgc.multiomics.core.resources;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -32,7 +31,7 @@ public class OmicResource {
     @Column(columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "sample_id")
     @JsonBackReference
     private Sample sample;
@@ -46,7 +45,7 @@ public class OmicResource {
     public OmicResource(OmicResourceDTO dto, Sample sample) {
         this.path = dto.getPath();
         this.sample = sample;
-        this.vizTransformer = DiffExpression.class;
+        this.vizTransformer = DiffExpressionVisualizer.class;
     }
 
     public List<String> getVisualizers() {

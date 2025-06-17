@@ -14,7 +14,7 @@
     "@pinia/nuxt": "^0.11.0",
     "@primevue/forms": "^4.3.3",
     "@primevue/themes": "^4.3.3",
-    "axios": "^1.7.7",
+    "axios": "^1.9.0",
     "chart.js": "^4.4.6",
     "clustergrammer": "^1.19.5",
     "d3": "^7.9.0",
@@ -27,6 +27,7 @@
     "primevue": "^4.3.3",
     "underscore": "^1.8.3",
     "vue": "^3.5.13",
+    "vuefinder": "^2.7.1",
     "vue-router": "^4.4.5",
     "vue3-grid-layout": "^1.0.0"
   },

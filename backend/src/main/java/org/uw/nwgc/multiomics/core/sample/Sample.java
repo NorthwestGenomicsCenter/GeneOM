@@ -1,32 +1,21 @@
 package org.uw.nwgc.multiomics.core.sample;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.SequenceGenerator;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.UuidGenerator;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.resources.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.user.User;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -50,8 +39,7 @@ public class Sample {
     private String description;
     private String externalProjectName;
 
-    @OneToMany
-    @JsonManagedReference
+    @OneToMany(cascade = CascadeType.ALL)
     private Set<OmicResource> omicResources = new HashSet<>();
 
     @ManyToMany
