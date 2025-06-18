@@ -96,6 +96,6 @@ jobs:
       - name: Upload zip to release
         uses: softprops/action-gh-release@v1
         with:
-          files: frontend/frontend.zip
+          files: ../frontend.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
