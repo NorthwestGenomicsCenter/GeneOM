@@ -102,7 +102,6 @@ aside.main-nav {
   inset: 0 auto 0 0;
   width: var(--sb-width);
   background-color: #1D0040;
-  //background-image: linear-gradient(#4b2e83, #4b2e83, #4b2e83, #ba71ff, #ff71b8);
   transition: width 0.5s ease-in-out;
   margin-top: var(--header-height);
 }
