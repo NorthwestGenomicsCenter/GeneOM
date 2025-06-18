@@ -49,23 +49,23 @@
 
     <!-- Add/Edit Dialog -->
     <Dialog v-model:visible="userDialog" :header="dialogTitle" :modal="true" class="p-fluid" style="width: 450px">
-      <div class="field">
+      <FloatLabel variant="over" class="field">
         <label for="firstName">First Name</label>
         <InputText id="firstName" v-model.trim="user.firstName" required="true" autofocus />
-      </div>
-      <div class="field">
+      </FloatLabel>
+      <FloatLabel variant="over" class="field">
         <label for="lastName">Last Name</label>
         <InputText id="lastName" v-model.trim="user.lastName" required="true" />
-      </div>
-      <div class="field">
+      </FloatLabel>
+      <FloatLabel variant="over" class="field">
         <label for="email">Email</label>
         <InputText id="email" v-model.trim="user.email" required="true" />
-      </div>
-      <div class="field">
+      </FloatLabel>
+      <FloatLabel variant="over" class="field">
         <label for="userName">Username</label>
         <InputText id="userName" v-model.trim="user.userName" required="true" />
-      </div>
-      <div class="field">
+      </FloatLabel>
+      <FloatLabel variant="over" class="field field-dropdown">
         <label>Permissions</label>
         <MultiSelect
             v-model="user.permissions"
@@ -74,7 +74,7 @@
             placeholder="Select permissions"
             display="chip"
         />
-      </div>
+      </FloatLabel>
 
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" @click="hideDialog" class="p-button-text"/>
@@ -219,6 +219,13 @@ const dialogTitle = computed(() => {
 </script>
 
 <style scoped>
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.0em;
+  margin-top: 1.5em;
+}
+
 .user-management-container {
   padding: 2rem;
 }

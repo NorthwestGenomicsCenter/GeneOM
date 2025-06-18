@@ -1,7 +1,5 @@
 <template>
-  <ul>
-    <MenuItem to="/" text="Home" icon="" />
-
+  <ul class="menu">
     <li>
       <h3 class="menu-section">Assays</h3>
     </li>
@@ -86,6 +84,10 @@ body {
 </style>
 
 <style scoped>
+.menu {
+  margin-top: 1.5em;
+}
+
 .navbar ul {
   padding: 0;
 }

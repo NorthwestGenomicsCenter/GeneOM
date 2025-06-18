@@ -1,0 +1,65 @@
+name: Build and Publish Release Artifacts
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x gradlew
+
+      - name: Build WAR file
+        run: ./gradlew war
+
+      - name: Upload WAR to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: backend/build/libs/*.war
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22.11.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.11.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Zip frontend dist
+        run: |
+          zip -r ../frontend.zip ./
+
+      - name: Upload zip to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: frontend/frontend.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

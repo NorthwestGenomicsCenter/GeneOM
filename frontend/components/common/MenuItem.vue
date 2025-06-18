@@ -29,8 +29,11 @@ const isActive = computed(() => {
   const to = props.to;
   const fullPath = router.currentRoute?.value?.fullPath;
   if (to == null || fullPath == null) return false;
+  if (to != "/") {
+    return fullPath.startsWith(to);
+  }
 
-  return fullPath.startsWith(to);
+  return false;
 })
 
 </script>

@@ -19,19 +19,12 @@
       <Column header="edit" >
         <template #body="{data}">
           <NuxtLink :to="`/samples/edit/${data.id}`">Edit</NuxtLink>
-          <Button label="Edit" size="small" @click="editSample(data)" />
         </template>
       </Column>
     </DataTable>
   </div>
 
   <SampleChip :sample="samples[0]" />
-
-  <Dialog header="Edit Sample" v-model:visible="editVisible" @after-hide="loadSamples">
-    <EditSample
-      v-model:visible="editVisible"
-      v-model:sample="sampleToEdit" />
-  </Dialog>
 
 </template>
 
