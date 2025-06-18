@@ -91,11 +91,11 @@ jobs:
 
       - name: Zip frontend .output directory
         run: |
-          zip -r ../frontend.zip .output/
+          zip -r frontend.zip .output/
 
       - name: Upload zip to release
         uses: softprops/action-gh-release@v1
         with:
-          files: ../frontend.zip
+          files: frontend.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
