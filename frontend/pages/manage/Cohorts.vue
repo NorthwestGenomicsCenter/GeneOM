@@ -36,20 +36,20 @@ interface Cohort {
 const cohorts = ref([])
 
 const query = async () => {
-  const res = await useFetch("/api/cohort/all", {
+  const res = await useApi("/cohort/all", {
     method: "GET"
   });
   cohorts.value = res.data.value;
 }
 
-const res = await useFetch("/api/cohort/all", {
+const res = await useApi("/cohort/all", {
   method: "GET"
 });
 cohorts.value = res.data.value;
 
 const newCohort = ref<Cohort>({} as Cohort);
 const createNew = async () => {
-  const res = useFetch(`/api/cohort/create`, {
+  const res = useApi(`/cohort/create`, {
     method: "POST",
     body: JSON.stringify(newCohort.value),
   });

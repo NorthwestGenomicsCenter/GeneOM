@@ -57,13 +57,13 @@ const queryString = ref<string>("1674062");
 const response = ref<any>([]);
 
 const query = async () => {
-  const res = await useFetch(`/api/search/integrations/${queryString.value}`);
+  const res = await useApi(`/search/integrations/${queryString.value}`);
   response.value = res.data.value;
 }
 
 const sampleSearch = ref<ExternalSampleDTO[]>([]);
 const querySamples = async () => {
-  const res = await useFetch(`/api/search/integrations/sample/${queryString.value}`);
+  const res = await useApi(`/search/integrations/sample/${queryString.value}`);
   sampleSearch.value = res.data.value;
 }
 
@@ -80,7 +80,7 @@ const createSample = async (data) => {
     users: null
   }
 
-  const res = await useFetch('/api/sample/save', {
+  const res = await useApi('/sample/save', {
     method: "POST",
     body: dto
   })
@@ -88,7 +88,7 @@ const createSample = async (data) => {
 
 const testing = ref();
 const addResource = async (data, sample : SampleDTO) => {
-  const res = await useFetch('/api/omic/save', {
+  const res = await useApi('/omic/save', {
     method: "POST",
     body: {
       "sampleid": sample.id,

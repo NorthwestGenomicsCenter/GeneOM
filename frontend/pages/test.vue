@@ -15,7 +15,7 @@ const test = ref<any>();
 
 const auth = useAuth();
 
-const res = await useFetch("/api/omic/visualizers/386e7662-f127-4090-9963-847516a8ce55")
+const res = await useApi("/api/omic/visualizers/386e7662-f127-4090-9963-847516a8ce55")
 test.value = res
 
 const c = () => {

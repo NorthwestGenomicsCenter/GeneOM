@@ -43,7 +43,7 @@ const filters = ref({
 });
 
 const loadSamples = async () => {
-  const { data } = await useFetch("/api/sample/all");
+  const { data } = await useApi("/sample/all");
   console.table(data)
   samples.value = data.value;
 };

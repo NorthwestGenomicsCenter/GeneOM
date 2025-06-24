@@ -8,8 +8,6 @@ export default defineEventHandler(async (event) => {
 		// Not our route — continue Nuxt’s normal handling
 		return
 	}
-
-	console.table(event)
 	
 	return createProxyEventHandler({
 		configureProxyRequest(event) {

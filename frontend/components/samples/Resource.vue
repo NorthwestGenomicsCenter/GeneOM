@@ -46,7 +46,7 @@ const editing = defineModel<boolean>("editing", {default: false});
 
 // Remove resource from a sample
 const removeFile = async () => {
-  const res = await useFetch(`/api/omic/remove`, {
+  const res = await useApi(`/omic/remove`, {
     method: "DELETE",
     body: resource
   })

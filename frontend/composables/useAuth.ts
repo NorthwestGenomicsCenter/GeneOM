@@ -49,7 +49,7 @@ export const useAuth = () => {
 	}
 	
 	const login = async (credentials: { username: string, password: string }) => {
-		const {data, error}: { data: any, error: any } = await useFetch('/api/auth/login', {
+		const {data, error}: { data: any, error: any } = await useApi('/auth/login', {
 			method: 'POST',
 			body: credentials,
 			credentials: 'include'

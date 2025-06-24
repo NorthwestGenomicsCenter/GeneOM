@@ -109,7 +109,7 @@ definePageMeta({
 
 const newPassword = ref("");
 const changePassword = async () => {
-  const res = await useFetch("/api/auth/change/password", {
+  const res = await useApi("/auth/change/password", {
     method: "POST",
     body: {
       "username": "mr83",
@@ -155,7 +155,7 @@ onMounted(() => {
 });
 
 const loadUsers = async () => {
-  users.value = await $fetch("/api/users/all");
+  users.value = await $fetch("/users/all");
 };
 
 const showAddDialog = () => {

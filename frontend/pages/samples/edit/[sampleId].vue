@@ -1,6 +1,5 @@
 <template>
   <div class="bordered">
-    {{ authClient }}
     <FloatLabel variant="on" class="input">
       <InputText id="name" v-model="sample.name"/>
       <label for="name">Name</label>
