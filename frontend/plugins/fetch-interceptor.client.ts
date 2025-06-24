@@ -8,6 +8,8 @@ import { ofetch } from 'ofetch'
  * @returns {void}
  */
 export default defineNuxtPlugin(() => {
+	const baseUrl = useRuntimeConfig().app.baseURL;
+	
 	/**
 	 * Hook that runs after every successful HTTP response.
 	 * Scans for `x-access-token` and `x-refresh-token` headers,
@@ -21,6 +23,8 @@ export default defineNuxtPlugin(() => {
 	 * @returns {Promise<void>}
 	 */
 	(globalThis as any)['$fetch'] = ofetch.create({
+		baseURL: baseUrl,
+
 		async onResponse({ request, response }) {
 			let accessToken = null;
 			let refreshToken = null;

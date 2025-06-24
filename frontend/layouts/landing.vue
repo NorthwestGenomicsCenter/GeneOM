@@ -14,7 +14,14 @@
 import { ref } from 'vue'
 import {useGlobalStore} from "~/composables/useGlobal.ts";
 
+const baseUrl = useRuntimeConfig().app.baseURL;
+
 useHead({
+  style: [
+    {
+      children: `:root { --app-base-url: "${baseUrl}"; }`,
+    },
+  ],
   link: [
     {
       rel: 'preconnect',
@@ -87,6 +94,11 @@ body {
 
 
 <style scoped>
+:root {
+  /* fallback, gets overridden by runtime */
+  --app-base-url: "/";
+}
+
 .genomics-browser {
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -101,7 +113,7 @@ body {
   vertical-align: center;
   padding: 1rem;
   box-shadow: 0px 3px 15px -1px rgba(219,219,219,1);
-  background-image: url("dna3.png");
+  background-image: url("@/public/dna3.png");
   background-repeat: no-repeat;
 }
 

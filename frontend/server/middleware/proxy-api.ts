@@ -9,6 +9,8 @@ export default defineEventHandler(async (event) => {
 		return
 	}
 
+	console.table(event)
+	
 	return createProxyEventHandler({
 		configureProxyRequest(event) {
 			return {

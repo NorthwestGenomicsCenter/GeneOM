@@ -10,12 +10,13 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExternalSampleDto {
+public class ExternalSampleDTO {
     private UUID multiomicsSampleId;
     private String integrationSource;
     private String sampleId;
     private String sampleName;
     private String sampleDescription;
     private String projectName;
+    private String sourceUrl;
     private List<SampleFileDTO> sampleFiles;
 }

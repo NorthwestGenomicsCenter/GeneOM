@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpression;
-import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpressionChartDto;
+import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpressionChartDTO;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -41,7 +41,7 @@ public class DiffExpressionVisualizer implements VizTransformer {
 
         DecimalFormat df = new DecimalFormat("#.###");
         Map<String, List<DifferentialExpression>> coordMap = new HashMap<>();
-        List<DifferentialExpressionChartDto> chartDtos = new ArrayList<>();
+        List<DifferentialExpressionChartDTO> chartDtos = new ArrayList<>();
 
         try {
             MappingIterator<DifferentialExpression> iterator = mapper
@@ -57,7 +57,7 @@ public class DiffExpressionVisualizer implements VizTransformer {
             }
 
             for (List<DifferentialExpression> position : coordMap.values()) {
-                DifferentialExpressionChartDto dto = new DifferentialExpressionChartDto();
+                DifferentialExpressionChartDTO dto = new DifferentialExpressionChartDTO();
                 dto.setLogFC(position.getFirst().getLogFC());
                 dto.setLogCPM(position.getFirst().getLogCPM());
                 List<String> names = dto.getGeneNames();

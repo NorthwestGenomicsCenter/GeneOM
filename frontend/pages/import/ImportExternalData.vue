@@ -15,6 +15,11 @@
       <Column header="Source" field="integrationSource" />
       <Column header="Description" field="sampleDescription" />
       <Column header="Project Name" field="projectName" />
+      <Column header="External Link" field="sourceUrl">
+        <template #body="{data}">
+          <a :href="data.sourceUrl">QC Data</a>
+        </template>
+      </Column>
       <Column header="Create">
         <template #body="{data}">
           <Button size="small" label="Create Sample" @click="createSample(data)" />
@@ -48,7 +53,6 @@
 </template>
 
 <script setup lang="ts">
-
 const queryString = ref<string>("1674062");
 const response = ref<any>([]);
 
@@ -57,7 +61,7 @@ const query = async () => {
   response.value = res.data.value;
 }
 
-const sampleSearch = ref([]);
+const sampleSearch = ref<ExternalSampleDTO[]>([]);
 const querySamples = async () => {
   const res = await useFetch(`/api/search/integrations/sample/${queryString.value}`);
   sampleSearch.value = res.data.value;

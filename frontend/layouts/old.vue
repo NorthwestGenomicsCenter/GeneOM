@@ -109,7 +109,13 @@
 import { ref } from 'vue'
 import { useGlobalStore } from "~/composables/useGlobal.ts";
 
+const baseUrl = useRuntimeConfig().app.baseURL;
 useHead({
+  style: [
+    {
+      children: `:root { --app-base-url: "${baseUrl}"; }`,
+    },
+  ],
   link: [
     {
       rel: 'preconnect',
@@ -202,7 +208,7 @@ body {
   vertical-align: center;
   padding: 1rem;
   box-shadow: 0px 3px 15px -1px rgba(219,219,219,1);
-  background-image: url("dna3.png");
+  background-image: url("@/public/dna3.png");
   background-repeat: no-repeat;
 
   margin: 0 auto;

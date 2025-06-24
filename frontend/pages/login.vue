@@ -33,7 +33,6 @@
 const credentials = ref({ username: 'mr83', password: '12345' })
 const { login } = useAuth()
 const router = useRouter()
-
 const toast = useToast()
 
 definePageMeta({

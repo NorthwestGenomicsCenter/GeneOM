@@ -38,7 +38,7 @@ public class DifferentialExpressionController {
             value = "/assay/differential_expression/chart/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<List<DifferentialExpressionChartDto>> getDifferentialExpressionChartById(@PathVariable int id) throws IOException {
+    public ResponseEntity<List<DifferentialExpressionChartDTO>> getDifferentialExpressionChartById(@PathVariable int id) throws IOException {
         Path filePath = Path.of(TEST_FILE_PATH);
         CsvMapper mapper = new CsvMapper();
 
@@ -62,9 +62,9 @@ public class DifferentialExpressionController {
                 collapsedPoint.add(dto);
             }
 
-            List<DifferentialExpressionChartDto> chartDtos = new ArrayList<>();
+            List<DifferentialExpressionChartDTO> chartDtos = new ArrayList<>();
             for (List<DifferentialExpression> position : coordMap.values()) {
-                DifferentialExpressionChartDto dto = new DifferentialExpressionChartDto();
+                DifferentialExpressionChartDTO dto = new DifferentialExpressionChartDTO();
                 dto.setLogFC(position.getFirst().getLogFC());
                 dto.setLogCPM(position.getFirst().getLogCPM());
                 List<String> names = dto.getGeneNames();

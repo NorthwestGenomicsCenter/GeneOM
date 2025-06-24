@@ -4,16 +4,10 @@
     <header class="header">
       <em class="pi pi-bars sidebar-icon" @click="toggleNavBar"/>
       <NuxtLink href="/" class="title">UW Multiomics Browser</NuxtLink>
-
-<!--      <div class="title" @click="toggleNavBar">-->
-<!--        UW Multiomics Browser-->
-<!--      </div>-->
       <div class="search-container">
         <Search/>
-<!--        <SearchButton>Search</SearchButton>-->
       </div>
       <div class="ui-user">
-<!--        Login-->
         <StatusBarLogin username="Chia-Lin Wei" avatar-url="wei.jpg" />
       </div>
     </header>
@@ -22,32 +16,10 @@
       <div class="navbar" v-if="isNavBarOpen">
         <nav>
           <Multiomics-Menu/>
-
         </nav>
       </div>
 
       <div class="main-area">
-
-        <section class="filter-bar">
-          <span>Global Filters</span>
-          <Button
-              :label="geneButtonLabel"
-              class="filter-item"
-              rounded
-              raised
-              @click="toggleSidebar" />
-          <Button
-              label="0 Transcripts"
-              class="filter-item"
-              rounded
-              raised />
-          <Button
-              label="0 Chromosomes"
-              class="filter-item"
-              rounded
-              raised />
-        </section>
-
         <slot/>
       </div>
 
@@ -85,7 +57,14 @@ const isAdmin = computed(() => {
   return auth?.user?.value?.permissions?.includes("ROLE_ADMIN")
 })
 
+const baseUrl = useRuntimeConfig().app.baseURL;
+
 useHead({
+  style: [
+    {
+      innerHTML: `:root { --app-base-url: "${baseUrl}"; }`,
+    },
+  ],
   link: [
     {
       rel: 'preconnect',
@@ -102,14 +81,6 @@ useHead({
     },
   ]
 });
-
-const store = useGlobalStore();
-
-const geneButtonLabel = computed(() => {
-  const count = store.globalNav.genes.length;
-  const pluralEnding = store.globalNav.genes.length === 1 ? "" : "s";
-  return `${count} Gene${pluralEnding}`;
-})
 
 const isNavBarOpen = ref(true);
 const toggleNavBar = () => {
@@ -160,7 +131,7 @@ body {
   vertical-align: center;
   padding: 1rem;
   box-shadow: 0px 3px 15px -1px rgba(219,219,219,1);
-  background-image: url("dna3.png"), linear-gradient(to right, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #ba71ff, #ff71b8);
+  background-image: url("@/public/dna3.png"), linear-gradient(to right, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #ba71ff, #ff71b8);
   background-repeat: no-repeat;
   position: sticky;
   width: 100%;
@@ -307,16 +278,6 @@ body {
   margin-top: auto;
   margin-bottom: auto;
   margin-right: 2em;
-}
-
-.filter-bar {
-  margin-bottom: 1em;
-  width: 100%;
-  text-align: end;
-}
-
-.filter-item {
-  margin-left: 0.5em;
 }
 
 </style>

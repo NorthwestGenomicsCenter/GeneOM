@@ -17,8 +17,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Entity
-@Table(name = "igv_data")
+//@Entity
+//@Table(name = "igv_data")
 public class IgvData {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "igv_data_seq")

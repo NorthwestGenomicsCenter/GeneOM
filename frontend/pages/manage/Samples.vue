@@ -24,14 +24,13 @@
     </DataTable>
   </div>
 
-  <SampleChip :sample="samples[0]" />
+<!--  <SampleChip :sample="samples[0]" />-->
 
 </template>
 
 <script setup lang="ts">
 import {onMounted, ref} from 'vue';
 import {FilterMatchMode} from "@primevue/core";
-import EditSample from '~/components/samples/EditSample.vue';
 import SampleChip from '~/components/samples/SampleChip.vue';
 
 definePageMeta({

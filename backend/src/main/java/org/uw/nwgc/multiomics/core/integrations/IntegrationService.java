@@ -2,7 +2,6 @@ package org.uw.nwgc.multiomics.core.integrations;
 
 import org.springframework.stereotype.Service;
 import org.uw.nwgc.multiomics.core.sample.Sample;
-import org.uw.nwgc.multiomics.core.sample.SampleRepository;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 
 import java.util.ArrayList;
@@ -32,11 +31,11 @@ public class IntegrationService {
         return sampleFileDtos;
     }
 
-    public List<ExternalSampleDto> querySampleIntegration(String queryString) {
-        List<ExternalSampleDto> externalSampleDTOs = new ArrayList<>();
+    public List<ExternalSampleDTO> querySampleIntegration(String queryString) {
+        List<ExternalSampleDTO> externalSampleDTOs = new ArrayList<>();
 
         for (Integration integration : integrations) {
-            List<ExternalSampleDto> dtos = integration.queryExternalSamples(queryString);
+            List<ExternalSampleDTO> dtos = integration.queryExternalSamples(queryString);
             dtos.forEach(dto -> {
                 dto.setIntegrationSource(integration.integrationName());
                 Optional<Sample> existingSample = sampleService.findExistingIntegrationSample(dto.getSampleId(), integration.integrationName());

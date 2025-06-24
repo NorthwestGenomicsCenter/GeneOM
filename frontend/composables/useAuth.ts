@@ -52,7 +52,7 @@ export const useAuth = () => {
 		const {data, error}: { data: any, error: any } = await useFetch('/api/auth/login', {
 			method: 'POST',
 			body: credentials,
-			credentials: 'include' // Send/receive cookies
+			credentials: 'include'
 		})
 		
 		if (data.value && !error.value) {

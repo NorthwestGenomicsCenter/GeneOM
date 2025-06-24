@@ -14,6 +14,6 @@ public interface Integration {
      * @return the integration’s unique name
      */
     String integrationName();
-    List<ExternalSampleDto> queryExternalSamples(String queryString);
+    List<ExternalSampleDTO> queryExternalSamples(String queryString);
     List<SampleFileDTO> querySampleFiles(String queryString);
 }

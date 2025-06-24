@@ -1,5 +1,6 @@
 <template>
   <div class="bordered">
+    {{ authClient }}
     <FloatLabel variant="on" class="input">
       <InputText id="name" v-model="sample.name"/>
       <label for="name">Name</label>
@@ -63,8 +64,6 @@
     <Button label="Save Changes" @click="save"/>
   </div>
   <Dialog header="AddFile" modal v-model:visible="addVisible">
-    The selected sample is: {{ sample }}
-    The selected file is: {{ selectedFiles }}
     <VueFinder
         id="vf"
         :features="[]"
@@ -79,6 +78,7 @@
 
 <script setup lang="ts">
 import Resource from "~/components/samples/Resource.vue";
+import authClient from "~/plugins/auth.client";
 
 // Setup the page
 const router = useRoute();
@@ -87,12 +87,9 @@ const toast = useToast();
 const selectedFiles = ref<FinderFileDTO[]>([]);
 const handleSelectEvent = (selection : FinderFileDTO[]) => {
   selectedFiles.value = selection
-  // .filter(el => {
-  //       return el.type != "dir";
-  // });
 }
 const sample = ref<SampleDTO>({} as SampleDTO);
-const { data } = await useFetch(`/api/sample/${router.params.sampleId}`, {
+const { data } = await useApi<SampleDTO>(`/sample/${router.params.sampleId}`, {
   method: "GET"
 })
 sample.value = data.value;
@@ -110,7 +107,7 @@ const addFiles = async () => {
     visualizers: []
   }
 
-  const res = await useFetch(`/api/omic/save`, {
+  const res = await useApi(`/omic/save`, {
     method: "POST",
     body: body
   })
@@ -120,7 +117,7 @@ const addFiles = async () => {
 
 // Tags
 const deleteTag = async (tag) => {
-  const res = await useFetch(`/api/sample/tag/${tag.id}`, {
+  const res = await useApi<SampleDTO>(`/sample/tag/${tag.id}`, {
     method: "DELETE",
     body: sample.value
   })
@@ -135,7 +132,7 @@ const addTag = () => {
 
 // Save Changes
 const save = async () => {
-  const res = await useFetch(`/api/sample/save`, {
+  const res = await useApi(`/sample/save`, {
     method: "POST",
     body: sample.value
   })

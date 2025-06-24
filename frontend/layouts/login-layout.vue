@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <div class="container">
+    <div class="container" :style="{ backgroundImage: `url('${baseUrl}dna3.png')` }">
       <slot /> <!-- This is where your page content will be injected -->
     </div>
     <footer>
@@ -14,8 +14,14 @@
 <script setup>
 import { ref } from 'vue'
 import {useGlobalStore} from "~/composables/useGlobal.ts";
+const baseUrl = useRuntimeConfig().app.baseURL;
 
 useHead({
+  style: [
+    {
+      children: `:root { --app-base-url: "${baseUrl}"; }`,
+    },
+  ],
   link: [
     {
       rel: 'preconnect',
@@ -36,6 +42,11 @@ useHead({
 </script>
 
 <style scoped>
+:root {
+  /* fallback, gets overridden by runtime */
+  --app-base-url: "/";
+}
+
 .layout {
   min-height: 100vh;
   display: flex;
@@ -45,7 +56,7 @@ useHead({
 }
 
 .container {
-  background-image: url("dna3.png");
+  background-image: url("@/public/dna3.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100%;

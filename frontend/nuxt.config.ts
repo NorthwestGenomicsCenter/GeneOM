@@ -6,6 +6,9 @@ import tailwindcss from "@tailwindcss/vite"
 
 export default defineNuxtConfig({
 	alias: {'@shared': path.resolve(__dirname, '../shared')},
+	app: {
+		baseURL: import.meta.env.BASE_URL
+	},
 	compatibilityDate: '2024-04-03',
 	css: [
 		'primeicons/primeicons.css',
@@ -17,7 +20,10 @@ export default defineNuxtConfig({
 		'@primevue/nuxt-module',
 	],
 	imports: {
-		dirs: [ '~/types' ]
+		dirs: [
+			"types/**/*.d.ts",
+			"../shared/generated/*.d.ts",
+		]
 	},
 	plugins: [
 		{src: '~/plugins/jquery.js', mode: 'client'},

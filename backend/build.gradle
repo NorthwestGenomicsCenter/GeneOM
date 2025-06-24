@@ -109,7 +109,7 @@ task generateTypescript(type: GenerateTask, dependsOn: [compileJava]) {
 			'org.uw.nwgc.**.*DTO'
 	]
 	outputFileType = 'declarationFile'
-	outputFile = '../frontend/types/DTOTypes.d.ts'
+	outputFile = '../shared/generated/DTOTypes.d.ts'
 	outputKind = 'global'
 }
 

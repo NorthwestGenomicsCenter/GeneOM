@@ -17,13 +17,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Entity
-@Table(name = "isoform")
+//@Entity
+//@Table(name = "isoform")
 public class Isoform {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "isoform_seq")
-    @SequenceGenerator(name = "isoform_seq", sequenceName = "isoform_seq", allocationSize = 1)
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "isoform_seq")
+//    @SequenceGenerator(name = "isoform_seq", sequenceName = "isoform_seq", allocationSize = 1)
     private Integer id;
 
     @JsonProperty("Isoform_PBid")

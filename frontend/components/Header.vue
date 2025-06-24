@@ -27,7 +27,7 @@
   display: flex;
   vertical-align: center;
   padding: 1rem;
-  background-image: url("dna3.png"), linear-gradient(to right, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #ba71ff, #ff71b8);
+  background-image: url("@/public/dna3.png"), linear-gradient(to right, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #4b2e83, #ba71ff, #ff71b8);
   background-position: top right;
   background-repeat: no-repeat;
   width: 100%;

@@ -28,7 +28,7 @@ public class SamplifyIntegration implements Integration {
     }
 
     @Override
-    public List<ExternalSampleDto> queryExternalSamples(String queryString) {
+    public List<ExternalSampleDTO> queryExternalSamples(String queryString) {
         if (TOKEN == null || TOKEN.isEmpty()) {
             return List.of();
         }
@@ -48,7 +48,7 @@ public class SamplifyIntegration implements Integration {
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<List<ExternalSampleDto>> resp = rest.exchange(
+        ResponseEntity<List<ExternalSampleDTO>> resp = rest.exchange(
                 uri,
                 HttpMethod.GET,
                 entity,

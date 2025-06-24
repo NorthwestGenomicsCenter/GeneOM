@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DifferentialExpressionChartDto {
+public class DifferentialExpressionChartDTO {
 
     @JsonProperty("geneId")
     private String geneId;
@@ -30,7 +30,7 @@ public class DifferentialExpressionChartDto {
     @JsonProperty("logCPM")
     private Double logCPM;
 
-    public DifferentialExpressionChartDto(DifferentialExpression differentialExpression) {
+    public DifferentialExpressionChartDTO(DifferentialExpression differentialExpression) {
         this.geneId = differentialExpression.getGeneId();
 //        this.geneName = differentialExpression.getGeneName();
         this.logFC = differentialExpression.getLogFC();
