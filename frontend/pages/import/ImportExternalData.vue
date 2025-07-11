@@ -91,7 +91,7 @@ const addResource = async (data, sample : SampleDTO) => {
   const res = await useApi('/omic/save', {
     method: "POST",
     body: {
-      "sampleid": sample.id,
+      "sampleId": sample.multiomicsSampleId,
       "path": data.path,
       "type": "text_File"
     }

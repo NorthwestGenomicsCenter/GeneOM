@@ -3,8 +3,8 @@ package org.uw.nwgc.multiomics.core.sample;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.uw.nwgc.multiomics.core.resources.OmicController;
 import org.uw.nwgc.multiomics.core.resources.OmicResourceDTO;
+import org.uw.nwgc.multiomics.core.tag.Tag;
 import org.uw.nwgc.multiomics.core.user.UserDTO;
 
 import java.util.List;

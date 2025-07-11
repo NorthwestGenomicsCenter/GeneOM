@@ -1,6 +1,8 @@
 spring:
   application:
     name: UW Multiomics Browser
+  config:
+    import: optional:file:/data/apache-tomcat/instance/multiomics-api/webapps/.multiomics.env[.properties]
   servlet:
     multipart:
       max-file-size: 100MB
@@ -23,12 +25,17 @@ spring:
     properties:
       hibernate:
         default_schema: public
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.uw.nwgc.multiomics.configuration.CustomPostgresSQLDialect
         show_sql: false
   mvc:
     servlet:
       path: /api
+  main:
+    allow-bean-definition-overriding: true
 server:
+  error:
+    whitelabel:
+      enabled: false
   port: 8081
   servlet:
     application-display-name: UW Multiomics Browser API

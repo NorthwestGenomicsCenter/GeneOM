@@ -3,11 +3,13 @@ package org.uw.nwgc.multiomics.core.sample;
 import jakarta.security.auth.message.AuthException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.uw.nwgc.multiomics.api.view.SampleViewDTO;
 import org.uw.nwgc.multiomics.api.view.SampleViewService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,6 +58,20 @@ public class SampleController {
                 .stream()
                 .map(SampleDTO::new)
                 .toList();
+
+        return ResponseEntity.ok(sampleDTOS);
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<List<SampleDTO>> test() {
+        Sample example = new Sample();
+        example.setExternalProjectName("udn_pnw_external_uwcrdr_unknown_wgssr_152");
+        Iterable<Sample> samples = sampleRepository.findAll(Example.of(example));
+
+        List<SampleDTO> sampleDTOS = new ArrayList<>();
+        for (Sample sample : samples) {
+            sampleDTOS.add(new SampleDTO(sample));
+        }
 
         return ResponseEntity.ok(sampleDTOS);
     }

@@ -1,4 +1,4 @@
-package org.uw.nwgc.multiomics.core.sample;
+package org.uw.nwgc.multiomics.core.tag;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

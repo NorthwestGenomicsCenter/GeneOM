@@ -1,8 +1,10 @@
 package org.uw.nwgc.multiomics.core.technology;
 
 import org.springframework.stereotype.Service;
-import org.uw.nwgc.multiomics.core.project.ProjectDTO;
-import org.uw.nwgc.multiomics.core.sample.*;
+import org.uw.nwgc.multiomics.core.sample.Sample;
+import org.uw.nwgc.multiomics.core.sample.SampleRepository;
+import org.uw.nwgc.multiomics.core.tag.Tag;
+import org.uw.nwgc.multiomics.core.tag.TagRepository;
 
 import java.util.ArrayList;
 import java.util.List;

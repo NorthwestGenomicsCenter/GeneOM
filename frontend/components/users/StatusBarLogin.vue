@@ -7,7 +7,7 @@
     <div v-else class="user-info">
       <span class="username">{{ user.firstName }} {{ user.lastName }}</span>
       <div class="avatar-container">
-        <img :src="'/avatar.png'" :alt="username + ' avatar'" class="avatar" />
+        <img :src="config.app.baseURL + '/avatar.png'" :alt="username + ' avatar'" class="avatar" />
       </div>
       <div @click="logout">Log Out</div>
     </div>
@@ -27,6 +27,7 @@ const auth = useAuth();
 const user = auth.user;
 
 const router = useRouter()
+const config = useRuntimeConfig();
 
 const logout = () => {
   auth.logout();

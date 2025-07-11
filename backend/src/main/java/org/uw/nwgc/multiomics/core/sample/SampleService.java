@@ -2,6 +2,7 @@ package org.uw.nwgc.multiomics.core.sample;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.security.auth.message.AuthException;
+import jakarta.transaction.Transactional;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -9,8 +10,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.uw.nwgc.multiomics.core.tag.Tag;
+import org.uw.nwgc.multiomics.core.tag.TagRepository;
+import org.uw.nwgc.multiomics.core.tag.TagService;
+import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
+import org.uw.nwgc.multiomics.core.tag.ontology.TissueDTO;
 import org.uw.nwgc.multiomics.core.user.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,10 +28,15 @@ public class SampleService {
 
     private final SampleRepository sampleRepository;
     private final TagRepository tagRepository;
+    private final TagService tagService;
 
-    public SampleService(SampleRepository sampleRepository, TagRepository tagRepository) {
+    public SampleService(
+            SampleRepository sampleRepository,
+            TagRepository tagRepository,
+            TagService tagService) {
         this.sampleRepository = sampleRepository;
         this.tagRepository = tagRepository;
+        this.tagService = tagService;
     }
 
     public Optional<Sample> getById(UUID id) {
@@ -90,6 +102,7 @@ public class SampleService {
         return sampleRepository.save(sample);
     }
 
+    @Transactional
     public Sample save(SampleDTO sampleDTO) throws AuthException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) auth.getPrincipal();
@@ -103,7 +116,17 @@ public class SampleService {
             }
         }
 
-        sample.update(sampleDTO);
+        List<Tissue> tissues = new ArrayList<>();
+        if (sampleDTO.getOmicResources() != null) {
+            for (var resource : sampleDTO.getOmicResources()) {
+                TissueDTO tissueDTO = resource.getTissue();
+                if (tissueDTO == null || tissueDTO.getUrl() == null) continue;
+                String url = tissueDTO.getUrl();
+                tagService.getTissueByUrl(url).ifPresent(tissues::add);
+            }
+        }
+
+        SampleMapper.updateFromDto(sampleDTO, sample, tissues);
         sample.getUsers().add(user);
         return sampleRepository.save(sample);
     }

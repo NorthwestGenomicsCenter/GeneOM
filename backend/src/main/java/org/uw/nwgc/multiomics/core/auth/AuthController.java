@@ -96,28 +96,4 @@ public class AuthController {
         return ResponseEntity.ok(user);
     }
 
-//    @PostMapping("/signup")
-//    public ResponseEntity<String> signup(@RequestBody SignUpRequest signUpRequest) {
-//        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("username is already taken");
-//        }
-//        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("email is already taken");
-//        }
-//        String hashedPassword = passwordEncoder.encode(signUpRequest.getPassword());
-//        Set<Role> roles = new HashSet<>();
-//        Optional<Role> userRole = roleRepository.findByName(ERole.ROLE_USER);
-//        if (userRole.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("role not found");
-//        }
-//        roles.add(userRole.get());
-//        User user = new User();
-//        user.setUsername(signUpRequest.getUsername());
-//        user.setEmail(signUpRequest.getEmail());
-//        user.setPassword(hashedPassword);
-//        user.setRoles(roles);
-//        userRepository.save(user);
-//        return ResponseEntity.ok("User registered success");
-//    }
-
 }

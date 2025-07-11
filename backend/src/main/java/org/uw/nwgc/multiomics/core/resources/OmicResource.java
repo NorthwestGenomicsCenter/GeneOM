@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 import org.uw.nwgc.multiomics.core.sample.Sample;
+import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
 
 import java.util.List;
 import java.util.UUID;
@@ -35,10 +36,12 @@ public class OmicResource {
     @JoinColumn(name = "sample_id")
     @JsonBackReference
     private Sample sample;
-
     private String path;
-
     private Boolean igvTrack;
+
+    @ManyToOne
+    @JoinColumn(name = "tissue_type_url")
+    private Tissue tissueType;
 
     private Class<? extends VizTransformer> vizTransformer;
 
@@ -59,8 +62,13 @@ public class OmicResource {
         return null;
     }
 
-    public void update(OmicResourceDTO omicResourceDTO) {
+    public void update(OmicResourceDTO omicResourceDTO, List<Tissue> tissues) {
         this.path = omicResourceDTO.getPath();
         this.igvTrack = omicResourceDTO.getIgvTrack();
+        for (Tissue tissue : tissues) {
+            if (tissue != null && omicResourceDTO.getTissue() != null && omicResourceDTO.getTissue().getUrl().equals(tissue.getUrl())) {
+                this.tissueType = tissue;
+            }
+        }
     }
 }

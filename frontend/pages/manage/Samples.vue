@@ -18,11 +18,12 @@
       </Column>
       <Column header="edit" >
         <template #body="{data}">
-          <NuxtLink :to="`/samples/edit/${data.id}`">Edit</NuxtLink>
+          <NuxtLink :to="`/manage/samples/edit/${data.id}`">Edit</NuxtLink>
         </template>
       </Column>
     </DataTable>
   </div>
+  {{ testData }}
 
 <!--  <SampleChip :sample="samples[0]" />-->
 
@@ -36,6 +37,14 @@ import SampleChip from '~/components/samples/SampleChip.vue';
 definePageMeta({
   layout: 'default'
 })
+
+const testData = ref();
+const getTestData = async () => {
+  const { data } = await useApi("/sample/test");
+  testData.value = data;
+}
+
+await getTestData();
 
 const samples = ref<SampleDTO[]>([]);
 const filters = ref({

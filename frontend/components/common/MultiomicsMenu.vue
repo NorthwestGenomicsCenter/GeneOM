@@ -1,7 +1,7 @@
 <template>
   <ul class="menu">
     <li>
-      <h3 class="menu-section">Assays</h3>
+      <h3 class="menu-section">Workspaces</h3>
     </li>
     <template v-for="item in sidebarItems" :key="item.name">
       <MenuItem
@@ -15,6 +15,7 @@
       <h3 class="menu-section">Explore Data</h3>
     </li>
     <MenuItem to="/Explore/Type" text="Find by type" icon="" />
+    <MenuItem to="/Samples/" text="Find Samples" icon="" />
     <!-- End Data Explorer Features-->
 
     <li>
