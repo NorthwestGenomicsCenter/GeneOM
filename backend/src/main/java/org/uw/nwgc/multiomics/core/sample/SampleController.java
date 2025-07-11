@@ -74,6 +74,8 @@ public class SampleController {
         }
 
         return ResponseEntity.ok(sampleDTOS);
+    }
+
     @GetMapping("/filter")
     public ResponseEntity<List<SampleDTO>> getSamplesWithFilter(
             @RequestParam(required = false) List<UUID> projectIds,
