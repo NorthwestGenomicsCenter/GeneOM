@@ -27,7 +27,7 @@
       <FloatLabel variant="on" class="input">
         <Dropdown
             class="input-width"
-            :options="['Tissue', 'Technology', 'Something Else']"
+            :options="['Tissue', 'Technology', 'Project', 'Something Else']"
             :id="`label-${index}`"
             v-model="tag.label"/>
         <label :for="`label-${index}`">Label</label>

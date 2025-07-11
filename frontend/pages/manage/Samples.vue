@@ -18,7 +18,7 @@
       </Column>
       <Column header="edit" >
         <template #body="{data}">
-          <NuxtLink :to="`/samples/edit/${data.id}`">Edit</NuxtLink>
+          <NuxtLink :to="`/manage/samples/edit/${data.id}`">Edit</NuxtLink>
         </template>
       </Column>
     </DataTable>

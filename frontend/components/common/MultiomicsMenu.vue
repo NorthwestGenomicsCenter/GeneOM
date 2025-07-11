@@ -15,6 +15,7 @@
       <h3 class="menu-section">Explore Data</h3>
     </li>
     <MenuItem to="/Explore/Type" text="Find by type" icon="" />
+    <MenuItem to="/Samples/" text="Find Samples" icon="" />
     <!-- End Data Explorer Features-->
 
     <li>
