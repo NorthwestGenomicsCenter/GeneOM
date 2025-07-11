@@ -1,17 +1,18 @@
 <template>
   <div
       class="grid-container"
+      ref="containerRef"
       @mousemove="onMouseMove"
       @mouseleave="onMouseLeave"
   >
     <GridLayout
         :layout="layout"
-        :col-num="12"
-        :row-height="30"
+        :col-num="computedColNum"
+        :row-height="gridCellHeight"
         :is-draggable="true"
         :is-resizable="true"
         :vertical-compact="true"
-        :margin="[10, 10]"
+        :margin="[MARGIN, MARGIN]"
         @update:layout="onLayoutUpdated"
     >
       <GridItem
@@ -22,6 +23,10 @@
           :y="item.y"
           :w="item.w"
           :h="item.h"
+          @resize="disableTextSelection"
+          @resized="enableTextSelection"
+          @move="disableTextSelection"
+          @moved="enableTextSelection"
       >
         <component
             :is="getComponent(item.i)"
@@ -30,83 +35,91 @@
         />
       </GridItem>
     </GridLayout>
-
-    <!-- Add View Hover Overlay -->
-    <div
-        v-if="hoveringOverEmpty"
-        class="add-view-overlay"
-        :style="addViewStyle"
-        @click="addViewAtHoverPosition"
-    >
-      ➕ Add View
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, ref, computed } from 'vue'
+import { ref, computed, defineProps, defineEmits, onMounted, onBeforeUnmount } from 'vue'
 import { GridLayout, GridItem } from 'vue3-grid-layout'
 
 const props = defineProps({
   layout: {
     type: Array,
-    required: true,
+    required: true
   },
   components: {
-    // Array of { id: string, component: Component, props: object }
-    type: Array,
-    required: true,
+    type: Array, // Array of { id: string, component: Component, props: object }
+    required: true
+  },
+  columns: {
+    type: Number,
+    default: 30
   }
 })
 
 const emit = defineEmits(['update:layout', 'add:view'])
 
+const containerRef = ref<HTMLElement | null>(null)
+const containerWidth = ref(0)
+const containerHeight = ref(0)
+
+const MARGIN = 10
+const computedColNum = computed(() => props.columns)
+
+const gridCellWidth = computed(() => {
+  return (containerWidth.value - (computedColNum.value - 1) * MARGIN) / computedColNum.value
+})
+
+const gridCellHeight = computed(() => 30)
+
+onMounted(() => {
+  const observer = new ResizeObserver(entries => {
+    for (const entry of entries) {
+      containerWidth.value = entry.contentRect.width
+      containerHeight.value = entry.contentRect.height
+    }
+  })
+  if (containerRef.value) observer.observe(containerRef.value)
+})
+
 function onLayoutUpdated(newLayout) {
   emit('update:layout', newLayout)
 }
 
-function getComponent(id) {
-  const entry = props.components.find(c => c.id === id)
-  return entry?.component || null
+function getComponent(id: string) {
+  return props.components.find(c => c.id === id)?.component || null
 }
 
-function getProps(id) {
-  const entry = props.components.find(c => c.id === id)
-  return entry?.props || {}
+function getProps(id: string) {
+  return props.components.find(c => c.id === id)?.props || {}
 }
 
+// Hover detection and Add View logic
 const hoveringOverEmpty = ref(false)
 const addViewStyle = ref({ top: '0px', left: '0px' })
 const hoverGridPosition = ref({ x: 0, y: 0 })
-
-const GRID_CELL_WIDTH = 100 // Adjust to match your actual grid size
-const GRID_CELL_HEIGHT = 30
-const MARGIN = 10
-const GRID_COLS = 12
 
 function onMouseMove(event: MouseEvent) {
   const gridRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   const offsetX = event.clientX - gridRect.left
   const offsetY = event.clientY - gridRect.top
 
-  const col = Math.floor(offsetX / (GRID_CELL_WIDTH + MARGIN))
-  const row = Math.floor(offsetY / (GRID_CELL_HEIGHT + MARGIN))
+  const col = Math.floor(offsetX / (gridCellWidth.value + MARGIN))
+  const row = Math.floor(offsetY / (gridCellHeight.value + MARGIN))
 
-  const isCellEmpty = checkIfCellIsEmpty(col, row)
-
-  if (isCellEmpty) {
+  if (checkIfCellIsEmpty(col, row)) {
     hoveringOverEmpty.value = true
+    hoverGridPosition.value = { x: col, y: row }
     addViewStyle.value = {
-      left: `${col * (GRID_CELL_WIDTH + MARGIN)}px`,
-      top: `${row * (GRID_CELL_HEIGHT + MARGIN)}px`,
       position: 'absolute',
-      zIndex: '10',
+      left: `${col * (gridCellWidth.value + MARGIN)}px`,
+      top: `${row * (gridCellHeight.value + MARGIN)}px`,
       backgroundColor: 'rgba(255,255,255,0.9)',
       border: '1px dashed #ccc',
       padding: '4px',
-      cursor: 'pointer'
+      cursor: 'pointer',
+      zIndex: '10'
     }
-    hoverGridPosition.value = { x: col, y: row }
   } else {
     hoveringOverEmpty.value = false
   }
@@ -128,26 +141,55 @@ function checkIfCellIsEmpty(x: number, y: number): boolean {
 }
 
 function addViewAtHoverPosition() {
-  emit('add:view', {
+  const newItem = {
+    i: String(Date.now()),
     x: hoverGridPosition.value.x,
     y: hoverGridPosition.value.y,
-  })
+    w: 2,
+    h: 2
+  }
+  const newLayout = [...props.layout, newItem]
+  emit('update:layout', newLayout)
+  emit('add:view', newItem)
   hoveringOverEmpty.value = false
+}
+
+// Global text selection disabling
+function disableTextSelection() {
+  makeUnselectable(document.body);
+}
+function enableTextSelection() {
+  makeSelectable(document.body);
+}
+
+function makeUnselectable(node) {
+  if (node.nodeType == 1) {
+    node.classList.add("no-select");
+  }
+  var child = node.firstChild;
+  while (child) {
+    makeUnselectable(child);
+    child = child.nextSibling;
+  }
+}
+
+function makeSelectable(node) {
+  if (node.nodeType == 1) {
+    node.classList.remove("no-select");
+  }
+  var child = node.firstChild;
+  while (child) {
+    makeSelectable(child);
+    child = child.nextSibling;
+  }
 }
 </script>
 
-<style scoped>
-/* Prevent text selection while resizing */
-:deep(.vue-grid-item.resizing),
-:deep(.vue-grid-item.dragging) {
-  user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-}
-
+<style>
 .grid-container {
   position: relative;
   width: 100%;
   height: 100%;
 }
+
 </style>

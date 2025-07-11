@@ -28,7 +28,7 @@ import DynamicViewRenderer from '~/components/DynamicViewRenderer.vue'
 const route = useRoute()
 const sampleId = route.params.sampleId as string
 
-const techViewOptions = ref([]) // populated from backend
+const techViewOptions = ref<SampleViewDTO[]>([]) // populated from backend
 const selectedViews = ref([])   // array of { id, viewName, technology, x, y, w, h }
 
 onMounted(async () => {
