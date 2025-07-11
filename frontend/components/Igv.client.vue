@@ -8,7 +8,6 @@
 </template>
 
 <script setup lang="ts">
-import igv from 'igv';
 import Header from "~/components/common/Header.vue";
 import {useGlobalStore} from '@/composables/useGlobal'
 
@@ -16,6 +15,7 @@ defineOptions({name: "Igv"})
 
 let browser: any;
 onMounted(async () => {
+  const igv = await import('igv')
   await loadIgv();
 })
 
