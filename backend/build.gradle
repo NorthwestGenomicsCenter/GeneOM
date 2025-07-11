@@ -4,7 +4,7 @@ import cz.habarta.typescript.generator.gradle.GenerateTask
 plugins {
 	id 'java'
 	id 'war'
-	id 'org.springframework.boot' version '3.3.5'
+	id 'org.springframework.boot' version '3.5.3'
 	id 'io.spring.dependency-management' version '1.1.6'
 	id 'org.hibernate.orm' version '6.5.3.Final'
 	id 'org.graalvm.buildtools.native' version '0.10.3'
@@ -64,11 +64,13 @@ dependencies {
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: jacksonVersion
-	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-hibernate5', version: jacksonVersion
+	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-hibernate6', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-parameter-names', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jacksonVersion
+
+	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
 }
 

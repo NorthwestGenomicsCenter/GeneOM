@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,13 +31,17 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final UserService userService;
-    private JwtTokenFilter jwtTokenFilter;
     private final JwtUtil jwtTokenUtil;
+    private final AppConfig appConfig;
 
-    public SecurityConfig(UserService userService, JwtTokenFilter jwtTokenFilter, JwtUtil jwtTokenUtil) {
+    public SecurityConfig(
+            UserService userService,
+            JwtUtil jwtTokenUtil,
+            AppConfig appConfig
+    ) {
         this.userService = userService;
-        this.jwtTokenFilter = jwtTokenFilter;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.appConfig = appConfig;
     }
 
     @Bean
@@ -70,16 +75,18 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        String base = appConfig.getServletPath();
+
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(
                         authorizeHttp -> {
-                            authorizeHttp.requestMatchers("/").permitAll();
-                            authorizeHttp.requestMatchers("/auth/**").permitAll();
-                            authorizeHttp.requestMatchers("/favicon.svg").permitAll();
-                            authorizeHttp.requestMatchers("/css/*").permitAll();
-                            authorizeHttp.requestMatchers("/error").permitAll();
+                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher(("/"))).permitAll();
+                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher((base + "/auth/**"))).permitAll();
+                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher((base + "/favicon.svg"))).permitAll();
+                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher((base + "/css/*"))).permitAll();
+                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher((base + "/error"))).permitAll();
                             authorizeHttp.anyRequest().authenticated();
                         }
                 )

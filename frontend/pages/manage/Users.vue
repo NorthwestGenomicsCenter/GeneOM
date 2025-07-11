@@ -51,30 +51,36 @@
     <Dialog v-model:visible="userDialog" :header="dialogTitle" :modal="true" class="p-fluid" style="width: 450px">
       <FloatLabel variant="over" class="field">
         <label for="firstName">First Name</label>
-        <InputText id="firstName" v-model.trim="user.firstName" required="true" autofocus />
+        <InputText id="firstName" v-model.trim="createUser.firstName" required="true" autofocus />
       </FloatLabel>
       <FloatLabel variant="over" class="field">
         <label for="lastName">Last Name</label>
-        <InputText id="lastName" v-model.trim="user.lastName" required="true" />
+        <InputText id="lastName" v-model.trim="createUser.lastName" required="true" />
       </FloatLabel>
       <FloatLabel variant="over" class="field">
         <label for="email">Email</label>
-        <InputText id="email" v-model.trim="user.email" required="true" />
+        <InputText id="email" v-model.trim="createUser.email" required="true" />
       </FloatLabel>
       <FloatLabel variant="over" class="field">
         <label for="userName">Username</label>
-        <InputText id="userName" v-model.trim="user.userName" required="true" />
+        <InputText id="userName" v-model.trim="createUser.username" required="true" />
+      </FloatLabel>
+      <FloatLabel variant="over" class="field">
+        <label for="password">Password</label>
+        <InputText id="password" v-model.trim="createUser.password" required="true" />
       </FloatLabel>
       <FloatLabel variant="over" class="field field-dropdown">
         <label>Permissions</label>
         <MultiSelect
-            v-model="user.permissions"
+            v-model="createUser.permissions"
             :options="availablePermissions"
             optionLabel="name"
+            optionValue="value"
             placeholder="Select permissions"
             display="chip"
         />
       </FloatLabel>
+      {{ createUser }}
 
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" @click="hideDialog" class="p-button-text"/>
@@ -97,6 +103,8 @@
       </template>
     </Dialog>
   </div>
+
+  <Toast />
 </template>
 
 <script setup lang="ts">
@@ -134,12 +142,13 @@ const users = ref<User[]>([]);
 const userDialog = ref(false);
 const deleteDialog = ref(false);
 const userToDelete = ref<User | null>(null);
-const user = ref<User>({} as User);
 const selectedUser = ref<User>({} as User);
 const submitted = ref(false);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
+
+const toast = useToast();
 
 // Sample permissions - replace with your actual permissions
 const availablePermissions = ref([
@@ -149,15 +158,15 @@ const availablePermissions = ref([
   {name: 'Reports', value: 'reports'},
 ]);
 
-onMounted(() => {
-  // Load initial data - replace with your API call
-  loadUsers();
-});
-
 const loadUsers = async () => {
-  users.value = await $fetch("/users/all");
+  const res = await useApi("/users/all");
+  users.value = res.data.value;
 };
+loadUsers();
 
+// Create the users
+const user = ref<User>({} as User);
+const createUser = ref<CreateUserDTO>({} as CreateUserDTO);
 const showAddDialog = () => {
   user.value = {} as User;
   submitted.value = false;
@@ -174,29 +183,27 @@ const hideDialog = () => {
   submitted.value = false;
 };
 
-const saveUser = () => {
+const saveUser = async () => {
   submitted.value = true;
 
+  const userDto = createUser.value;
+
   // Basic validation
-  if (user.value.firstName?.trim() &&
-      user.value.lastName?.trim() &&
-      user.value.email?.trim() &&
-      user.value.userName?.trim()) {
+  if (userDto.firstName?.trim() &&
+      userDto.lastName?.trim() &&
+      userDto.email?.trim() &&
+      userDto.username?.trim()) {
 
-    if (user.value.id) {
-      // Update existing user
-      const index = users.value.findIndex(u => u.id === user.value.id);
-      if (index !== -1) {
-        users.value[index] = { ...user.value };
-      }
+    const res = await useApi("/users/create", {
+      method: "POST",
+      body: userDto
+    });
+
+    if (!res.error.value) {
+      toast.add({ severity: 'success', summary: 'Info', detail: 'Added New User', life: 8000 })
     } else {
-      // Add new user
-      user.value.id = users.value.length ? Math.max(...users.value.map(u => u.id || 0)) + 1 : 1;
-      users.value.push({ ...user.value });
+      toast.add({ severity: 'error', summary: 'Error', detail: 'Error Adding New User', life: 8000 })
     }
-
-    userDialog.value = false;
-    user.value = {} as User;
   }
 };
 

@@ -31,4 +31,7 @@ public class GeneService {
         return geneRepository.findRelatedGenes(name);
     }
 
+    public long count() {
+        return geneRepository.count();
+    }
 }

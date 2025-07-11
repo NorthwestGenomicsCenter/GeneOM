@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite"
 export default defineNuxtConfig({
 	alias: {'@shared': path.resolve(__dirname, '../shared')},
 	app: {
-		baseURL: import.meta.env.BASE_URL
+		baseURL: process.env.BASE_URL
 	},
 	compatibilityDate: '2024-04-03',
 	css: [
@@ -47,7 +47,7 @@ export default defineNuxtConfig({
 		}
 	},
 	runtimeConfig: {
-		apiUrl: import.meta.env.API_URL,
+		apiUrl: process.env.API_URL,
 		public: {
 			igvProxyUrl: import.meta.env.IGV_PROXY_URL,
 		}

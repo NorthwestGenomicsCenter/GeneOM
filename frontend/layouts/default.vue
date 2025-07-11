@@ -155,7 +155,7 @@ body {
 
 .main-content {
   display: grid;
-  grid-template-columns: 14em 1fr 3.5rem;
+  grid-template-columns: 14em 1fr 3rem;
   grid-template-rows: 1fr;
   gap: 0px 0px;
   grid-auto-flow: row;

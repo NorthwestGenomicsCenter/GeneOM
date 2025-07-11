@@ -7,7 +7,7 @@
     <div v-else class="user-info">
       <span class="username">{{ user.firstName }} {{ user.lastName }}</span>
       <div class="avatar-container">
-        <img :src="'/avatar.png'" :alt="username + ' avatar'" class="avatar" />
+        <img :src="'avatar.png'" :alt="username + ' avatar'" class="avatar" />
       </div>
       <div @click="logout">Log Out</div>
     </div>

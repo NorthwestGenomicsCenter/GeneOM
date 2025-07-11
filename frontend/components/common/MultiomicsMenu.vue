@@ -1,7 +1,7 @@
 <template>
   <ul class="menu">
     <li>
-      <h3 class="menu-section">Assays</h3>
+      <h3 class="menu-section">Workspaces</h3>
     </li>
     <template v-for="item in sidebarItems" :key="item.name">
       <MenuItem

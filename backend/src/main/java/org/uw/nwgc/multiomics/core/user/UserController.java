@@ -1,8 +1,12 @@
 package org.uw.nwgc.multiomics.core.user;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,10 +17,15 @@ import java.util.List;
 public class UserController {
 
     UserService userService;
+    PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(
+            UserService userService,
+            PasswordEncoder passwordEncoder
+    ) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/all")
@@ -28,12 +37,13 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/hello2")
-    public String hello2() {
-        var users = userService.getAllUsers();
-        users.forEach(System.out::println);
+    @Transactional
+    @PostMapping("/create")
+    public ResponseEntity<UserDTO> createNewUser(@RequestBody CreateUserDTO userDto) {
+        User user = userDto.toUser(passwordEncoder);
+        userService.saveUser(user);
 
-        return "Hello World";
+        return ResponseEntity.ok(new UserDTO(user));
     }
 
 }

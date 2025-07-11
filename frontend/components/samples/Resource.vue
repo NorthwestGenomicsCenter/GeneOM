@@ -18,21 +18,25 @@
           :options="visualizerOptions" />
       <label for="visualizers">Visualization Type</label>
     </FloatLabel>
-    <div>
-      <Checkbox id="igv-check" binary v-model="resource.igvTrack"/>
-      <label for="igv-check`">&nbsp;&nbsp;Igv</label>
-    </div>
+
+    <FloatLabel variant="on" class="input">
+      <TissueDropdown
+        id="tissue-dropdown"
+        v-model="resource.tissue['url']"
+        @change="tissueChange" />
+      <label for="tissue-dropdown">Tissue Type</label>
+    </FloatLabel>
+
     <div>
       <em class="pi pi-times-circle" @click="removeFile"/>
       <label for="igv-check`">&nbsp;&nbsp;Remove</label>
-      {{ resource }}
     </div>
   </div>
   <Toast />
 </template>
 
 <script setup lang="ts">
-
+import TissueDropdown from "~/components/common/TissueDropdown.vue";
 const toast = useToast();
 
 interface Props {
@@ -52,6 +56,12 @@ const removeFile = async () => {
   })
 
   toast.add({severity: 'success', summary: res.data.value})
+}
+
+const tissueChange = (tissueUrl) => {
+  const tissue = {} as TissueDTO;
+  tissue.url = tissueUrl;
+  resource.value.tissue = tissue
 }
 </script>
 
