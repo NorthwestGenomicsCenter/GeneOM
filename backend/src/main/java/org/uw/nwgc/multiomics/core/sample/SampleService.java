@@ -1,9 +1,11 @@
 package org.uw.nwgc.multiomics.core.sample;
 
+import jakarta.persistence.criteria.Join;
 import jakarta.security.auth.message.AuthException;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import org.uw.nwgc.multiomics.core.user.User;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class SampleService {
@@ -30,6 +33,26 @@ public class SampleService {
 
     public List<Sample> getAll() {
         return sampleRepository.findAll();
+    }
+
+    public List<SampleDTO> findSamplesByCriteria(List<UUID> projectIds, List<UUID> technologyIds) {
+        Specification<Sample> spec = Specification.where(null);
+
+        if (projectIds != null && !projectIds.isEmpty()) {
+            spec = spec.and((root, query, cb) -> root.get("project").get("id").in(projectIds));
+        }
+
+        if (technologyIds != null && !technologyIds.isEmpty()) {
+            spec = spec.and((root, query, cb) -> {
+                Join<Object, Object> techJoin = root.join("technologies");
+                return techJoin.get("id").in(technologyIds);
+            });
+        }
+
+        return sampleRepository.findAll(spec)
+                .stream()
+                .map(SampleDTO::new)
+                .collect(Collectors.toList());
     }
 
     public List<Sample> fuzzyFindByName(String name, Integer limit) {

@@ -21,6 +21,7 @@
     "h3-proxy": "^1.13.0",
     "igv": "^3.0.9",
     "nuxt": "^3.17.5",
+    "interactjs": "^1.10.27",
     "nuxt-proxy": "^0.4.1",
     "pinia": "^3.0.2",
     "primeicons": "^7.0.0",

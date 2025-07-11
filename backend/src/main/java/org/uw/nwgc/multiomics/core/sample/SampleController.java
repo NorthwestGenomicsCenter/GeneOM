@@ -4,13 +4,7 @@ import jakarta.security.auth.message.AuthException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.uw.nwgc.multiomics.api.view.SampleViewDTO;
 import org.uw.nwgc.multiomics.api.view.SampleViewService;
 
@@ -66,6 +60,18 @@ public class SampleController {
         return ResponseEntity.ok(sampleDTOS);
     }
 
+    @GetMapping("/filter")
+    public ResponseEntity<List<SampleDTO>> getSamplesWithFilter(
+            @RequestParam(required = false) List<UUID> projectIds,
+            @RequestParam(required = false) List<UUID> technologyIds
+    ) {
+        List<SampleDTO> samples = sampleService.findSamplesByCriteria(projectIds, technologyIds);
+        if (samples.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(samples);
+    }
 
     @PostMapping("/save")
     public ResponseEntity<Sample> save(@RequestBody SampleDTO sampleDTO) throws AuthException {
