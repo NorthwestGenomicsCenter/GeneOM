@@ -90,6 +90,6 @@ const toggleProject = (projectId) => {
 }
 
 const navigateToSamples = (projectId, technologyId) => {
-  navigateTo(`/samples?project=${projectId}&technology=${technologyId}`)
+  navigateTo(`/samplelookup?project=${projectId}&technology=${technologyId}`)
 }
 </script>

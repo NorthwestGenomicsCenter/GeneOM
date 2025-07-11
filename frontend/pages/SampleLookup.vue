@@ -194,7 +194,7 @@ const { data: allTechnologies } = await useFetch('/api/technology/all')
 const query = new URLSearchParams()
 for (const id of selectedProjectIds.value) query.append('projectIds', id)
 for (const id of selectedTechnologyIds.value) query.append('technologyIds', id)
-const { data: samples, status, error } = await useFetch(`/api/sample/filter?${query.toString()}`)
+const { data: samples, status, error } = await useFetch(`/api/sample/all`)
 
 // Computed project and technology objects for display
 const selectedProjects = computed(() =>
@@ -228,7 +228,7 @@ const toggleSelectAll = () => {
 const clearFilters = () => {
   selectedProjectIds.value.clear()
   selectedTechnologyIds.value.clear()
-  navigateTo('/samples')
+  navigateTo('/samplelookup')
 }
 
 const proceedToAnalysis = () => {
