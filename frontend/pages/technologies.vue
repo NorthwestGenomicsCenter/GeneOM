@@ -90,7 +90,7 @@ const navigateToSamples = (projectId, technologyId) => {
   const query = new URLSearchParams()
   if (projectId) query.append('project', projectId)
   if (technologyId) query.append('technology', technologyId)
-  navigateTo(`/samplelookup?${query.toString()}`)
+  navigateTo(`/samples?${query.toString()}`)
 }
 
 </script>

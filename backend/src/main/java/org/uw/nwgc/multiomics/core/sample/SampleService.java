@@ -39,21 +39,31 @@ public class SampleService {
         Specification<Sample> spec = Specification.where(null);
 
         if (projectIds != null && !projectIds.isEmpty()) {
-            spec = spec.and((root, query, cb) -> root.get("project").get("id").in(projectIds));
+            spec = spec.and((root, query, cb) -> {
+                Join<Object, Object> tagJoin = root.join("tags");
+                return cb.and(
+                        tagJoin.get("id").in(projectIds),
+                        cb.equal(tagJoin.get("label"), "Project")
+                );
+            });
         }
 
         if (technologyIds != null && !technologyIds.isEmpty()) {
             spec = spec.and((root, query, cb) -> {
-                Join<Object, Object> techJoin = root.join("technologies");
-                return techJoin.get("id").in(technologyIds);
+                Join<Object, Object> tagJoin = root.join("tags");
+                return cb.and(
+                        tagJoin.get("id").in(technologyIds),
+                        cb.equal(tagJoin.get("label"), "Technology")
+                );
             });
         }
 
         return sampleRepository.findAll(spec)
                 .stream()
                 .map(SampleDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
+
 
     public List<Sample> fuzzyFindByName(String name, Integer limit) {
         Pageable page = PageRequest.of(0, limit);
