@@ -6,7 +6,14 @@ public class TechnologyDTO {
     private UUID id;
     private String name;
     private String description;
-    private int sampleCount;
+    private long sampleCount;
+
+    public TechnologyDTO(UUID id, String name, long sampleCount) {
+        this.id = id;
+        this.name = name;
+        this.description = "This is a placeholder description while this feature is being implemented.";
+        this.sampleCount = sampleCount;
+    }
 
     public TechnologyDTO(UUID id, String name, String description, int sampleCount) {
         this.id = id;
@@ -21,5 +28,5 @@ public class TechnologyDTO {
 
     public String getDescription() { return description; }
 
-    public int getSampleCount() { return sampleCount; }
+    public long getSampleCount() { return sampleCount; }
 }

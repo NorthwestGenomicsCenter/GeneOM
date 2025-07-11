@@ -13,4 +13,6 @@ public interface SampleRepository extends JpaRepository<Sample, UUID>, QueryByEx
     List<Sample> findByNameContainingIgnoreCase(String namePart);
     Page<Sample> findByNameContainingIgnoreCase(String namePart, Pageable pg);
     List<Sample> findByExternalLimsIdAndIntegrationSource(String externalLimsId, String integrationSource);
+    List<Sample> findByTags_Id(UUID tagsId);
+    long countByTags_Id(UUID tagId);
 }
