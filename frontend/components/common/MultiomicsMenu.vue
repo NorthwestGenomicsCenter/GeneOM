@@ -22,6 +22,7 @@
       <h3 class="menu-section">Manage</h3>
     </li>
     <MenuItem to="/manage/samples" text="Samples" icon="" />
+    <MenuItem to="/manage/tags" text="Tags" icon="" />
     <MenuItem to="/manage/cohorts" text="Cohorts" icon="" />
     <MenuItem to="/import/ImportExternalData" text="Import External Data" icon="" />
 

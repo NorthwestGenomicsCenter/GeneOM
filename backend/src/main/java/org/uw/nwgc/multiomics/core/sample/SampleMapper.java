@@ -1,8 +1,12 @@
 package org.uw.nwgc.multiomics.core.sample;
 
+import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.resources.OmicResourceDTO;
+import org.uw.nwgc.multiomics.core.resources.OmicResourceMapper;
+import org.uw.nwgc.multiomics.core.resources.OmicService;
 import org.uw.nwgc.multiomics.core.tag.Tag;
+import org.uw.nwgc.multiomics.core.tag.TagService;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
 import org.uw.nwgc.multiomics.core.user.UserDTO;
 
@@ -13,9 +17,20 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Component
 public class SampleMapper {
 
-    public static SampleDTO toDTO(Sample sample) {
+    private final TagService tagService;
+    private final OmicResourceMapper omicResourceMapper;
+    private final OmicService omicService;
+
+    public SampleMapper(TagService tagService, OmicResourceMapper omicResourceMapper, OmicService omicService) {
+        this.tagService = tagService;
+        this.omicResourceMapper = omicResourceMapper;
+        this.omicService = omicService;
+    }
+
+    public SampleDTO toDTO(Sample sample) {
         SampleDTO dto = new SampleDTO();
         dto.setId(sample.getId());
         dto.setName(sample.getName());
@@ -42,7 +57,7 @@ public class SampleMapper {
         return dto;
     }
 
-    public static void updateFromDto(SampleDTO dto, Sample sample, List<Tissue> tissues) {
+    public void updateFromDto(SampleDTO dto, Sample sample, List<Tissue> tissues) {
         sample.setName(dto.getName());
         sample.setIntegrationSource(dto.getIntegrationSource());
         sample.setExternalLimsId(dto.getExternalLimsId());
@@ -50,10 +65,23 @@ public class SampleMapper {
         sample.setExternalProjectName(dto.getExternalProjectName());
 
         updateTags(dto, sample);
-        updateOmicResources(dto, sample, tissues);
+
+        if (dto.getOmicResources() != null) {
+            for (OmicResourceDTO resourceDTO : dto.getOmicResources()) {
+                UUID resourceId = resourceDTO.getOmicResourceId();
+                OmicResource resource;
+                if (resourceId != null) {
+                    resource = omicService.findById(resourceId);
+                } else {
+                    resource = new OmicResource();
+                }
+
+                omicResourceMapper.updateFromDTO(resourceDTO, resource, null);
+            }
+        }
     }
 
-    private static void updateTags(SampleDTO dto, Sample sample) {
+    private void updateTags(SampleDTO dto, Sample sample) {
         Map<UUID, Tag> existingTags = sample.getTags()
                 .stream()
                 .collect(Collectors.toMap(Tag::getId, Function.identity()));
@@ -72,23 +100,4 @@ public class SampleMapper {
         }
     }
 
-    private static void updateOmicResources(SampleDTO dto, Sample sample, List<Tissue> tissues) {
-        Map<UUID, OmicResource> existingOmicResources = sample.getOmicResources()
-                .stream()
-                .collect(Collectors.toMap(OmicResource::getId, Function.identity()));
-
-        if (dto.getOmicResources() != null && !dto.getOmicResources().isEmpty()) {
-            for (OmicResourceDTO omicResourceDTO : dto.getOmicResources()) {
-                OmicResource omicResource;
-                if (omicResourceDTO.getOmicResourceId() == null) {
-                    omicResource = new OmicResource();
-                } else {
-                    omicResource = existingOmicResources.computeIfAbsent(omicResourceDTO.getOmicResourceId(), k -> new OmicResource());
-                }
-
-                omicResource.update(omicResourceDTO, tissues);
-                sample.getOmicResources().add(omicResource);
-            }
-        }
-    }
 }

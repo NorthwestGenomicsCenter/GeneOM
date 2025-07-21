@@ -42,6 +42,10 @@ public class StartupRunner {
         populateTissueTable();
     }
 
+    /**
+     * Tissue Data Data from https://obofoundry.org/ontology/uberon.html
+     * Downloaded 7-11-2025
+     */
     private void populateTissueTable() {
         if (tagService.tissuesCount() != 0) {
             return;

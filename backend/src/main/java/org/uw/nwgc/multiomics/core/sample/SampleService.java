@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class SampleService {
@@ -29,14 +28,18 @@ public class SampleService {
     private final SampleRepository sampleRepository;
     private final TagRepository tagRepository;
     private final TagService tagService;
+    private final SampleMapper sampleMapper;
 
     public SampleService(
             SampleRepository sampleRepository,
             TagRepository tagRepository,
-            TagService tagService) {
+            TagService tagService,
+            SampleMapper sampleMapper
+    ) {
         this.sampleRepository = sampleRepository;
         this.tagRepository = tagRepository;
         this.tagService = tagService;
+        this.sampleMapper = sampleMapper;
     }
 
     public Optional<Sample> getById(UUID id) {
@@ -72,7 +75,7 @@ public class SampleService {
 
         return sampleRepository.findAll(spec)
                 .stream()
-                .map(SampleDTO::new)
+                .map(sampleMapper::toDTO)
                 .toList();
     }
 
@@ -126,7 +129,7 @@ public class SampleService {
             }
         }
 
-        SampleMapper.updateFromDto(sampleDTO, sample, tissues);
+        sampleMapper.updateFromDto(sampleDTO, sample, tissues);
         sample.getUsers().add(user);
         return sampleRepository.save(sample);
     }

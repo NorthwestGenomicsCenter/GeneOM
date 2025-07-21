@@ -20,12 +20,19 @@ import java.util.UUID;
 public class SampleController {
 
     private final SampleService sampleService;
+    private final SampleMapper sampleMapper;
     private final SampleRepository sampleRepository;
     private final SampleViewService sampleViewService;
 
     @Autowired
-    public SampleController(SampleService sampleService, SampleRepository sampleRepository, SampleViewService sampleViewService) {
+    public SampleController(
+            SampleService sampleService,
+            SampleMapper sampleMapper,
+            SampleRepository sampleRepository,
+            SampleViewService sampleViewService
+    ) {
         this.sampleService = sampleService;
+        this.sampleMapper = sampleMapper;
         this.sampleRepository = sampleRepository;
         this.sampleViewService = sampleViewService;
     }
@@ -35,7 +42,7 @@ public class SampleController {
         Optional<Sample> optional = sampleService.getById(uuid);
         if  (optional.isPresent()) {
             Sample sample = optional.get();
-            return ResponseEntity.ok(new SampleDTO(sample));
+            return ResponseEntity.ok(sampleMapper.toDTO(sample));
         }
 
         return ResponseEntity.notFound().build();
@@ -56,7 +63,7 @@ public class SampleController {
     public ResponseEntity<List<SampleDTO>> selectAll() {
         List<SampleDTO> sampleDTOS = sampleService.getAll()
                 .stream()
-                .map(SampleDTO::new)
+                .map(sampleMapper::toDTO)
                 .toList();
 
         return ResponseEntity.ok(sampleDTOS);
@@ -70,7 +77,7 @@ public class SampleController {
 
         List<SampleDTO> sampleDTOS = new ArrayList<>();
         for (Sample sample : samples) {
-            sampleDTOS.add(new SampleDTO(sample));
+            sampleDTOS.add(sampleMapper.toDTO(sample));
         }
 
         return ResponseEntity.ok(sampleDTOS);

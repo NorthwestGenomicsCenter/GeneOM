@@ -58,7 +58,7 @@
       <Resource
           :editing="false"
           :resource="file"
-          :visualizer-options="['Differential Expression', 'Technology', 'Something Else']" />
+          :visualizer-options="transformers" />
     </template>
     <Button label="Save Changes" @click="save"/>
   </div>
@@ -69,7 +69,6 @@
         request="/api/vuefinder/search/"
         @select="handleSelectEvent" />
     <Button label="Add Files" @click="addFiles" />
-<!--    <Resource :resource="{} as OmicResourceDTO" :visualizer-options="['Differential Expression', 'Technology', 'Something Else']" />-->
   </Dialog>
 
   <Toast />
@@ -92,6 +91,14 @@ const { data } = await useApi<SampleDTO>(`/sample/${router.params.sampleId}`, {
   method: "GET"
 })
 sample.value = data.value;
+
+// Get the list of available transformers for the data
+const transformers = ref<string[]>([]);
+const fetchTransformers = async () => {
+  const res = await useApi("/omic/transformers")
+  transformers.value = res.data.value;
+}
+await fetchTransformers();
 
 // Add resources to the sample
 const visible = ref<boolean>(false);

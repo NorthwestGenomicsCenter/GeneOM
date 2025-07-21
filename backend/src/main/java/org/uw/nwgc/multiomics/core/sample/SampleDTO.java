@@ -8,10 +8,8 @@ import org.uw.nwgc.multiomics.core.tag.Tag;
 import org.uw.nwgc.multiomics.core.user.UserDTO;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,25 +25,25 @@ public class SampleDTO {
     private List<UserDTO> users;
     private List<OmicResourceDTO> omicResources;
 
-    public SampleDTO(Sample sample) {
-        this.id = sample.getId();
-        this.name = sample.getName();
-        this.integrationSource = sample.getIntegrationSource();
-        this.externalLimsId = sample.getExternalLimsId();
-        this.externalProjectName = sample.getExternalProjectName();
-        this.description = sample.getDescription();
-        this.tags = sample.getTags().stream().map(tag -> {
-                if (tag != null) {
-                    return new Tag.SampleTagDTO(tag.getId(), tag.getLabel(), tag.getValue());
-                }
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
-        this.users = sample.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
-        this.omicResources = sample.getOmicResources().stream()
-                .filter(Objects::nonNull)
-                .map(OmicResourceDTO::new)
-                .toList();
-    }
+//    public SampleDTO(Sample sample) {
+//        this.id = sample.getId();
+//        this.name = sample.getName();
+//        this.integrationSource = sample.getIntegrationSource();
+//        this.externalLimsId = sample.getExternalLimsId();
+//        this.externalProjectName = sample.getExternalProjectName();
+//        this.description = sample.getDescription();
+//        this.tags = sample.getTags().stream().map(tag -> {
+//                if (tag != null) {
+//                    return new Tag.SampleTagDTO(tag.getId(), tag.getLabel(), tag.getValue());
+//                }
+//                return null;
+//            })
+//            .filter(Objects::nonNull)
+//            .collect(Collectors.toSet());
+//        this.users = sample.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
+//        this.omicResources = sample.getOmicResources().stream()
+//                .filter(Objects::nonNull)
+//                .map(OmicResourceDTO::new)
+//                .toList();
+//    }
 }

@@ -1,38 +1,38 @@
 <template>
-  <div>
-    {{ types }}
-  </div>
+<!--  <div>-->
+<!--    {{ types }}-->
+<!--  </div>-->
 
-  <div>
-    {{ managedTypesTable }}
-  </div>
+<!--  <div>-->
+<!--    {{ managedTypesTable }}-->
+<!--  </div>-->
 
-  <div>
-    {{ uberon }}
-  </div>
+<!--  <div>-->
+<!--    {{ uberon }}-->
+<!--  </div>-->
 
-  <div>
-    {{ featured }}
-    <Button @click="getFeatured" label="Get Featured" />
-  </div>
+<!--  <div>-->
+<!--    {{ featured }}-->
+<!--    <Button @click="getFeatured" label="Get Featured" />-->
+<!--  </div>-->
 
-  <div>
-    {{ allTissue }}
-    <Button @click="getAll" label="Get All" />
-  </div>
+<!--  <div>-->
+<!--    {{ allTissue }}-->
+<!--    <Button @click="getAll" label="Get All" />-->
+<!--  </div>-->
 
-  <Button label="query" @click="query" />
-  <Button label="Create Tag" @click="createTag" />
+<!--  <Button label="query" @click="query" />-->
+<!--  <Button label="Create Tag" @click="createTag" />-->
 
-  <Button @click="importHpJson" label="Import Onotology"/>
+<!--  <Button @click="importHpJson" label="Import Onotology"/>-->
 
-  <TissueDropdown v-model="test1"/>{{ test1 }}
-  <TissueDropdown v-model="test2"/>{{ test2 }}
-  <TissueDropdown v-model="test3"/>{{ test3 }}
-  <TissueDropdown v-model="test4"/>{{ test4 }}
+<!--  <TissueDropdown v-model="test1"/>{{ test1 }}-->
+<!--  <TissueDropdown v-model="test2"/>{{ test2 }}-->
+<!--  <TissueDropdown v-model="test3"/>{{ test3 }}-->
+<!--  <TissueDropdown v-model="test4"/>{{ test4 }}-->
 
-  <InputText v-model="searchQuery" @change="search"/>
-  {{ searchResults }}
+<!--  <InputText v-model="searchQuery" @change="search"/>-->
+<!--  {{ searchResults }}-->
 
   <TissueTable show-featured-column />
 
