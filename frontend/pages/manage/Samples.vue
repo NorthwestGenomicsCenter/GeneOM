@@ -23,7 +23,6 @@
       </Column>
     </DataTable>
   </div>
-  {{ testData }}
 
 <!--  <SampleChip :sample="samples[0]" />-->
 

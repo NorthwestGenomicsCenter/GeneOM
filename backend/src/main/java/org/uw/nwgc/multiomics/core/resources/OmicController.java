@@ -10,15 +10,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.uw.nwgc.multiomics.core.finder.FinderBasePath;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,13 +28,26 @@ public class OmicController {
 
     private final OmicService omicService;
     private final SampleService sampleService;
+    private final List<VizTransformer> transformers;
 
     public OmicController(
             OmicService omicService,
-            SampleService sampleService
+            SampleService sampleService,
+            List<VizTransformer> transformers
     ) {
         this.omicService = omicService;
         this.sampleService = sampleService;
+        this.transformers = transformers;
+    }
+
+    @GetMapping("/transformers")
+    public ResponseEntity<List<String>> getRegisteredTransformers() {
+        return ResponseEntity.ok(transformers
+                .stream()
+                .map(VizTransformer::getClass)
+                .map(Class::getSimpleName)
+                .collect(Collectors.toList())
+        );
     }
 
     @GetMapping("/visualizers/{sampleId}")
@@ -70,20 +79,20 @@ public class OmicController {
             return ResponseEntity.notFound().build();
         }
 
-        VizTransformer transformer = resource.getVizTransformer()
-                .getDeclaredConstructor()
-                .newInstance();
-
         Object transformedResource = null;
 
-        String relativePath = resource.getPath();
-        if (relativePath.contains("://")) {
-            String[] pathParts = relativePath.split("://");
-            String basePath = FinderBasePath.fromString(pathParts[0]).getText();
-            Path fullPath = Path.of(basePath, pathParts[1]);
-            BufferedReader fileReader = Files.newBufferedReader(fullPath);
-            transformedResource = transformer.serveResource(fileReader);
-        }
+//        VizTransformer transformer = resource.getVizTransformer()
+//                .getDeclaredConstructor()
+//                .newInstance();
+//
+//        String relativePath = resource.getPath();
+//        if (relativePath.contains("://")) {
+//            String[] pathParts = relativePath.split("://");
+//            String basePath = FinderBasePath.fromString(pathParts[0]).getText();
+//            Path fullPath = Path.of(basePath, pathParts[1]);
+//            BufferedReader fileReader = Files.newBufferedReader(fullPath);
+//            transformedResource = transformer.serveResource(fileReader);
+//        }
 
         if (transformedResource == null) {
             return ResponseEntity.notFound().build();

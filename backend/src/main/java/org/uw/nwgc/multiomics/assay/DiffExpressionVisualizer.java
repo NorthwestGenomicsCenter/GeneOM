@@ -1,15 +1,13 @@
-package org.uw.nwgc.multiomics.core.resources;
+package org.uw.nwgc.multiomics.assay;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpression;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpressionChartDTO;
+import org.uw.nwgc.multiomics.core.resources.VizTransformer;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -19,11 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@Component
 public class DiffExpressionVisualizer implements VizTransformer {
 
     @Override

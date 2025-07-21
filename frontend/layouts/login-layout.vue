@@ -48,23 +48,31 @@ useHead({
 }
 
 .layout {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   margin: 0;
   padding: 0;
+  width: 100vw;
+  height: 100vh;
 }
 
 .container {
-  background-image: url("@/public/dna3.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 100%;
+  /* Remove fixed width/height and allow flex growth */
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
+
+  /* Ensure it stretches to the full available space */
+  width: 100%;
+  height: 100%;
+
+  /* Background image styling to stretch it */
+  background-image: url("@/public/dna3.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover; /* ⬅ ensures the image covers the whole area */
 }
 
 footer {

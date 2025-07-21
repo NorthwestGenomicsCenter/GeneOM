@@ -21,12 +21,17 @@ public class OmicResourceDTO {
     private Boolean igvTrack;
     private TissueDTO tissue;
     private List<String> visualizers;
+    private List<String> visualizationComponents;
 
     public OmicResourceDTO(OmicResource omicResource) {
         this.omicResourceId = omicResource.getId();
         this.sampleId = omicResource.getSample().getId();
         this.path = omicResource.getPath();
-        this.visualizers = omicResource.getVisualizers();
+        this.visualizationComponents = omicResource.getVisualizers();
+        this.visualizers = omicResource.getVizTransformer()
+                .stream()
+                .map(Class::getSimpleName)
+                .toList();
         this.igvTrack = omicResource.getIgvTrack();
 
         var tissueType = omicResource.getTissueType();

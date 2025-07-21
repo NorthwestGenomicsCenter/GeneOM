@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
+import org.uw.nwgc.multiomics.assay.DiffExpressionVisualizer;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
 
@@ -43,19 +44,19 @@ public class OmicResource {
     @JoinColumn(name = "tissue_type_url")
     private Tissue tissueType;
 
-    private Class<? extends VizTransformer> vizTransformer;
+    private List<Class<? extends VizTransformer>> vizTransformer;
 
     public OmicResource(OmicResourceDTO dto, Sample sample) {
         this.path = dto.getPath();
         this.sample = sample;
-        this.vizTransformer = DiffExpressionVisualizer.class;
+        this.vizTransformer = List.of(DiffExpressionVisualizer.class);
     }
 
     public List<String> getVisualizers() {
         try {
-            VizTransformer transformer = vizTransformer.getDeclaredConstructor()
-                    .newInstance();
-            return transformer.visualizationComponents();
+//            VizTransformer transformer = vizTransformer.stream().getDeclaredConstructor()
+//                    .newInstance();
+//            return transformer.visualizationComponents();
 
         } catch (Exception ignored) {}
 
