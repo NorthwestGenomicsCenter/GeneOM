@@ -2,7 +2,7 @@
   <div class="w-full h-full overflow-auto p-4 bg-white rounded shadow">
     <template v-if="ViewComponent">
       <ClientOnly fallback-tag="h3" fallback="Loading...">
-        <component :is="ViewComponent" v-bind="componentProps" />
+        <component :is="ViewComponent" v-bind="dynamicComponentProps" />
       </ClientOnly>
     </template>
     <template v-else>
@@ -20,5 +20,9 @@ const props = defineProps({
   componentProps: Object,
 })
 
-const ViewComponent = computed(() => viewComponentMap[props.viewName])
+const dynamicComponentProps = computed(() => props.componentProps)
+
+const ViewComponent = computed(() =>
+    viewComponentMap[props.viewName]
+)
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="header-container">
+  <div class="header-container header-draggable">
     <h3 class="centered-title" v-html="props.title"></h3>
     <div v-if="!disableToggle" class="right-element">
       Global Filters:&nbsp;&nbsp;<ToggleSwitch v-model="modelValue"/>

@@ -27,6 +27,8 @@
       <label for="tissue-dropdown">Tissue Type</label>
     </FloatLabel>
 
+    <a :href="`/api/omic/visualize/${resource.omicResourceId}`">View</a>
+
     <div>
       <em class="pi pi-times-circle" @click="removeFile"/>
       <label for="igv-check`">&nbsp;&nbsp;Remove</label>
