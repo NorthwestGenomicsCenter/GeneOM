@@ -5,14 +5,23 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.uw.nwgc.multiomics.api.view.SampleViewDTO;
 import org.uw.nwgc.multiomics.api.view.SampleViewService;
+import org.uw.nwgc.multiomics.core.resources.OmicResource;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -109,9 +118,26 @@ public class SampleController {
         return ResponseEntity.ok(sample);
     }
 
+//    @GetMapping("/{sampleId}/views")
+//    public List<SampleViewDTO> getSampleViews(@PathVariable String sampleId) {
+//        return sampleViewService.getAvailableTechnologyViewPairsForSample(sampleId);
+//    }
+
     @GetMapping("/{sampleId}/views")
-    public List<SampleViewDTO> getSampleViews(@PathVariable String sampleId) {
-        return sampleViewService.getAvailableTechnologyViewPairsForSample(sampleId);
+    public ResponseEntity<List<SampleViewDTO>> getSampleViews(@PathVariable UUID sampleId) {
+        Optional<Sample> sample = sampleService.getById(sampleId);
+        if (!sample.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Sample s = sample.get();
+        Set<OmicResource> resources = s.getOmicResources();
+        List<SampleViewDTO> views = resources.stream()
+                .map(SampleViewDTO::mapResource)
+                .flatMap(List::stream)
+                .toList();
+        return ResponseEntity.ok(views);
+
     }
 
 

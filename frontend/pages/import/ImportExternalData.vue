@@ -49,12 +49,15 @@
     <Button label="Search External Samples" @click="querySamples" outlined />
 <!--    {{ sampleSearch }}-->
   </section>
+  <Toast />
 
 </template>
 
 <script setup lang="ts">
 const queryString = ref<string>("1674062");
 const response = ref<any>([]);
+
+const toast = useToast();
 
 const query = async () => {
   const res = await useApi(`/search/integrations/${queryString.value}`);
@@ -64,6 +67,9 @@ const query = async () => {
 const sampleSearch = ref<ExternalSampleDTO[]>([]);
 const querySamples = async () => {
   const res = await useApi(`/search/integrations/sample/${queryString.value}`);
+  if (sampleSearch.value.error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to Search for Sample', life: 8000 })
+  }
   sampleSearch.value = res.data.value;
 }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpression;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpressionChartDTO;
@@ -26,7 +27,7 @@ public class DiffExpressionVisualizer implements VizTransformer {
     }
 
     @Override
-    public Object serveResource(Reader reader) {
+    public Object serveResource(Reader reader, HttpHeaders header) {
         CsvMapper mapper = new CsvMapper();
 
         // Configure schema for TSV (tab-separated with header)
@@ -64,6 +65,11 @@ public class DiffExpressionVisualizer implements VizTransformer {
         }
 
         return chartDtos;
+    }
+
+    @Override
+    public boolean validateResource(Reader reader) {
+        return false;
     }
 
     @JsonProperty("unknown")

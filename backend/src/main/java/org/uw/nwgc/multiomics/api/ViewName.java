@@ -3,7 +3,8 @@ package org.uw.nwgc.multiomics.api;
 public enum ViewName {
     DIFFERENTIAL_EXPRESSION("differential-expression"),
     DIFFERENTIAL_PEAK("differential-peak"),
-    IGV("igv");
+    IGV("Igv"),
+    TandemRepeatsTransformer("TandemRepeatsTransformer");
 
     private final String apiValue;
 

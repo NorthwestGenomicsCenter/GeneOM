@@ -8,7 +8,8 @@ public enum FinderBasePath {
 //    sample("/net/nwgc/vol1/data/processed/samples/"),
     sharing("/net/nwgc/vol1/sharing"),
     nobackup("/net/nwgc/vol1/nobackup"),
-    techdev("/net/nwgc/vol1/techdev");
+    techdev("/net/nwgc/vol1/techdev"),
+    temp("/temp");
 
     private final String text;
 

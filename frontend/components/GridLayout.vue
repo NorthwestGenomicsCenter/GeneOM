@@ -5,6 +5,8 @@
       @mousemove="onMouseMove"
       @mouseleave="onMouseLeave"
   >
+    <!--    Documentation    -->
+    <!--    https://jbaysolutions.github.io/vue-grid-layout/guide/properties.html#griditem   -->
     <GridLayout
         :layout="layout"
         :col-num="computedColNum"
@@ -23,6 +25,7 @@
           :y="item.y"
           :w="item.w"
           :h="item.h"
+          dragAllowFrom=".header-draggable"
           @resize="disableTextSelection"
           @resized="enableTextSelection"
           @move="disableTextSelection"
@@ -30,8 +33,8 @@
       >
         <component
             :is="getComponent(item.i)"
+            :componentProps="getProps(item.i)"
             v-bind="getProps(item.i)"
-            :layout-props="item"
         />
       </GridItem>
     </GridLayout>
@@ -54,6 +57,10 @@ const props = defineProps({
   columns: {
     type: Number,
     default: 30
+  },
+  selectedViews: {
+    type: Array,
+    default: new Array()
   }
 })
 
@@ -91,7 +98,7 @@ function getComponent(id: string) {
 }
 
 function getProps(id: string) {
-  return props.components.find(c => c.id === id)?.props || {}
+  return props.components.find(c => c.id === id)?.props || null
 }
 
 // Hover detection and Add View logic

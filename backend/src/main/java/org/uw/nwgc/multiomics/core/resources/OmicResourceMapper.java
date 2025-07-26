@@ -28,7 +28,7 @@ public class OmicResourceMapper {
         resource.setPath(dto.getPath());
         resource.setIgvTrack(dto.getIgvTrack());
 
-        List<Class<? extends VizTransformer>> transformerList = new ArrayList<>();
+    List<Class<? extends VizTransformer>> transformerList = new ArrayList<>();
         for (var visualizer : dto.getVisualizers()) {
             VizTransformer transformer = transformers.get(visualizer);
             if (transformer != null) {

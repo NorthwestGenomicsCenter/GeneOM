@@ -3,7 +3,6 @@
     v-model="selected"
     :options="options"
     class="w-80"
-    placeholder="Select Tissue Type"
     optionLabel="name"
     optionValue="url"
     @change="selectionChanged"
