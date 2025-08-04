@@ -15,7 +15,7 @@ public class TechnologyDTO {
         this.sampleCount = sampleCount;
     }
 
-    public TechnologyDTO(UUID id, String name, String description, int sampleCount) {
+    public TechnologyDTO(UUID id, String name, String description, long sampleCount) {
         this.id = id;
         this.name = name;
         this.description = description;

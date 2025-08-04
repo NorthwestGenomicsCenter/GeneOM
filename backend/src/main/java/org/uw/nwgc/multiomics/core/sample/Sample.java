@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
+import org.uw.nwgc.multiomics.core.tag.ManagedTag;
 import org.uw.nwgc.multiomics.core.tag.Tag;
 import org.uw.nwgc.multiomics.core.user.User;
 
@@ -44,5 +45,8 @@ public class Sample {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Tag> tags = new HashSet<>();
+
+    @ManyToMany
+    private Set<ManagedTag> managedTags = new HashSet<>();
 
 }

@@ -1,9 +1,13 @@
 package org.uw.nwgc.multiomics.core.project;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.uw.nwgc.multiomics.core.enums.ManageTagType;
 import org.uw.nwgc.multiomics.core.sample.SampleRepository;
-import org.uw.nwgc.multiomics.core.tag.Tag;
-import org.uw.nwgc.multiomics.core.tag.TagRepository;
+import org.uw.nwgc.multiomics.core.tag.ManagedTag;
+import org.uw.nwgc.multiomics.core.tag.ManagedTagRepository;
+import org.uw.nwgc.multiomics.core.tag.ManagedTagWithSampleCount;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,36 +16,29 @@ import java.util.UUID;
 @Service
 public class ProjectService {
 
-    private final TagRepository tagRepository;
-    private final SampleRepository sampleRepository;
+    private final ManagedTagRepository managedTagRepository;
 
-    private static UUID uuid1 = UUID.randomUUID();
-    private static UUID uuid2 = UUID.randomUUID();
-    private static UUID uuid3 = UUID.randomUUID();
-
-    public ProjectService(TagRepository tagRepository, SampleRepository sampleRepository) {
-        this.tagRepository = tagRepository;
-        this.sampleRepository = sampleRepository;
-
+    public ProjectService(ManagedTagRepository managedTagRepository) {
+        this.managedTagRepository = managedTagRepository;
     }
 
-    public List<ProjectDTO> getAllProjects() {
-        List<ProjectDTO> projects = new ArrayList<ProjectDTO>();
+    public Page<ProjectDTO> getAllProjects(Pageable pageable) {
+            Page<ManagedTagWithSampleCount> tagPage =
+                    managedTagRepository.findWithSampleCountsByType(ManageTagType.PROJECT, null, pageable);
 
-        List<Tag> projectTags = tagRepository.findByLabel("Project");
-        for (Tag projectTag : projectTags) {
-            long sampleCount = sampleRepository.countByTags_Id(projectTag.getId());
-            projects.add(new ProjectDTO(projectTag.getId(), projectTag.getValue(), sampleCount));
-        }
+            return tagPage.map(tag -> new ProjectDTO(
+                    tag.getId(),
+                    tag.getValue(),
+                    tag.getDescription(),
+                    tag.getSampleCount()
+            ));
+    }
 
-        return projects;
-        /*
-        // Dummy data, normally pulled from DB
-        return List.of(
-                new ProjectDTO(uuid1, "Project 1", "This is test project 1. It serves to help test the Projects view.", 10),
-                new ProjectDTO(uuid2, "Project 2", "This is test project 2. It serves to help test the Projects view.", 20),
-                new ProjectDTO(uuid3, "Project 3", "This is test project 3. It serves to help test the Projects view.", 30)
-        );
-        */
+    public List<String> getAllNames() {
+        return managedTagRepository.findAllValues(ManageTagType.PROJECT);
+    }
+
+    public boolean nameExists(String name) {
+        return managedTagRepository.existsByTypeAndValue(ManageTagType.PROJECT, name);
     }
 }
