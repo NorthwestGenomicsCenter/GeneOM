@@ -60,7 +60,8 @@ const select = (event) => {
 }
 </script>
 
-
 <style scoped>
-
+:deep(input) {
+  width: 60em;
+}
 </style>

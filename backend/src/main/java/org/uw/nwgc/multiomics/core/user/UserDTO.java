@@ -22,6 +22,8 @@ public class UserDTO {
     private String email;
     @JsonProperty("permissions")
     private List<String> permissions;
+    @JsonProperty("enabled")
+    private Boolean enabled;
 
     public UserDTO(User user) {
         this.id = user.getId();
@@ -29,6 +31,7 @@ public class UserDTO {
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.email = user.getEmail();
+        this.enabled = user.isEnabled();
         this.permissions = user.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)

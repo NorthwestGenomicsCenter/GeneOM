@@ -5,14 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -30,7 +29,7 @@ public class Cohort {
     private String description;
 
     @ManyToMany
-    private List<Sample> samples;
+    private Set<Sample> samples;
 
 
     public Cohort(CohortDTO cohortDto) {

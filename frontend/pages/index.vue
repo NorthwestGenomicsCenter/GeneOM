@@ -24,11 +24,11 @@
 </template>
 
 <script setup lang="ts">
+const auth = useAuth();
+
 definePageMeta({
   layout: 'default'
 })
-
-const auth = useAuth();
 
 </script>
 

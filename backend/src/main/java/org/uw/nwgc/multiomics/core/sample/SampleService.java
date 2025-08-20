@@ -46,6 +46,10 @@ public class SampleService {
         return sampleRepository.findById(id);
     }
 
+    public Optional<List<Sample>> findByIds(List<UUID> ids) {
+        return sampleRepository.findByIdIn(ids);
+    }
+
     public List<Sample> getAll() {
         return sampleRepository.findAll();
     }

@@ -7,17 +7,18 @@
 
     <DataTable
         :value="users"
-        stripedRows
-        removableSort
-        paginator
+        :filters="filters"
         :rows="10"
         :rowsPerPageOptions="[5,10,20]"
-        :filters="filters"
-        v-model:selection="selectedUser"
-        sort-field="lastName"
         :sort-order="1"
-        dataKey="id"
+        :rowClass="rowClass"
         class="p-datatable-sm"
+        dataKey="id"
+        paginator
+        removableSort
+        sort-field="lastName"
+        stripedRows
+        v-model:selection="selectedUser"
     >
       <template #header>
         <div class="table-header">
@@ -32,6 +33,7 @@
       <Column field="lastName" header="Last Name" sortable></Column>
       <Column field="email" header="Email" sortable></Column>
       <Column field="userName" header="Username" sortable></Column>
+      <Column field="enabled" header="Enabled" sortable></Column>
       <Column header="Permissions" style="min-width: 200px">
         <template #body="{data}">
           <Tag v-for="perm in data.permissions" :key="perm" :label="perm" class="mr-2 mb-2">
@@ -128,6 +130,11 @@ const changePassword = async () => {
   alert(res.data)
 }
 
+const rowClass = (row) : string => {
+  if (!row.enabled) {
+    return "disabled-user"
+  }
+}
 
 interface User {
   id?: number;
@@ -138,7 +145,6 @@ interface User {
   permissions: string[];
 }
 
-const users = ref<User[]>([]);
 const userDialog = ref(false);
 const deleteDialog = ref(false);
 const userToDelete = ref<User | null>(null);
@@ -158,11 +164,7 @@ const availablePermissions = ref([
   {name: 'Reports', value: 'reports'},
 ]);
 
-const loadUsers = async () => {
-  const res = await useApi("/users/all");
-  users.value = res.data.value;
-};
-loadUsers();
+const {data: users, refresh} = await useApi<UserDTO[]>("/users/all");
 
 // Create the users
 const user = ref<User>({} as User);
@@ -194,7 +196,7 @@ const saveUser = async () => {
       userDto.email?.trim() &&
       userDto.username?.trim()) {
 
-    const res = await useApi("/users/create", {
+    const res = await useClientApi("/users/create", {
       method: "POST",
       body: userDto
     });
@@ -262,5 +264,9 @@ const dialogTitle = computed(() => {
 :deep(.p-multiselect-token) {
   background-color: var(--primary-color);
   color: white;
+}
+
+:deep(.disabled-user) {
+  color: #999;
 }
 </style>

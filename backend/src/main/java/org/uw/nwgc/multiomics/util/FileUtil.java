@@ -9,7 +9,17 @@ import java.nio.file.Path;
 
 public class FileUtil {
 
+    public static Path resolveFilename(String filename) {
+        Path path = resolvePath(filename);
+
+        return path.getFileName();
+    }
+
     public static Path resolvePath(String filename) {
+        if (filename == null) {
+            return null;
+        }
+
         Path fullPath;
         if (filename.contains("://")) {
             String[] pathParts = filename.split("://");

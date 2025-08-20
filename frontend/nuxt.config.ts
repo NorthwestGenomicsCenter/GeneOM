@@ -52,6 +52,9 @@ export default defineNuxtConfig({
 			igvProxyUrl: import.meta.env.IGV_PROXY_URL,
 		}
 	},
+	routeRules: {
+		'/analysis/**': { ssr: false }, // Replace '/your-page-path' with the actual path of your page
+	},
 	ssr: true,
 	nitro: {
 		handlers: [

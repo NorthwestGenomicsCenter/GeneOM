@@ -1,3 +1,5 @@
+my:
+  app-base-url: https://burnet.gs.washington.edu/multiomics
 spring:
   application:
     name: UW Multiomics Browser

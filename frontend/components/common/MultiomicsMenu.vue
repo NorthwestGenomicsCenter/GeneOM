@@ -1,13 +1,13 @@
 <template>
   <ul class="menu">
-    <li>
+    <li v-if="recentAnalysis != null">
       <h3 class="menu-section">Workspaces</h3>
     </li>
-    <template v-for="item in sidebarItems" :key="item.name">
+    <template v-for="item in recentAnalysis" :key="item.name">
       <MenuItem
-        :to="item.url"
-        :icon="item.icon"
-        :text="item.name" />
+          :to="`/analysis/view-${item.id}`"
+          icon=""
+          :text="item.name" />
     </template>
 
     <!-- Begin Data Explorer Features-->
@@ -21,9 +21,10 @@
     <li>
       <h3 class="menu-section">Manage</h3>
     </li>
+    <MenuItem to="/manage/analysis" text="Analysis" icon="" />
+    <MenuItem to="/manage/cohorts" text="Cohorts" icon="" />
     <MenuItem to="/manage/samples" text="Samples" icon="" />
     <MenuItem to="/manage/tags" text="Tags" icon="" />
-    <MenuItem to="/manage/cohorts" text="Cohorts" icon="" />
     <MenuItem to="/import/ImportExternalData" text="Import External Data" icon="" />
 
     <template v-if="isAdmin">
@@ -64,6 +65,10 @@ const sidebarItems = [
   { name: 'RNA-seq Data', icon: '🧬' }
 ]
 
+const { data: recentAnalysis } = useApi(`/analysis/recent`, {
+  method: "GET"
+});
+
 </script>
 
 <style>
@@ -88,6 +93,7 @@ body {
 <style scoped>
 .menu {
   margin-top: 1.5em;
+  background-color: #fff;
 }
 
 .navbar ul {
@@ -98,7 +104,16 @@ body {
   list-style-type: none;
   padding: 0;
   display: grid;
-  gap: 0.5rem;
+}
+
+ul {
+  padding: 0;
+}
+
+li {
+  list-style: none;
+  padding: 0;
+  text-align: center;
 }
 
 .menu-section {

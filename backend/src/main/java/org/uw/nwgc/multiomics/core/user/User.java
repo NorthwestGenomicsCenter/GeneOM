@@ -43,6 +43,12 @@ public class User implements UserDetails {
     private String firstName;
     private String lastName;
     private String password;
+    private Boolean enabled;
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

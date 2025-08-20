@@ -1,6 +1,7 @@
 <template>
   <div>
     <h1>Sample: {{ sampleId }}</h1>
+    {{ selectedViews }}
     <TechnologyViewSelector
         :tech-view-options="techViewOptions"
         @add-view="addView"

@@ -13,10 +13,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
-import org.uw.nwgc.multiomics.assay.DiffExpressionVisualizer;
+import org.uw.nwgc.multiomics.assay.igv.Igv;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,14 +50,21 @@ public class OmicResource {
     public OmicResource(OmicResourceDTO dto, Sample sample) {
         this.path = dto.getPath();
         this.sample = sample;
-        this.vizTransformer = List.of(DiffExpressionVisualizer.class);
+        this.vizTransformer = List.of(Igv.class);
     }
 
     public List<String> getVisualizers() {
         try {
-//            VizTransformer transformer = vizTransformer.stream().getDeclaredConstructor()
-//                    .newInstance();
-//            return transformer.visualizationComponents();
+            return vizTransformer.stream()
+                .map(c -> {
+                    try {
+                        var t = c.getDeclaredConstructor().newInstance();
+                        return t.visualizationComponents();
+                    } catch (Exception ignored) {}
+                    return new ArrayList<String>();
+                })
+                .flatMap(List::stream)
+                .toList();
 
         } catch (Exception ignored) {}
 
