@@ -6,7 +6,8 @@ import java.util.Map;
 
 public enum ManageTagType {
     TECHNOLOGY("Technology"),
-    TISSUE("Tissue");
+    TISSUE("Tissue"),
+    PROJECT("Project"),;
 
     String text;
 

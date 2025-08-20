@@ -20,12 +20,13 @@ public class TechnologyController {
     @GetMapping("/all")
     public ResponseEntity<List<TechnologyDTO>> getAllTechnologies() {
         List<TechnologyDTO> technologies = technologyService.getAllTechnologies();
-
-        if (technologies.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(technologies);
+    }
+
+    @GetMapping("/names")
+    public ResponseEntity<List<String>> getAllTechnologyNames() {
+        List<String> technologyNames = technologyService.getAllNames();
+        return ResponseEntity.ok(technologyNames);
     }
 
     @GetMapping("/{technologyId}")

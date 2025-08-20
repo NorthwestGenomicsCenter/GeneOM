@@ -2,6 +2,7 @@
   <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold text-gray-900">Projects</h1>
+      <AddProject></AddProject>
       <NuxtLink to="/technologies" class="text-blue-600 hover:text-blue-800 font-medium">
         View by Technologies →
       </NuxtLink>
@@ -73,6 +74,7 @@
 </template>
 
 <script setup>
+import AddProject from '@/components/management/AddProject.vue'
 const expandedProjects = ref(new Set())
 
 // Fetch projects data

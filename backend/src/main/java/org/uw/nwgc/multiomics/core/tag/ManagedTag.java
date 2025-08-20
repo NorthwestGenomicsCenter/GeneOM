@@ -27,4 +27,12 @@ public class ManagedTag {
     @Enumerated(EnumType.STRING)
     private ManageTagType type;
     private String value;
+    private String description;
+
+    public ManagedTag() {}
+    public ManagedTag(ManageTagType type, String value, String description) {
+        this.type = type;
+        this.value = value;
+        this.description = description;
+    }
 }
