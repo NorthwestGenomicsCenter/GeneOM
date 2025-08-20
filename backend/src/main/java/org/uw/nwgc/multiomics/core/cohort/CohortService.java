@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CohortService {
@@ -12,6 +14,10 @@ public class CohortService {
 
     public CohortService(CohortRepository cohortRepository) {
         this.cohortRepository = cohortRepository;
+    }
+
+    public Optional<Cohort> getById(UUID id) {
+        return cohortRepository.findById(id);
     }
 
     public Cohort create(Cohort cohort) {
@@ -121,4 +127,17 @@ public class CohortService {
                 .toList();
     }
 
+    public Optional<Cohort> update(UUID cohortId, CohortDTO cohortDto) {
+        Optional<Cohort> cohortQuery = cohortRepository.findById(cohortId);
+        if (cohortQuery.isPresent()) {
+            Cohort cohort = cohortQuery.get();
+            cohort.setName(cohortDto.getName());
+            cohort.setDescription(cohortDto.getDescription());
+            cohortRepository.save(cohort);
+
+            return Optional.of(cohort);
+        }
+
+        return Optional.empty();
+    }
 }

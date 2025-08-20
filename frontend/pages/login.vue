@@ -62,20 +62,21 @@ const handleLogin = async () => {
 }
 
 .login-box {
-  width: 30em;
-  height: 35em;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  height: 35em;
+  padding: 20px;
   text-align: center;
+  width: 30em;
+  z-index: 2;
 }
 
 .login-page {
+  background: #ffffff;
   display: flex;
   flex-direction: column;
-  padding-bottom: 20em;
 }
 
 .logo {

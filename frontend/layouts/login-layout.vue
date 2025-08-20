@@ -1,6 +1,7 @@
 <template>
   <div class="layout">
-    <div class="container" :style="{ backgroundImage: `url('${baseUrl}dna3.png')` }">
+    <div class="background-blur" :style="{ backgroundImage: `url('${baseUrl}dna3.png')` }"></div>
+    <div class="login-container">
       <slot /> <!-- This is where your page content will be injected -->
     </div>
     <footer>
@@ -14,6 +15,7 @@
 <script setup>
 import { ref } from 'vue'
 import {useGlobalStore} from "~/composables/useGlobal.ts";
+import Header from "~/components/common/Header.vue";
 const baseUrl = useRuntimeConfig().app.baseURL;
 
 useHead({
@@ -52,14 +54,34 @@ useHead({
   flex-direction: column;
   margin: 0;
   padding: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
 }
 
-.container {
+.login-container {
   /* Remove fixed width/height and allow flex growth */
   flex: 1;
   display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+
+  /* Ensure it stretches to the full available space */
+  width: 100% !important;
+  height: 100%;
+
+  /* Background image styling to stretch it */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover; /* ⬅ ensures the image covers the whole area */
+}
+
+.background-blur {
+  /* Remove fixed width/height and allow flex growth */
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
   justify-content: center;
   align-items: center;
   padding: 20px;
@@ -69,10 +91,10 @@ useHead({
   height: 100%;
 
   /* Background image styling to stretch it */
-  background-image: url("@/public/dna3.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover; /* ⬅ ensures the image covers the whole area */
+  filter: blur(2px);
 }
 
 footer {

@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
@@ -18,7 +19,7 @@ public class CreateUserDTO {
     private String password;
     private List<String> permissions;
 
-    public User toUser(PasswordEncoder passwordEncoder) {
+    public User toUser(PasswordEncoder passwordEncoder, Set<Authority> authorities) {
         User user = new User();
         user.setUsername(username);
         user.setFirstName(firstName);
@@ -26,10 +27,14 @@ public class CreateUserDTO {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
 
-        user.setAuthorities(this.permissions
-                .stream()
-                .map(Authority::new)
-                .collect(Collectors.toSet()));
+        if (this.permissions != null) {
+            user.setAuthorities(this.permissions
+                    .stream()
+                    .map(Authority::new)
+                    .collect(Collectors.toSet()));
+        } else {
+            user.setAuthorities(authorities);
+        }
 
         return user;
     }

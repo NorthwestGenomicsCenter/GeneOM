@@ -12,21 +12,30 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 	}
 
 	// Compute layout from selectedViews
-	const layout = computed(() =>
-		selectedViews.value.map(view => ({
+	const layout = computed(() => {
+		console.log("Changed Layout");
+		return selectedViews.value.map(view => ({
 			i: view.id,
 			x: view.x,
 			y: view.y,
 			w: view.w,
 			h: view.h
 		}))
-	)
+	})
+	
+	const layoutMap = computed(() => {
+		console.log('Changed Layout')
+		return new Map(
+			selectedViews.value.map(v => [v.id, { i: v.id, x: v.x, y: v.y, w: v.w, h: v.h }])
+		)
+	})
 	
 	const components = computed(() =>
 		selectedViews.value.map(view => ({
 			id: view.id,
 			component: DynamicViewRenderer,
 			props: {
+				key: view.id,
 				viewName: view.viewName,
 				sampleId: sampleId,
 				technology: view.technology,
@@ -36,6 +45,10 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 		}))
 	)
 	
+	const customReference = ref<Object>();
+	const setCustomReference = (customRef) => {
+		customReference.value = customRef;
+	}
 	
 	function addView(view : SampleViewDTO) {
 		selectedViews.value.push({
@@ -46,7 +59,7 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 			fileName: view.fileName,
 			x: 0,
 			y: 0,
-			w: 10,
+			w: 40,
 			h: 15
 		})
 	}
@@ -76,8 +89,8 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 		name: string
 		url: string
 		indexUrl?: string
-		format: "bam" | "cram" | "vcf"
-		type: "alignment"
+		format: string
+		type: string
 		sort: TrackSort
 	}
 	
@@ -88,7 +101,81 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 		direction: "ASC" | "DESC"
 	}
 	
-	const igvTrack = ref<IGVTrack[]>([]);
+	const selectedResources = ref<AnalysisResource[]>([]);
+	
+	const addAnalysisResource = (resources: AnalysisResource[]) => {
+		selectedResources.value = [];
+		for (let resource of resources) {
+			selectedResources.value.push(resource)
+		}
+	}
+	
+	/*
+	{
+	    "name": "NA12878",
+	    "url": `${baseUrl}/api/omic/igv/${props.omicResourceId}/${props.fileName}`,
+	    "indexURL": `${baseUrl}/api/omic/igv/${props.omicResourceId}/${props.fileName}.bai`,
+	    "format": "bam",
+	    "type": 'alignment',
+	    "sort": {
+	      chr: "1",
+	      position: 1,
+	      option: "BASE",
+	      direction: "ASC"
+	    },
+	  }
+	 */
+	
+	let baseUrl = useRuntimeConfig().app.baseURL;
+	if (baseUrl === "/") {
+		baseUrl = "";
+	}
+	
+	const igvTracks = computed(() => {
+		const visibleTracks : IGVTrack[] = [] as IGVTrack[];
+		for (const resource of selectedResources.value) {
+			if (resource.technologiesViewers.map(e => e.toLowerCase()).includes("igv")) {
+				const track: IGVTrack = {} as IGVTrack;
+				track.name = resource.resourceName;
+				track.url = `${baseUrl}/api/omic/igv/${resource.resourceId}/${resource.resourceName}`;
+				if (resource.resourceName.endsWith("bam")) {
+					track.indexUrl = `${baseUrl}/api/omic/igv/${resource.resourceId}/${resource.resourceName}.bai`;
+				}
+				track.type = getTrackType(resource.resourceName);
+				track.format = getTrackFormat(resource.resourceName);
+				
+				visibleTracks.push(track);
+			}
+		}
+		
+		return visibleTracks;
+	})
+	
+	const getTrackFormat = (filename : string) => {
+		return filename.split(".").pop();
+	}
+	
+	const getTrackType = (filename : string) => {
+		const suffix = filename.split(".").pop();
+		return trackTypes[suffix];
+	}
+	
+	const trackTypes = {
+		"wig": "wig",
+		"bigWig": "wig",
+		"bedGraph": "wig",
+		"bam": "alignment",
+		"cram": "alignment",
+		"vcf": "variant",
+		"seg": "seg",
+		"bed": "annotation",
+		"gff": "annotation",
+		"gff3": "annotation",
+		"gtf": "annotation",
+		"bedpe": "interact"
+	}
+	
+	// const igvTracks = ref<IGVTrack[]>([]);
 	
 	return {
 		sampleId,
@@ -99,7 +186,12 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 		addView,
 		removeView,
 		updateLayout,
-		setSampleId
-		
+		addAnalysisResource,
+		igvTracks,
+		setSampleId,
+		selectedResources,
+		setCustomReference,
+		customReference,
+		layoutMap
 	}
 })

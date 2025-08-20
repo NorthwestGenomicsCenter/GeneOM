@@ -62,11 +62,11 @@
     </template>
     <Button label="Save Changes" @click="save"/>
   </div>
-  <Dialog header="AddFile" modal v-model:visible="addVisible">
+  <Dialog header="AddFile" modal v-model:visible="addVisible" :style="{ 'min-width': '65rem', 'max-width': '95rem' }">
     <VueFinder
         id="vf"
         :features="[]"
-        request="/api/vuefinder/search/"
+        :request="`${baseUrl}/api/vuefinder/search/`"
         @select="handleSelectEvent" />
     <Button label="Add Files" @click="addFiles" />
   </Dialog>
@@ -82,43 +82,60 @@ import authClient from "~/plugins/auth.client";
 const router = useRoute();
 const toast = useToast();
 
+let baseUrl = ref(useRuntimeConfig().app.baseURL);
+if (baseUrl.value === "/") {
+  baseUrl.value = "";
+}
+
 const selectedFiles = ref<FinderFileDTO[]>([]);
 const handleSelectEvent = (selection : FinderFileDTO[]) => {
   selectedFiles.value = selection
 }
-const sample = ref<SampleDTO>({} as SampleDTO);
-const { data } = await useApi<SampleDTO>(`/sample/${router.params.sampleId}`, {
-  method: "GET"
-})
-sample.value = data.value;
+
+const { data : sample, refresh } : { data: Ref<SampleDTO>, refresh: Function}
+    = await useApi<SampleDTO>(`/sample/${router.params.sampleId}`, {
+      method: "GET"
+    })
 
 // Get the list of available transformers for the data
-const transformers = ref<string[]>([]);
-const fetchTransformers = async () => {
-  const res = await useApi("/omic/transformers")
-  transformers.value = res.data.value;
-}
-await fetchTransformers();
+const { data: transformers } : { data: Ref<string[]> } = await useApi("/omic/transformers")
 
 // Add resources to the sample
 const visible = ref<boolean>(false);
 const addVisible = ref(false)
 const addFiles = async () => {
-  const body : OmicResourceDTO = {
-    omicResourceId: null,
-    sampleId: sample.value.id,
-    igvTrack: false,
-    integrationSource: "file",
-    path: selectedFiles.value[0].path,
-    visualizers: []
+
+  const body = [] as OmicResourceDTO[];
+  for (const file of selectedFiles.value) {
+    let omicResource = {
+      omicResourceId: null,
+      sampleId: sample.value.id,
+      igvTrack: false,
+      integrationSource: "file",
+      path: file.path,
+      visualizers: [],
+      tissue: null,
+      visualizationComponents: null
+    }
+    body.push(omicResource);
   }
 
-  const res = await useApi(`/omic/save`, {
+  // const body : OmicResourceDTO = {
+  //   omicResourceId: null,
+  //   sampleId: sample.value.id,
+  //   igvTrack: false,
+  //   integrationSource: "file",
+  //   path: selectedFiles.value[0].path,
+  //   visualizers: []
+  // }
+
+  const response = await useClientApi<string>(`/omic/save`, {
     method: "POST",
     body: body
   })
 
-  toast.add({severity: 'success', summary: res.data.value, life: 5000})
+  toast.add({severity: 'success', summary: response, life: 5000})
+  await refresh();
 }
 
 // Tags

@@ -15,7 +15,7 @@
         :is-resizable="true"
         :vertical-compact="true"
         :margin="[MARGIN, MARGIN]"
-        @update:layout="onLayoutUpdated"
+        @layout-updated="onLayoutUpdated"
     >
       <GridItem
           v-for="item in layout"
@@ -35,6 +35,7 @@
             :is="getComponent(item.i)"
             :componentProps="getProps(item.i)"
             v-bind="getProps(item.i)"
+            :key="item.i"
         />
       </GridItem>
     </GridLayout>
@@ -162,7 +163,9 @@ function addViewAtHoverPosition() {
 }
 
 // Global text selection disabling
-function disableTextSelection() {
+function disableTextSelection(i, newX, newY, newHPx, newWPx){
+  const msg = "H(px)=" + newHPx + ", W(px)=" + newWPx;
+  console.log(msg);
   makeUnselectable(document.body);
 }
 function enableTextSelection() {

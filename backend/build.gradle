@@ -53,6 +53,7 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	// Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -71,6 +72,7 @@ dependencies {
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jacksonVersion
 
 	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+	implementation 'io.jhdf:jhdf:0.10.0'
 
 }
 

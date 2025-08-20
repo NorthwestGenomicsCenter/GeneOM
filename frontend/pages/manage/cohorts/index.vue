@@ -6,7 +6,13 @@
 
     <DataTable
         :value="cohorts">
-      <Column header="Name" field="name" />
+      <Column header="Name" field="name">
+        <template #body="{data}">
+          <NuxtLink :to="`/manage/cohorts/edit-${data.id}`">
+            {{ data.name }}
+          </NuxtLink>
+        </template>
+      </Column>
       <Column header="Description" field="description" />
       <Column header="Number of Samples" field="count" />
     </DataTable>

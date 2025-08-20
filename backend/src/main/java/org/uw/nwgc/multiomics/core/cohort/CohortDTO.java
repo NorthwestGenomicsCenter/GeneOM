@@ -14,4 +14,10 @@ public class CohortDTO {
     private String name;
     private String description;
     private Integer count;
+
+    public CohortDTO(Cohort cohort) {
+        this.id = cohort.getId();
+        this.name = cohort.getName();
+        this.description = cohort.getDescription();
+    }
 }

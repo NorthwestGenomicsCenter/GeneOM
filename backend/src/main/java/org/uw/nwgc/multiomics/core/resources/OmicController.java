@@ -91,7 +91,7 @@ public class OmicController {
         }
 
         Path path = FileUtil.resolvePath(resource.getPath());
-        if (filename.endsWith("bai")) {
+        if (filename.endsWith("bai") && !path.getFileName().toString().endsWith(".bai")) {
             path = Path.of(path.toString() + ".bai");
         }
 
@@ -166,15 +166,17 @@ public class OmicController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveOmics(@RequestBody OmicResourceDTO dto) {
-        Optional<Sample> sample = sampleService.getById(dto.getSampleId());
-        if (sample.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<?> saveOmics(@RequestBody OmicResourceDTO[] dtos) {
+        for (OmicResourceDTO dto : dtos) {
+            Optional<Sample> sample = sampleService.getById(dto.getSampleId());
+            if (sample.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
 
-        OmicResource resource = new OmicResource(dto, sample.get());
-        sample.get().getOmicResources().add(resource);
-        OmicResource newResource = omicService.save(resource);
+            OmicResource resource = new OmicResource(dto, sample.get());
+            sample.get().getOmicResources().add(resource);
+            OmicResource newResource = omicService.save(resource);
+        }
 
         return ResponseEntity.ok("Saved");
     }

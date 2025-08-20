@@ -1,5 +1,6 @@
 <template>
   <div class="de-container">
+    <Header title="Tandem Repeats" disableToggle />
     <div class="p-input-icon-left mb-2">
       <i class="pi pi-search" />
       <InputText v-model="search" placeholder="Search..." class="w-full" />
@@ -47,6 +48,7 @@ import InputText from 'primevue/inputtext'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import {useGlobalStore} from "~/composables/useGlobal";
+import Header from "~/components/common/Header.vue";
 
 const props = defineProps<{
   omicResourceId: string
