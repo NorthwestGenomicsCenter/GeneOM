@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.uw.nwgc.multiomics.assay.DiffExpressionScatterVisualizer;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 import org.uw.nwgc.multiomics.util.FileUtil;
@@ -79,7 +80,7 @@ public class OmicController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/igv/{resourceId}/{filename}")
+    @GetMapping("/visualize/{resourceId}/{filename}")
     public ResponseEntity<ResourceRegion> getResource(
             @RequestHeader HttpHeaders headers,
             @PathVariable UUID resourceId,
@@ -118,6 +119,19 @@ public class OmicController {
 
         return new ResourceRegion(resource, start, rangeLength);
     }
+
+    @GetMapping("/visualize/scatter")
+    public ResponseEntity<?> getResourceScatter(@RequestHeader HttpHeaders header) {
+        final String TEST_FILE_PATH = "/net/nwgc/vol1/techdev/multiomics-browser/carbone_diff_expression.csv";
+
+        VizTransformer transformer = new DiffExpressionScatterVisualizer();
+        try (Reader fileReader = FileUtil.readResourcePath(TEST_FILE_PATH)) {
+            return ResponseEntity.ok(transformer.serveResource(fileReader, header));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
     @GetMapping("/visualize/{resourceId}")
     public ResponseEntity<?> getResource(@PathVariable UUID resourceId, @RequestHeader HttpHeaders header) throws

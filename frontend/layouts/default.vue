@@ -4,7 +4,7 @@
     <header class="header">
       <div class="left">
         <em class="pi pi-bars sidebar-icon" @click="toggleNavBar" />
-        <NuxtLink to="/" class="title">UW Multiomics Browser</NuxtLink>
+        <NuxtLink to="/" class="title">GENE-OM</NuxtLink>
       </div>
       <div class="center">
         <Search />
@@ -178,7 +178,7 @@ html, body {
 }
 
 .main-content {
-  background-color: #f9f9f9;
+  background-color: #f0f0f0;
   padding: 1.5rem;
 }
 

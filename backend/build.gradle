@@ -104,6 +104,26 @@ tasks.named("build") {
 	dependsOn("generateViewNamesTS")
 }
 
+tasks.register('admin', JavaExec) {
+	outputs.upToDateWhen { false }
+	args = ["--spring.profiles.active=dev"]
+	mainClass = 'org.uw.nwgc.multiomics.UwMultiomicsBrowserApplication'
+	classpath = sourceSets.main.runtimeClasspath
+	systemProperty "spring.main.web-application-type", "NONE"
+	standardInput = System.in
+}
+
+tasks.register('generateViewNamesTS', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass.set("org.uw.nwgc.multiomics.api.GenerateTSFromEnum")
+	args = [
+			"org.uw.nwgc.multiomics.api.ViewName",
+			"${layout.projectDirectory}/../shared/viewNames.ts",
+			"VIEW_NAMES",
+			"ViewName"
+	]
+}
+
 task generateTypescript(type: GenerateTask, dependsOn: [compileJava]) {
 	inputs.files('./src/**/*.java')
 //	 outputs.files('../shared/generated/dto_interfaces.d.ts')
@@ -123,22 +143,7 @@ bootRun {
 	dependsOn("generateViewNamesTS")
 }
 
-tasks.register('admin', JavaExec) {
-	outputs.upToDateWhen { false }
-	args = ["--spring.profiles.active=dev"]
-	mainClass = 'org.uw.nwgc.multiomics.UwMultiomicsBrowserApplication'
-	classpath = sourceSets.main.runtimeClasspath
-	systemProperty "spring.main.web-application-type", "NONE"
-	standardInput = System.in
-}
-
-tasks.register('generateViewNamesTS', JavaExec) {
-	classpath = sourceSets.main.runtimeClasspath
-	mainClass.set("org.uw.nwgc.multiomics.api.GenerateTSFromEnum")
-	args = [
-			"org.uw.nwgc.multiomics.api.ViewName",
-			"${layout.projectDirectory}/../shared/viewNames.ts",
-			"VIEW_NAMES",
-			"ViewName"
-	]
+war {
+	rootSpec.exclude("**/application-dev.yaml")
+	rootSpec.exclude("**/.env*")
 }

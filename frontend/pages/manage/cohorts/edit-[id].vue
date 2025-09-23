@@ -1,6 +1,6 @@
 <template>
-  <h1>Edit Cohort</h1>
   <div class="cohort-editor bordered">
+    <h1>Edit Cohort</h1>
     <form @submit.prevent="updateCohort">
       <div class="flex flex-col gap-8 max-w-3xl pb-4">
         <FloatLabel>
@@ -175,6 +175,16 @@ const actionTemplate = (row: any) => {
 </script>
 
 <style scoped>
+h1 {
+  color: #6e6e6e;
+  font-size: 1.75rem;
+  font-weight: bolder;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-bottom: 1rem;
+  text-align: center;
+  width: 100%;
+}
+
 .cohort-editor {
   padding: 2rem;
 }

@@ -51,6 +51,7 @@
 
     <h4>Files</h4>
     <Button size="small" label="Add File" outlined raised @click="addVisible = true" />
+    <SampleFilesTable :files="sample.omicResources" />
     <template
         class="file-group"
         v-for="file of sample.omicResources"
@@ -77,6 +78,7 @@
 <script setup lang="ts">
 import Resource from "~/components/samples/Resource.vue";
 import authClient from "~/plugins/auth.client";
+import SampleFilesTable from "~/components/common/SampleFilesTable.vue";
 
 // Setup the page
 const router = useRoute();

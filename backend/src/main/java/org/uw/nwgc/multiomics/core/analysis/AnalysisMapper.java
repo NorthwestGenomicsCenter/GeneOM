@@ -46,6 +46,7 @@ public class AnalysisMapper {
         }
 
         dto.setLayout(analysis.getLayout());
+        dto.setSelectedResources(analysis.getSelectedResources());
 
         return dto;
     }

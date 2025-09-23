@@ -35,6 +35,7 @@ public class Analysis {
     private String name;
     private String description;
     private String layout;
+    private String selectedResources;
 
     @Enumerated(EnumType.STRING)
     private ReferenceGenome referenceGenome = ReferenceGenome.hg38; // default to hg38 for new analysis

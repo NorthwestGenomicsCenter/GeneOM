@@ -14,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AnalysisViewDTO {
     private String layout;
+    private String selectedResources;
 
     public record AnalysisResource(
             UUID resourceId,

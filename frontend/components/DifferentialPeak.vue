@@ -9,6 +9,9 @@
         row-hover
         sort-field="ofInterest"
         :sort-order="1"
+        contextMenu
+        v-model:contextMenuSelection="selectedRow"
+        @rowContextmenu="onRowContextMenu"
         @row-dblclick="rowClick">
       <template #groupheader="{data}">
         <div class="flex items-center gap-2">
@@ -26,6 +29,8 @@
       <Column field="finalCode" header="finalCode" sortable/>
       <Column field="fullCode" header="fullCode" sortable/>
     </DataTable>
+
+    <ContextMenu ref="cm" :model="menuModel" @hide="selectedRow = null" />
   </div>
 </template>
 
@@ -33,6 +38,8 @@
 import {useGlobalStore} from '@/composables/useGlobal'
 import {FilterMatchMode, FilterOperator, FilterService} from "@primevue/core";
 import Header from "~/components/common/Header.vue"
+import {useSampleViewStore} from "~/composables/useSampleViewStore";
+import DataTable from "primevue/datatable";
 
 interface RnaSeqDifferentialPeak {
   peakId: string
@@ -51,6 +58,42 @@ interface RnaSeqDifferentialPeak {
 defineOptions({
   name: 'RnaSeqDifferentialPeak',
 })
+
+// context menu
+const cm = ref();
+const selectedRow = ref();
+
+const menuModel = ref([
+  {label: 'Navigate to in Igv', icon: 'pi pi-fw pi-search', command: () => navigateIgv(selectedRow)},
+  {label: 'Save Position', icon: 'pi pi-fw pi-search', command: () => savePosition(selectedRow)},
+  {label: 'Add Note', icon: 'pi pi-fw pi-search', command: () => addNote(selectedRow)},
+]);
+
+const onRowContextMenu = (event) => {
+  cm.value.show(event.originalEvent);
+};
+
+const navigateIgv = (selectedRow) => {
+  const row : TandemRepeatsDTO = selectedRow.value;
+  const chrom = row.chrom;
+  const start = row.start;
+  const end = row.end;
+
+  global.setCurrentGenomicPosition(chrom, start, end);
+}
+
+const savePosition = (selectedRow) => {
+  const row : TandemRepeatsDTO = selectedRow.value;
+  const chrom = row.chrom;
+  const start = row.start;
+  const end = row.end;
+
+  global.changeGene(row.gene);
+}
+
+const addNote = (selectedRow) => {
+  alert("Not yet implemented");
+}
 
 const UNSELECTED_LABEL = "Unselected";
 

@@ -2,7 +2,7 @@
   <header class="header">
     <div class="header-container">
       <div class="header-left title">
-        UW Multiomics Browser
+        GENE-OM
       </div>
       <div class="header-center">
         <Search/>

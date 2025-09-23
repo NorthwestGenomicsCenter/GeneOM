@@ -1,6 +1,6 @@
 <template>
   <div class="multiomics-browser">
-    <h1>NWGC Multiomics Browser</h1>
+    <h1>GENE-OM</h1>
     <section class="getting-started">
       <h2>Getting Started</h2>
       <p>Select an assay from the right menu to begin.</p>

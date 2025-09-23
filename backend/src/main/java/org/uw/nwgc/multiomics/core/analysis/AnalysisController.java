@@ -80,6 +80,16 @@ public class AnalysisController {
         return ResponseEntity.ok().build();
     }
 
+    @Transactional
+    @PostMapping("/update/resources/{id}")
+    public ResponseEntity<Void> updateResources(@PathVariable UUID id, @RequestBody AnalysisSSEUpdateDTO resources) {
+        boolean updated = analysisService.updateSelectedResources(id, resources.message());
+//        if (updated) {
+//            updates.publish(id.toString(), resources);
+//        }
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/all")
     public Collection<Analysis> getAll() {
         return analysisService.getAll();

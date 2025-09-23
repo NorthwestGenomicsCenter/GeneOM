@@ -1,6 +1,6 @@
 <template>
   <DataTable
-      :value="tableData"
+      :value="analysis.resources"
       v-model:selection="selectedResources"
       selectionMode="multiple"
       rowGroupMode="rowspan"
@@ -46,23 +46,25 @@
 <script setup lang="ts">
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 
+const emit = defineEmits<{
+  selectResources: [AnalysisResource[]]
+}>();
+
+const selectedResources = ref<AnalysisResource[]>([] as AnalysisResource[]);
+
 const viewStore = useSampleViewStore();
 const {
-  sampleId,
-  techViewOptions,
-  selectedViews,
-  layout,
-  components,
-  igvTracks,
-  selectedResources
+  analysis,
 } = storeToRefs(viewStore);
-const { addView, removeView, updateLayout, setSampleId, addAnalysisResource } = viewStore;
+const { refreshAnalysis } = viewStore;
+
+onMounted(async () => await refreshAnalysis())
 
 const props = defineProps<{tableData: AnalysisResource[]}>();
 
 // DataTable
-const selectChange = (event, old) => {
-  addAnalysisResource(event)
+const selectChange = () => {
+  emit("selectResources", selectedResources.value);
 }
 
 </script>

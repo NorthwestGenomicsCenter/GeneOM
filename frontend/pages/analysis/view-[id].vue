@@ -1,15 +1,12 @@
 <template>
-  <div>
+  <div v-if="analysis != null && layout != null">
     <Dialog v-model:visible="resourceTableVisible" modal header="Select Resource" :style="{ width: '90rem' }">
       <ViewerResourceTable :tableData="analysis.resources" />
     </Dialog>
-
-    <Button label="View" @click="resourceTableVisible = true" />
-    <Button label="test" @click="addView({viewName: 'Igv'})" />
-    <Button label="Cluster" @click="addView({viewName: 'ClusterGrammer'})" />
-    <Button label="JuiceBox" @click="addView({viewName: 'JuiceBox'})" />
-
-<!--    <VizualizerJuiceBox />-->
+    <SplitButton
+      label="Add"
+      :model="addButtonOptions"
+      @click="resourceTableVisible = true" />
 
 <!--    <TechnologyViewSelector-->
 <!--        :tech-view-options="techViewOptions"-->
@@ -35,40 +32,88 @@ import TechnologyViewSelector from '~/components/TechnologyViewSelector.vue'
 import GridLayout from '~/components/GridLayout.vue'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 import browser from "@interactjs/utils/browser";
+import {useViewResourcesStore} from "~/composables/useViewResourcesStore";
+import DifferentialExpression from "~/components/DifferentialExpression.vue";
 
 // The analysis that is being worked on
 const route = useRoute()
 const analysisId = computed(() => route.params.id);
 
-const viewStore = useSampleViewStore();
+const viewStore = await useSampleViewStore();
 const {
-  sampleId,
-  techViewOptions,
+  analysis,
   selectedViews,
   layout,
-  components,
-  igvTracks
+  components
 } = storeToRefs(viewStore);
 
 const {
   addView,
-  removeView,
-  updateLayout,
-  setSampleId,
-  addAnalysisResource,
-  setCustomReference
+  refreshAnalysis,
+  setCustomReference,
+  updateLayout
 } = viewStore;
 
-const { data: analysis, refresh } : { data: Ref<AnalysisViewDTO>, refresh: Function }
-    = await useApi(`/analysis/view/${analysisId.value}`);
+const addButtonOptions = [
+  {
+    label: 'Igv',
+    command: () => addView({viewName: 'Igv'})
+  },
+  {
+    label: 'Cluster',
+    command: () => addView({viewName: 'ClusterGrammer'})
+  },
+  {
+    label: 'JuiceBox',
+    command: () => addView({viewName: 'JuiceBox'})
+  },
+  {
+    label: 'Differential Peak',
+    command: () => addView({viewName: 'differential-peak'})
+  },
+  {
+    label: 'Differential Expression',
+    command: () => addView({viewName: 'differential-expression'})
+  },
+  {
+    label: 'Differential Expression Table',
+    command: () => addView({viewName: 'DifferentialExpressionTable'})
+  },
+  {
+    label: 'Tandem Repeats',
+    command: () => addView({viewName: 'TandemRepeatsTransformer'})
+  },
+  {
+    label: 'Tandem Graph',
+    command: () => addView({viewName: 'TandemRepeatsGraph'})
+  },
+]
+
+const resourceStore = useViewResourcesStore();
+const { getResourceState, updateResourceState } = resourceStore;
+resourceStore.$subscribe(async () => {
+  const body = {
+    updateTime: new Date(),
+    message: JSON.stringify(getResourceState())
+  }
+
+  await useClientApi(`/analysis/update/resources/${analysisId.value.toString()}`, {
+    method: "POST",
+    body: body
+  })
+})
 
 const message = ref<string>();
 let eventSource = null;
-onMounted(() => {
+onMounted(async () => {
   let baseUrl = useRuntimeConfig().app.baseURL;
   if (baseUrl === "/") {
     baseUrl = "";
   }
+
+  await refreshAnalysis();
+  updateResourceState(analysis.value.selectedResources);
+
 
   eventSource = new EventSource(`${baseUrl}/api/analysis/flux/${analysisId.value}`);
   eventSource.onmessage = (event) => {
@@ -122,8 +167,15 @@ onMounted(() => {
   )
 })
 
+onUnmounted(() => {
+  if (eventSource) {
+    eventSource.close()
+  }
+})
+
 
 const resourceTableVisible = ref<boolean>(false);
+
 
 
 </script>

@@ -1,13 +1,13 @@
 import {computed, onMounted, ref} from "vue";
 import DynamicViewRenderer from "~/components/DynamicViewRenderer.vue";
+import {useRoute} from "#vue-router";
 
 export const useSampleViewStore = defineStore('sampleViewStore', () => {
-	
 	const sampleId = ref<string>(null);
 	const techViewOptions = ref<SampleViewDTO[]>([]) // populated from backend
 	const selectedViews = ref([])   // array of { id, viewName, technology, x, y, w, h }
 	
-	const queryTechViewOptions =async () => {
+	const queryTechViewOptions = async () => {
 		techViewOptions.value = await $fetch(`/api/sample/${sampleId.value}/views`)
 	}
 
@@ -48,6 +48,36 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 	const customReference = ref<Object>();
 	const setCustomReference = (customRef) => {
 		customReference.value = customRef;
+	}
+	
+	const resourcesMap = ref<Object>()
+	
+	function ensureResources(viewId: string): Ref<AnalysisResource[]> {
+		let list = resourcesMap.value[viewId]
+		if (!list) {
+			list = ref<AnalysisResource[]>()
+			resourcesMap.value[viewId] = list
+		}
+		return list
+	}
+	
+	function addViewResource(viewId: string, resource: AnalysisResource): void {
+		ensureResources(viewId).value.push(resource)
+	}
+	
+	function setViewResources(viewId: string, items: AnalysisResource[]): void {
+		// replace array to trigger reactivity
+		const viewRef = ensureResources(viewId)
+		viewRef.value.push(...items)
+	}
+	
+	function getViewResources(viewId: string): Ref<AnalysisResource[]> {
+		debugger;
+		return ensureResources(viewId)
+	}
+	
+	function clearViewResources(viewId: string): void {
+		ensureResources(viewId).value = []
 	}
 	
 	function addView(view : SampleViewDTO) {
@@ -113,8 +143,8 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 	/*
 	{
 	    "name": "NA12878",
-	    "url": `${baseUrl}/api/omic/igv/${props.omicResourceId}/${props.fileName}`,
-	    "indexURL": `${baseUrl}/api/omic/igv/${props.omicResourceId}/${props.fileName}.bai`,
+	    "url": `${baseUrl}/api/visualize/igv/${props.omicResourceId}/${props.fileName}`,
+	    "indexURL": `${baseUrl}/api/visualize/igv/${props.omicResourceId}/${props.fileName}.bai`,
 	    "format": "bam",
 	    "type": 'alignment',
 	    "sort": {
@@ -137,9 +167,9 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 			if (resource.technologiesViewers.map(e => e.toLowerCase()).includes("igv")) {
 				const track: IGVTrack = {} as IGVTrack;
 				track.name = resource.resourceName;
-				track.url = `${baseUrl}/api/omic/igv/${resource.resourceId}/${resource.resourceName}`;
+				track.url = `${baseUrl}/api/visualize/igv/${resource.resourceId}/${resource.resourceName}`;
 				if (resource.resourceName.endsWith("bam")) {
-					track.indexUrl = `${baseUrl}/api/omic/igv/${resource.resourceId}/${resource.resourceName}.bai`;
+					track.indexUrl = `${baseUrl}/api/visualize/igv/${resource.resourceId}/${resource.resourceName}.bai`;
 				}
 				track.type = getTrackType(resource.resourceName);
 				track.format = getTrackFormat(resource.resourceName);
@@ -176,7 +206,14 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 	}
 	
 	// const igvTracks = ref<IGVTrack[]>([]);
+	const route = useRoute()
+	const analysisId = computed(() => route.params.id);
 	
+	const { data: analysis, refresh: refreshAnalysis } : { data: Ref<AnalysisViewDTO>, refresh: Function }
+		= useApi(`/analysis/view/${analysisId.value}`);
+	
+	window['resourcesMap'] = resourcesMap;
+		
 	return {
 		sampleId,
 		techViewOptions,
@@ -192,6 +229,13 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 		selectedResources,
 		setCustomReference,
 		customReference,
-		layoutMap
+		layoutMap,
+		addViewResource,
+		getViewResources,
+		setViewResources,
+		clearViewResources,
+		analysis,
+		refreshAnalysis,
+		resourcesMap
 	}
 })

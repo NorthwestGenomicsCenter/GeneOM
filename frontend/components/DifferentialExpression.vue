@@ -11,33 +11,33 @@
           ref="differentialExpressionChart"
       />
     </div>
-    <div class="table-wrapper">
-      <DataTable
-          :value="table"
-          :paginator="true"
-          :rows="10"
-          :filters="filters"
-          row-hover
-          filterDisplay="menu"
-          @row-dblclick="rowClick">
-        <Column field="geneName" header="gene" sortable/>
-        <Column field="logFC" header="logFC" sortable>
-          <template #body="{ data }">
-            {{ data.logFC }}
-          </template>
-          <template #filter="{ filterModel }">
-            <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
-          </template>
-        </Column>
-        <Column field="logCPM" header="logCPM" sortable></Column>
-        <Column field="F" header="F" sortable></Column>
-        <Column field="PValue" header="PValue" sortable></Column>
-        <Column field="FDR" header="FDR" sortable></Column>
-        <template #footer>
+<!--    <div class="table-wrapper">-->
+<!--      <DataTable-->
+<!--          :value="table"-->
+<!--          :paginator="true"-->
+<!--          :rows="10"-->
+<!--          :filters="filters"-->
+<!--          row-hover-->
+<!--          filterDisplay="menu"-->
+<!--          @row-dblclick="rowClick">-->
+<!--        <Column field="geneName" header="gene" sortable/>-->
+<!--        <Column field="logFC" header="logFC" sortable>-->
+<!--          <template #body="{ data }">-->
+<!--            {{ data.logFC }}-->
+<!--          </template>-->
+<!--          <template #filter="{ filterModel }">-->
+<!--            <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />-->
+<!--          </template>-->
+<!--        </Column>-->
+<!--        <Column field="logCPM" header="logCPM" sortable></Column>-->
+<!--        <Column field="F" header="F" sortable></Column>-->
+<!--        <Column field="PValue" header="PValue" sortable></Column>-->
+<!--        <Column field="FDR" header="FDR" sortable></Column>-->
+<!--        <template #footer>-->
 
-        </template>
-      </DataTable>
-    </div>
+<!--        </template>-->
+<!--      </DataTable>-->
+<!--    </div>-->
 
     <GeneSelectPopover :genes="genesList" ref="op" />
     <div class="popover-anchor" style="position: absolute" ref="anchor"></div>

@@ -67,6 +67,20 @@ public class AnalysisService {
         return true;
     }
 
+    boolean updateSelectedResources(UUID id, String selectedResources) {
+        Optional<Analysis> analysisQuery = analysisRepository.findById(id);
+        if (analysisQuery.isPresent()) {
+            Analysis analysis = analysisQuery.get();
+//            if (newLayout.equals(analysis.getLayout())) {
+//                return false;
+//            }
+            analysis.setSelectedResources(selectedResources);
+            analysisRepository.save(analysis);
+        }
+
+        return true;
+    }
+
     void delete(UUID id) {
         analysisRepository.deleteById(id);
     }
