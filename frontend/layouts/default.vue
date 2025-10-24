@@ -22,9 +22,16 @@
       </nav>
 
       <section class="main-content">
-        <slot />
+        <template v-if="user.isAuthenticated">
+          <slot />
+        </template>
+        <template v-else>
+          <Index />
+        </template>
       </section>
     </main>
+
+    <Toast />
 
     <!-- Footer -->
     <footer class="footer">
@@ -43,13 +50,15 @@
 
 <script setup type="ts">
 import {ref} from 'vue'
-import {useGlobalStore} from "~/composables/useGlobal.ts";
-import StatusBarLogin from "~/components/users/StatusBarLogin.vue";
 import {useAuth} from "~/composables/useAuth.js";
+
+import Index from "~/pages/index.vue";
 import MultiomicsMenu from "~/components/common/MultiomicsMenu.vue";
+import StatusBarLogin from "~/components/users/StatusBarLogin.vue";
 
 const auth = useAuth();
 const user = auth.user;
+
 const isAdmin = computed(() => {
   return auth?.user?.value?.permissions?.includes("ROLE_ADMIN")
 })

@@ -1,22 +1,48 @@
 <template>
   <div class="bordered">
-    <FloatLabel variant="on" class="input">
-      <InputText id="name" v-model="sample.name"/>
-      <label for="name">Name</label>
-    </FloatLabel>
+    <div class="details-container">
+      <section class="details">
+        <FloatLabel variant="on" class="input">
+          <InputText id="name" class="w-full" v-model="sample.name"/>
+          <label for="name">Name</label>
+        </FloatLabel>
 
-    <FloatLabel variant="on" class="input">
-      <InputText id="project-name" v-model="sample.externalProjectName"/>
-      <label for="project-name">Project Name</label>
-    </FloatLabel>
+        <FloatLabel variant="on" class="input">
+          <InputText id="project-name" class="w-full" v-model="sample.externalProjectName"/>
+          <label for="project-name">Project Name</label>
+        </FloatLabel>
 
-    <FloatLabel variant="on" class="input">
-    <TextArea
-        id="description"
-        v-model="sample.description"
-        rows="5" cols="60" />
-      <label for="project-name">Description</label>
-    </FloatLabel>
+        <FloatLabel variant="on" class="input">
+        <TextArea
+            id="description"
+            v-model="sample.description"
+            rows="5" cols="60"
+            class="w-full"/>
+          <label for="project-name">Description</label>
+        </FloatLabel>
+      </section>
+      <section class="details">
+        <div>
+
+        </div>
+        <h3>Upload Data Files</h3>
+        <FileUpload
+            name="file"
+            :url="`${baseUrl}/api/omic/upload`"
+            :multiple="true"
+            :maxFileSize="1000000000"
+            @beforeUpload="beforeUpload"
+            @upload="afterUpload"
+            @error="uploadError" >
+          <template #empty>
+            <p>Drag and drop files to here to upload.</p>
+          </template>
+        </FileUpload>
+        <br />
+        <h3>Add File from Filesystem</h3>
+        <Button size="small" label="Add File" outlined raised @click="addVisible = true" />
+      </section>
+    </div>
 
     <h4>Tags</h4>
     <div
@@ -50,19 +76,19 @@
     </a>
 
     <h4>Files</h4>
-    <Button size="small" label="Add File" outlined raised @click="addVisible = true" />
     <SampleFilesTable :files="sample.omicResources" />
-    <template
-        class="file-group"
-        v-for="file of sample.omicResources"
-        :key="index">
-      <Resource
-          :editing="false"
-          :resource="file"
-          :visualizer-options="transformers" />
-    </template>
-    <Button label="Save Changes" @click="save"/>
+<!--    <template-->
+<!--        class="file-group"-->
+<!--        v-for="file of sample.omicResources"-->
+<!--        :key="index">-->
+<!--      <Resource-->
+<!--          :editing="false"-->
+<!--          :resource="file"-->
+<!--          :visualizer-options="transformers" />-->
+<!--    </template>-->
+<!--    <Button label="Save Changes" @click="save"/>-->
   </div>
+
   <Dialog header="AddFile" modal v-model:visible="addVisible" :style="{ 'min-width': '65rem', 'max-width': '95rem' }">
     <VueFinder
         id="vf"
@@ -79,6 +105,7 @@
 import Resource from "~/components/samples/Resource.vue";
 import authClient from "~/plugins/auth.client";
 import SampleFilesTable from "~/components/common/SampleFilesTable.vue";
+import type {FileUploadBeforeUploadEvent, FileUploadErrorEvent} from "primevue";
 
 // Setup the page
 const router = useRoute();
@@ -87,6 +114,23 @@ const toast = useToast();
 let baseUrl = ref(useRuntimeConfig().app.baseURL);
 if (baseUrl.value === "/") {
   baseUrl.value = "";
+}
+
+const beforeUpload = async (e : FileUploadBeforeUploadEvent) => {
+  e.formData.set("sampleId", sample.value.id);
+}
+
+const afterUpload = async () => {
+  await refresh();
+}
+
+const uploadError = async (e : FileUploadErrorEvent) => {
+  toast.add({
+    severity: 'error',
+    summary: "Upload Error",
+    detail: e.xhr.response,
+    life: 15000
+  })
 }
 
 const selectedFiles = ref<FinderFileDTO[]>([]);
@@ -183,6 +227,15 @@ const save = async () => {
 </script>
 
 <style scoped>
+.details-container {
+  display: flex;
+  gap: 35px;
+}
+
+.details {
+  width: 45%;
+}
+
 #add-tag {
   display: block;
   font-size: small;

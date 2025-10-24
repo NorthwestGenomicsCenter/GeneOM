@@ -1,5 +1,5 @@
 <template>
-  data: {{ data }}
+  {{ data[0] }}
   <canvas ref="canvasEl" style="width:100%;height:320px;"></canvas>
 </template>
 
@@ -16,8 +16,6 @@ const props = withDefaults(defineProps<Props>(), {
   yAxis: '-log(FDR)',
   url: "hello"
 });
-
-const data = await useApi(`/omic/visualize/scatter`);
 
 // Order & lengths (GRCh38 primary assembly)
 const chrOrder = [
@@ -51,23 +49,29 @@ function humanBp(n: number) {
 }
 
 // Map { chr, pos, y } -> { x, y } using genome-wide coordinate
-function toGenomewidePoint(d: { chr: string; pos: number; y: number }) {
-  const i = chrIndex(d.chr)
+function toGenomewidePoint(d: { chr: string; pos: number; y: number, size: number, rgb: string }) {
+  const chr = d.chr.replace("chr", "");
+
+  const i = chrIndex(chr)
   if (i < 0) return null
-  const L = chrLength[d.chr]
+  const L = chrLength[chr]
   const p = Math.max(0, Math.min(d.pos, L))
-  const x = starts[d.chr] + p
-  return { x, y: d.y, _chr: d.chr, _pos: p }
+  const x = starts[chr] + p
+  return { x, y: d.y, _chr: chr, _pos: p, rgb: d.rgb, size: d.size }
 }
 
-// Example data
-const raw = [
-  { chr: '1', pos: 12_345_678, y: 3.2 },
-  { chr: '1', pos: 200_000_000, y: 4.5 },
-  { chr: '17', pos: 44_500_000, y: 2.1 },
-  { chr: 'X', pos: 10_000_000, y: 5.0 },
-  { chr: 'Y', pos: 5_000_000, y: 1.2 }
-].map(toGenomewidePoint).filter(Boolean) as {x:number;y:number;_chr:string;_pos:number}[]
+const res = await useApi<Array<any>>(`/omic/visualize/scatter`);
+const data = res.data;
+const raw = data.value.map(toGenomewidePoint).filter(Boolean) as {x:number;y:number;_chr:string;_pos:number}[]
+
+// // Example data
+// const raw = [
+//   { chr: '1', pos: 12_345_678, y: 3.2 },
+//   { chr: '1', pos: 200_000_000, y: 4.5 },
+//   { chr: '17', pos: 44_500_000, y: 2.1 },
+//   { chr: 'X', pos: 10_000_000, y: 5.0 },
+//   { chr: 'Y', pos: 5_000_000, y: 1.2 }
+// ].map(toGenomewidePoint).filter(Boolean) as {x:number;y:number;_chr:string;_pos:number}[]
 
 // Plugin: draw alternating chrom backgrounds, boundaries at starts[c], and centered labels
 const chromosomeBands = {
@@ -133,7 +137,8 @@ onMounted(() => {
       datasets: [{
         label: 'Genomic points',
         data: raw,          // [{x, y, _chr, _pos}, ...] in genome-wide coords
-        pointRadius: 3,
+        pointRadius: (ctx) => (ctx.raw as any).size ?? 3,
+        pointBackgroundColor: (ctx) => (ctx.raw as any).rgb ?? '#000',
         showLine: false
       }]
     },

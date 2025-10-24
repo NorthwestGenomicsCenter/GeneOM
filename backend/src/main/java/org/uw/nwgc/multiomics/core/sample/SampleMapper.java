@@ -2,9 +2,11 @@ package org.uw.nwgc.multiomics.core.sample;
 
 import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
-import org.uw.nwgc.multiomics.core.resources.OmicResourceDTO;
+import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.resources.OmicResourceMapper;
 import org.uw.nwgc.multiomics.core.resources.OmicService;
+import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleFromExternalDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 import org.uw.nwgc.multiomics.core.tag.Tag;
 import org.uw.nwgc.multiomics.core.tag.TagService;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
@@ -100,4 +102,11 @@ public class SampleMapper {
         }
     }
 
+    public void createFromExternalSample(CreateSampleFromExternalDTO dto, Sample sample) {
+        sample.setName(dto.getName());
+        sample.setIntegrationSource(dto.getIntegrationSource());
+        sample.setExternalLimsId(dto.getExternalLimsId());
+        sample.setDescription(dto.getDescription());
+        sample.setExternalProjectName(dto.getExternalProjectName());
+    }
 }

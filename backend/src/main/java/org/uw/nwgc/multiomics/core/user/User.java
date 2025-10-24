@@ -1,16 +1,6 @@
 package org.uw.nwgc.multiomics.core.user;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,8 +8,12 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @NoArgsConstructor
@@ -50,31 +44,59 @@ public class User implements UserDetails {
         return enabled;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
+//    @ManyToMany(fetch = FetchType.EAGER)
+//    @JoinTable(
+//            name = "user_authorities",
+//            joinColumns = @JoinColumn(name = "user_id"),
+//            inverseJoinColumns = @JoinColumn(name = "authority_id")
+//    )
+//    @Cascade(CascadeType.ALL)
+//    @Fetch(FetchMode.SELECT)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
             name = "user_authorities",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "authority_id")
+            joinColumns = @JoinColumn(name = "user_id")
     )
-    @Cascade(CascadeType.ALL)
-    @Fetch(FetchMode.SELECT)
-    private Set<Authority> authorities;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "authority")
+    private Set<AuthorityEnum> authorities = new HashSet<>();
 
-    public User(String username, String password, String email, String firstname, String lastname) {
+    public User(
+            String username,
+            String password,
+            String email,
+            String firstname,
+            String lastname,
+            PasswordEncoder passwordEncoder
+    ) {
                 this.username = username;
-        this.password = password;
+        this.password = passwordEncoder.encode(password);
         this.email = email;
+        this.enabled = true;
         this.firstName = firstname;
         this.lastName = lastname;
     }
 
     @Override
-    public Set<Authority> getAuthorities() {
+    public Set<AuthorityEnum> getAuthorities() {
         return authorities;
     }
 
     public boolean inUserList(Set<User> users) {
         return users.stream().anyMatch(u -> u.getId().equals(id));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User that = (User) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
 }

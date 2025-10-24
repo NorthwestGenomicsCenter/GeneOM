@@ -1,6 +1,5 @@
 <template>
   <h1>Edit Analysis</h1>
-  {{ analysis }}
   <div class="cohort-editor bordered">
     <form @submit.prevent="updateCohort">
       <div class="flex flex-col gap-8 max-w-3xl pb-4">
@@ -40,6 +39,9 @@
       </div>
     </form>
     <Button label="Create Custom Reference" @click="createCustomReference" />
+
+    quick and dirty cohorts:
+    {{ analysis.cohorts }}
   </div>
 
   <div class="bordered">
@@ -54,6 +56,24 @@
         :loading="loading"
         dataKey="id"
     >
+      <template #header>
+        <div class="flex justify-end">
+          <Button
+            severity="secondary"
+            outlined
+            raised
+            label="Add Sample"
+            icon="pi pi-plus"
+            @click="showAddSampleDialog = true" />
+          <Button
+              severity="secondary"
+              outlined
+              raised
+              label="Add Cohort"
+              icon="pi pi-plus"
+              @click="addCohort" />
+        </div>
+      </template>
       <Column field="externalLimsId" header="External Sample ID" sortable/>
       <Column field="description" header="Description" sortable/>
       <Column field="externalProjectName" header="External Project" sortable/>
@@ -67,14 +87,6 @@
           :body="actionTemplate"
           style="width: 150px"
       />
-      <template #header>
-        <div class="flex justify-end">
-          <Button
-            label="Add Sample"
-            icon="pi pi-plus"
-            @click="showAddSampleDialog = true" />
-        </div>
-      </template>
     </DataTable>
 
 
@@ -83,6 +95,16 @@
         <CommonSamplesTable @update="handleUpdate" />
         <div class="mt-4 flex justify-end gap-2">
           <Button label="Cancel" severity="secondary" @click="showAddSampleDialog = false" />
+          <Button label="Add" type="submit" />
+        </div>
+      </form>
+    </Dialog>
+
+    <Dialog v-model:visible="showAddCohortDialog" header="Add Cohort" modal>
+      <form @submit.prevent="addCohort">
+        <CommonCohortTable @update="handleCohortUpdate" />
+        <div class="mt-4 flex justify-end gap-2">
+          <Button label="Cancel" severity="secondary" @click="showAddCohortDialog = false" />
           <Button label="Add" type="submit" />
         </div>
       </form>
@@ -169,7 +191,7 @@ const updateCohort = async () => {
 
     if (res.error.value == null) {
       toast.add({ severity: 'success', summary: 'Success', detail: 'Updated the cohort data', life: 3000 })
-      await loadCohort()
+      await refresh()
     } else {
       toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update cohort', life: 3000 })
     }
@@ -182,7 +204,7 @@ const deleteSample = async (id: string) => {
   try {
     await useApi(`/cohort/${analysisId}/samples/${id}`, { method: 'DELETE' })
     toast.add({ severity: 'success', summary: 'Deleted', detail: 'Sample removed', life: 3000 })
-    await loadSamples()
+    await refresh()
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete sample', life: 3000 })
   }
@@ -196,6 +218,29 @@ const actionTemplate = (row: any) => {
     onClick: () => deleteSample(row.id),
   })
 }
+
+// Add cohort information to the page
+const showAddCohortDialog = ref<boolean>(false);
+const selectedCohorts = ref([]);
+const handleCohortUpdate = (cohorts : []) => {
+  selectedCohorts.value = cohorts;
+}
+
+const addCohort = async () => {
+  showAddCohortDialog.value = true;
+  let cohortId = selectedCohorts.value[0].id;
+
+  let dto = {
+    analysisId: analysisId,
+    cohortId: cohortId
+  }
+
+  const res = await useClientApi(`/analysis/add-cohort`,{
+    method: 'POST',
+    body: dto
+  })
+}
+
 </script>
 
 <style scoped>

@@ -9,7 +9,7 @@ import org.uw.nwgc.multiomics.core.analysis.dto.CreateAnalysisDTO;
 import org.uw.nwgc.multiomics.core.analysis.dto.CreateCustomReferenceGenomeDTO;
 import org.uw.nwgc.multiomics.core.analysis.dto.RecentAnalysisDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
-import org.uw.nwgc.multiomics.core.sample.SampleDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 
 import java.time.LocalDateTime;

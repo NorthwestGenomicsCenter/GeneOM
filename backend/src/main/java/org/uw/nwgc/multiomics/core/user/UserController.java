@@ -20,18 +20,15 @@ import java.util.Set;
 public class UserController {
 
     UserService userService;
-    AuthorityRepo authorityRepo;
     PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserController(
             UserService userService,
-            PasswordEncoder passwordEncoder,
-            AuthorityRepo authorityRepo
+            PasswordEncoder passwordEncoder
     ) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        this.authorityRepo = authorityRepo;
     }
 
     @GetMapping("/all")
@@ -46,12 +43,7 @@ public class UserController {
     @Transactional
     @PostMapping("/create")
     public ResponseEntity<UserDTO> createNewUser(@RequestBody CreateUserDTO userDto) {
-        Optional<Authority> authority = authorityRepo.findById(1L);
-        if (authority.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        User user = userDto.toUser(passwordEncoder, Set.of(authority.get()));
+        User user = userDto.toUser(passwordEncoder, Set.of());
         userService.saveUser(user);
 
         return ResponseEntity.ok(new UserDTO(user));

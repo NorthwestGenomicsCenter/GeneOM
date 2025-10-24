@@ -158,10 +158,10 @@ const toast = useToast();
 
 // Sample permissions - replace with your actual permissions
 const availablePermissions = ref([
-  {name: 'Admin', value: 'admin'},
-  {name: 'Editor', value: 'editor'},
-  {name: 'Viewer', value: 'viewer'},
-  {name: 'Reports', value: 'reports'},
+  {name: 'Admin', value: 'ROLE_ADMIN'},
+  // {name: 'Editor', value: 'editor'},
+  // {name: 'Viewer', value: 'viewer'},
+  // {name: 'Reports', value: 'reports'},
 ]);
 
 const {data: users, refresh} = await useApi<UserDTO[]>("/users/all");
@@ -196,16 +196,21 @@ const saveUser = async () => {
       userDto.email?.trim() &&
       userDto.username?.trim()) {
 
-    const res = await useClientApi("/users/create", {
-      method: "POST",
-      body: userDto
-    });
+    try {
+      const res = await useClientApi("/users/create", {
+        method: "POST",
+        body: userDto
+      });
 
-    if (!res.error.value) {
       toast.add({ severity: 'success', summary: 'Info', detail: 'Added New User', life: 8000 })
-    } else {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'Error Adding New User', life: 8000 })
+      hideDialog();
+
+    } catch (error) {
+      toast.add({ severity: 'error', summary: 'Error Adding New User', detail: error, life: 8000 })
     }
+
+    refresh();
+
   }
 };
 

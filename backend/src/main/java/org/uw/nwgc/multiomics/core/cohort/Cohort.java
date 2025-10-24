@@ -1,16 +1,15 @@
 package org.uw.nwgc.multiomics.core.cohort;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
+import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,6 +29,9 @@ public class Cohort {
 
     @ManyToMany
     private Set<Sample> samples;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<OmicResource> omicResources = new HashSet<>();
 
 
     public Cohort(CohortDTO cohortDto) {

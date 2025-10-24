@@ -16,7 +16,9 @@
           :filters="filters"
           row-hover
           filterDisplay="menu"
-          @row-dblclick="rowClick">
+          @row-dblclick="rowClick"
+          v-model:contextMenuSelection="selectedRow"
+          @rowContextmenu="onRowContextMenu">
 <!--        <template #header>-->
 <!--          <InputText v-model="searchText" placeholder="Search..."/>-->
 <!--        </template>-->
@@ -42,6 +44,8 @@
     <GeneSelectPopover :genes="genesList" ref="op" />
     <div class="popover-anchor" style="position: absolute" ref="anchor"></div>
   </div>
+
+  <ContextMenu ref="cm" :model="menuModel" @hide="selectedRow = null" />
 </template>
 
 <script setup lang="ts">
@@ -52,10 +56,37 @@ import GeneSelectPopover from "~/components/common/GeneSelectPopover.vue"
 import {useGlobalStore} from '@/composables/useGlobal'
 import {FilterMatchMode, FilterOperator} from "@primevue/core";
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
+import DataTable from "primevue/datatable";
 
 const op = ref();
 const anchor = ref();
 const genesList = ref<string[]>([]);
+const global = useGlobalStore();
+
+// context menu
+const cm = ref();
+const selectedRow = ref();
+
+const onRowContextMenu = (event) => {
+  cm.value.show(event.originalEvent);
+};
+
+const menuModel = ref([
+  {label: 'Navigate to in Igv', icon: 'pi pi-fw pi-search', command: () => navigateIgv(selectedRow)},
+  {label: 'Graph', icon: 'pi pi-fw pi-search', command: () => navigateIgv(selectedRow)},
+  {label: 'Save Position', icon: 'pi pi-fw pi-search', command: () => navigateIgv(selectedRow)},
+  {label: 'Add Note', icon: 'pi pi-fw pi-search', command: () => navigateIgv(selectedRow)},
+]);
+
+const navigateIgv = (selectedRow) => {
+  const row = selectedRow.value;
+  const chrom = row.seqnames;
+  const start = row.start;
+  const end = row.end;
+
+  global.setCurrentGenomicPosition(chrom, start, end);
+}
+
 
 interface DifferentialExpression {
   transcript: string
@@ -105,7 +136,7 @@ const filterLimits = ref<any>({
 
 onMounted(async () => {
   table.value = await $fetch("/api/assay/differential_expression/table/1");
-  filterLimits.value = await $fetch("/api/assay/differentialPeak/filterLimits/1");
+  filterLimits.value = await $fetch("/api/assay/differentialPeak/MATTRESS15/1");
 });
 
 

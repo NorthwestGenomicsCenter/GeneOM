@@ -6,7 +6,7 @@ import Igv from "@/components/Igv.client.vue";
 import TandemRepeatsTransformer from "@/components/TandemRepeatsTransformer.vue";
 import ClusterGrammer from "@/components/ClusterGrammer.client.vue";
 import JuiceBox from "@/components/vizualizer/JuiceBox.client.vue";
-import DifferentialPeak from '@/components/vizualizer/DifferentialPeak.vue'
+// import DifferentialPeak from '@/components/vizualizer/DifferentialPeak.vue'
 import DifferentialExpressionTable from '@/components/vizualizer/DifferentialExpressionTable.vue'
 import TandemRepeatsGraph from '@/components/vizualizer/TandemRepeatsGraph.vue'
 

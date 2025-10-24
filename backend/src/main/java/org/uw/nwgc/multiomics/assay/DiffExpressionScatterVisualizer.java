@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpression;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpressionChartDTO;
 import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.util.RgbColor;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -21,7 +22,12 @@ import java.util.Map;
 @Component
 public class DiffExpressionScatterVisualizer implements VizTransformer {
 
-    public record DataPoint(String chr, Integer pos, Double y) {};
+    public record DataPoint(
+            String chr,
+            Integer pos,
+            Double y,
+            Double size,
+            RgbColor rgb) {};
 
     @Override
     public List<String> visualizationComponents() {
@@ -37,8 +43,7 @@ public class DiffExpressionScatterVisualizer implements VizTransformer {
                 .withHeader();
 
         DecimalFormat df = new DecimalFormat("#.###");
-        Map<String, List<DifferentialExpression>> coordMap = new HashMap<>();
-        List<DifferentialExpressionChartDTO> chartDtos = new ArrayList<>();
+        List<DataPoint> dataPoints = new ArrayList<>();
 
         try {
             MappingIterator<DifferentialExpression> iterator = mapper
@@ -47,26 +52,26 @@ public class DiffExpressionScatterVisualizer implements VizTransformer {
                     .readValues(reader);
 
             List<DifferentialExpression> data = iterator.readAll();
-            for (DifferentialExpression dto : data) {
-                String coords = df.format(dto.getLogFC()) + "," + df.format(dto.getLogFC());
-                List<DifferentialExpression> collapsedPoint = coordMap.computeIfAbsent(coords, k -> new ArrayList<>());
-                collapsedPoint.add(dto);
+            for (DifferentialExpression row : data) {
+                if ("NA".equals(row.getSeqnames()) ||
+                        "NA".equals(row.getEnd()) ||
+                        "NA".equals(row.getStart())) continue;
+                String chr = row.getSeqnames();
+                Integer pos = Math.abs(Integer.parseInt(row.getEnd()) - Integer.parseInt(row.getStart())) + Integer.parseInt(row.getStart());
+                Double y = -1.0 * Math.log10(row.getFdr());
+
+                Double size = Math.random() * 5;
+                RgbColor color = new RgbColor(0, (int) (Math.random() * 256), (int) (Math.random() * 256));
+
+                dataPoints.add(new DataPoint(chr, pos, y, size, color));
             }
 
-            for (List<DifferentialExpression> position : coordMap.values()) {
-                DifferentialExpressionChartDTO dto = new DifferentialExpressionChartDTO();
-                dto.setLogFC(position.getFirst().getLogFC());
-                dto.setLogCPM(position.getFirst().getLogCPM());
-                List<String> names = dto.getGeneNames();
-                for (DifferentialExpression gene : position) {
-                    names.add(gene.getGeneName());
-                }
-                chartDtos.add(dto);
-            }
-        } catch (IOException e) {
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return chartDtos;
+        return dataPoints;
     }
 
     @Override

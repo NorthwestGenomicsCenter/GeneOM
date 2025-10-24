@@ -1,6 +1,7 @@
 <template>
   <DataTable
       :value="analysis.resources"
+      :filters="filters"
       v-model:selection="selectedResources"
       selectionMode="multiple"
       rowGroupMode="rowspan"
@@ -14,7 +15,7 @@
       :rowsPerPageOptions="[5, 10, 15, 20, 25, 30, 35, 40, 45, 50]"
       @update:selection="selectChange">
     <template #header>
-      <InputText placeholder="Search..." />
+      <InputText placeholder="Search..." v-model="filterText" />
     </template>
 
     <Column header="Sample" field="sampleId">
@@ -40,11 +41,18 @@
     <!--        </template>-->
     <!--      </Column>-->
   </DataTable>
-  {{ igvTracks }}
 </template>
 
 <script setup lang="ts">
+import {ref} from "vue";
+import { FilterMatchMode } from "@primevue/core";
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
+
+
+const props = defineProps<{
+  filetypes: Array<String>,
+  tableData: AnalysisResource[]}
+>();
 
 const emit = defineEmits<{
   selectResources: [AnalysisResource[]]
@@ -60,7 +68,11 @@ const { refreshAnalysis } = viewStore;
 
 onMounted(async () => await refreshAnalysis())
 
-const props = defineProps<{tableData: AnalysisResource[]}>();
+const filterText = ref<string>(null);
+const filters = {
+  global: { value: filterText.value, matchMode: FilterMatchMode.CONTAINS }
+};
+watch(filterText, (val) => filters.global.value = val);
 
 // DataTable
 const selectChange = () => {

@@ -27,7 +27,8 @@ import java.util.Map;
 public class DifferentialExpressionController {
 
     private final DifferentialExpressionService differentialExpressionService;
-    private static final String TEST_FILE_PATH = "/net/nwgc/vol1/techdev/multiomics-browser/carbone_diff_expression.csv";
+//    private static final String TEST_FILE_PATH = "/net/nwgc/vol1/techdev/multiomics-browser/carbone_diff_expression.csv";
+    private static final String TEST_FILE_PATH = "/net/nwgc/vol1/techdev/multiomics-browser/DE_genes.qlf.rsem.all.csv";
 
     @Autowired
     private DifferentialExpressionController(DifferentialExpressionService differentialExpressionService) {

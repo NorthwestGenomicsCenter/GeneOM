@@ -10,12 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.uw.nwgc.multiomics.core.analysis.dto.AddAnalysisSampleDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.AnalysisEditDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.AnalysisViewDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.CreateAnalysisDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.CreateCustomReferenceGenomeDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.RecentAnalysisDTO;
+import org.uw.nwgc.multiomics.core.analysis.dto.*;
+import org.uw.nwgc.multiomics.core.cohort.Cohort;
+import org.uw.nwgc.multiomics.core.cohort.CohortService;
 import reactor.core.publisher.Flux;
 import org.uw.nwgc.multiomics.core.analysis.LayoutUpdatePublisher.AnalysisSSEUpdateDTO;
 
@@ -31,15 +28,18 @@ public class AnalysisController {
 
     private final AnalysisService analysisService;
     private final AnalysisMapper analysisMapper;
+    private final CohortService cohortService;
     private final LayoutUpdatePublisher updates;
 
     public AnalysisController(
             AnalysisService analysisService,
             AnalysisMapper analysisMapper,
+            CohortService cohortService,
             LayoutUpdatePublisher updates
     ) {
         this.analysisService = analysisService;
         this.analysisMapper = analysisMapper;
+        this.cohortService = cohortService;
         this.updates = updates;
     }
 
@@ -141,5 +141,23 @@ public class AnalysisController {
     public ResponseEntity<String> delete(@PathVariable UUID id) {
         analysisService.delete(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Transactional
+    @PostMapping("/add-cohort")
+    public ResponseEntity<?> createCustomReferenceGenome(@RequestBody AddAnalysisCohortDTO dto) {
+        Optional<Analysis> analysisQuery = analysisService.findById(dto.analysisId());
+        Optional<Cohort> cohortQuery = cohortService.getById(dto.cohortId());
+        if (analysisQuery.isEmpty() ||  cohortQuery.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        var analysis = analysisQuery.get();
+        var cohort = cohortQuery.get();
+
+        analysis.getCohorts().add(cohort);
+        analysis = analysisService.save(analysis);
+
+        return ResponseEntity.ok(analysisMapper.toViewDTO(analysis));
     }
 }

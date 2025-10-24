@@ -1,12 +1,14 @@
-package org.uw.nwgc.multiomics.core.resources;
+package org.uw.nwgc.multiomics.core.resources.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.tag.ontology.TissueDTO;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -25,13 +27,17 @@ public class OmicResourceDTO {
 
     public OmicResourceDTO(OmicResource omicResource) {
         this.omicResourceId = omicResource.getId();
-        this.sampleId = omicResource.getSample().getId();
+        if (omicResource.getSample() != null) {
+            this.sampleId = omicResource.getSample().getId();
+        }
         this.path = omicResource.getPath();
         this.visualizationComponents = omicResource.getVisualizers();
-        this.visualizers = omicResource.getVizTransformer()
-                .stream()
-                .map(Class::getSimpleName)
-                .toList();
+        if (omicResource.getVizTransformer() != null) {
+            this.visualizers = omicResource.getVizTransformer()
+                    .stream()
+                    .map(Class::getSimpleName)
+                    .toList();
+        }
         this.igvTrack = omicResource.getIgvTrack();
 
         var tissueType = omicResource.getTissueType();

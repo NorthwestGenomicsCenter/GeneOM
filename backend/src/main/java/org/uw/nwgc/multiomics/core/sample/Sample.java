@@ -37,7 +37,7 @@ public class Sample {
     private String description;
     private String externalProjectName;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OmicResource> omicResources = new HashSet<>();
 
     @ManyToMany

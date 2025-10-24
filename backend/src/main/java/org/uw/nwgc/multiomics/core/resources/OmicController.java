@@ -11,15 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.uw.nwgc.multiomics.assay.DiffExpressionScatterVisualizer;
+import org.uw.nwgc.multiomics.core.resources.dto.AddOmicsResourceDTO;
+import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 import org.uw.nwgc.multiomics.util.FileUtil;
@@ -28,10 +24,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -92,12 +85,25 @@ public class OmicController {
         }
 
         Path path = FileUtil.resolvePath(resource.getPath());
-        if (filename.endsWith("bai") && !path.getFileName().toString().endsWith(".bai")) {
-            path = Path.of(path.toString() + ".bai");
+        path = omicService.findIndexFilePath(filename, path);
+        if (path == null) {
+            return ResponseEntity.notFound().build();
         }
 
         Resource file = new FileSystemResource(path);
         long contentLength = file.contentLength();
+
+        // Don't serve a file larger than 300MB with this method
+        // This number was selected to be twice what was observed
+        // downloading in the production environment
+        final long chunkSize = 1024 * 1024; // 1MB
+        HttpRange range = headers.getRange().getFirst();
+        long start = range.getRangeStart(contentLength);
+        long end = range.getRangeEnd(contentLength);
+        long rangeLength = end - start + 1;
+        if (rangeLength >= (300 * chunkSize)) {
+            return ResponseEntity.badRequest().build();
+        }
 
         ResourceRegion region = getResourceRegion(file, headers, contentLength);
 
@@ -180,8 +186,8 @@ public class OmicController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveOmics(@RequestBody OmicResourceDTO[] dtos) {
-        for (OmicResourceDTO dto : dtos) {
+    public ResponseEntity<?> saveOmics(@RequestBody AddOmicsResourceDTO[] dtos) {
+        for (AddOmicsResourceDTO dto : dtos) {
             Optional<Sample> sample = sampleService.getById(dto.getSampleId());
             if (sample.isEmpty()) {
                 return ResponseEntity.badRequest().build();
@@ -208,6 +214,18 @@ public class OmicController {
         sampleService.save(sample);
 //        omicService.delete(resource);
         return ResponseEntity.ok("Deleted");
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("sampleId") UUID sampleId) throws IOException {
+        Optional<Sample> sample = sampleService.getById(sampleId);
+        if (sample.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        OmicResource resource = omicService.uploadFile(file, sample.get());
+
+        return ResponseEntity.ok(new OmicResourceDTO(resource));
     }
 
 }

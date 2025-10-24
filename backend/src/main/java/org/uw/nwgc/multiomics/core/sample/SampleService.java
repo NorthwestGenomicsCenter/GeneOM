@@ -10,6 +10,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.uw.nwgc.multiomics.core.resources.OmicResource;
+import org.uw.nwgc.multiomics.core.sample.dto.AddExternalSampleResourcesDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleFromExternalDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 import org.uw.nwgc.multiomics.core.tag.Tag;
 import org.uw.nwgc.multiomics.core.tag.TagRepository;
 import org.uw.nwgc.multiomics.core.tag.TagService;
@@ -17,12 +21,12 @@ import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
 import org.uw.nwgc.multiomics.core.tag.ontology.TissueDTO;
 import org.uw.nwgc.multiomics.core.user.User;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class SampleService {
 
     private final SampleRepository sampleRepository;
@@ -163,4 +167,55 @@ public class SampleService {
         return sample;
     }
 
+    @Transactional
+    public Sample createExternalSample(CreateSampleFromExternalDTO sampleDTO) throws AuthException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) auth.getPrincipal();
+
+        Sample sample = new Sample();
+        List<Sample> samples = sampleRepository.findByExternalLimsIdAndIntegrationSource
+                (sampleDTO.getExternalLimsId(), sampleDTO.getIntegrationSource());
+        if (samples.size() == 1) {
+            sample = samples.getFirst();
+        }
+
+        if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
+            throw new AuthException("User not allowed to update Sample");
+        }
+
+        sampleMapper.createFromExternalSample(sampleDTO, sample);
+        sample.getUsers().add(user);
+
+        // Get existing omic resources
+        Map<String, OmicResource> resourcesMap = sample.getOmicResources()
+                .stream()
+                .collect(Collectors.toMap(OmicResource::getPath, Function.identity()));
+
+        for (String fileName : sampleDTO.getFilePaths()) {
+            if (resourcesMap.containsKey(fileName)) continue;
+
+            OmicResource resource = new OmicResource(sample, fileName);
+            resource.setSample(sample);
+            sample.getOmicResources().add(resource);
+        }
+
+        return sampleRepository.save(sample);
+    }
+
+    public Sample addResourcesToExternalSample(AddExternalSampleResourcesDTO sampleDTO) throws AuthException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) auth.getPrincipal();
+
+        Sample sample = null;
+        if (sampleDTO.sampleId() != null) {
+            sample = getById(sampleDTO.sampleId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Sample not found", sampleDTO.sampleId()));
+
+            if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
+                throw new AuthException("User not allowed to update Sample");
+            }
+        }
+
+        return sample;
+    }
 }

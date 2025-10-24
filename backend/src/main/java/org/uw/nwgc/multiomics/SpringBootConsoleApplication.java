@@ -8,7 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnNotWebApplication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.uw.nwgc.multiomics.core.user.Authority;
+import org.uw.nwgc.multiomics.core.user.AuthorityEnum;
 import org.uw.nwgc.multiomics.core.user.User;
 import org.uw.nwgc.multiomics.core.user.UserService;
 
@@ -63,15 +63,15 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
 
         // Create the user
         String username = args[1];
-        String password = passwordEncoder.encode(args[2]);
+        String password = args[2];
         String email = args[3];
         String firstname = args[4];
         String lastname = args[5];
-        User user = new User(username, password, email, firstname, lastname);
+        User user = new User(username, password, email, firstname, lastname, passwordEncoder);
 
-        Set<Authority> authorities = new HashSet<>();
-        authorities.add(new Authority("ROLE_USER"));
-        authorities.add(new Authority("ROLE_ADMIN"));
+        Set<AuthorityEnum> authorities = new HashSet<>();
+        authorities.add(AuthorityEnum.ROLE_USER);
+        authorities.add(AuthorityEnum.ROLE_ADMIN);
         user.setAuthorities(authorities);
 
         userService.saveUser(user);

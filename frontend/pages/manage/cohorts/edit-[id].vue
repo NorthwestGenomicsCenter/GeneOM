@@ -20,6 +20,24 @@
         <Button label="Update" type="submit" />
       </div>
     </form>
+
+    <h3>Upload Data Files</h3>
+    <FileUpload
+        name="file"
+        :url="`${baseUrl}/api/cohort/upload-resource/${cohortId}`"
+        :multiple="true"
+        :maxFileSize="1000000000"
+        @beforeUpload="beforeUpload"
+        @upload="afterUpload"
+        @error="uploadError" >
+      <template #empty>
+        <p>Drag and drop files to here to upload.</p>
+      </template>
+    </FileUpload>
+
+    Quick and Dirty Display of Resources:
+    {{cohort.omicResources}}
+
   </div>
 
   <div class="bordered">
@@ -69,31 +87,44 @@
     </Dialog>
   </div>
 
-  <Toast />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
+import type {FileUploadBeforeUploadEvent, FileUploadErrorEvent} from "primevue";
 
 const route = useRoute()
 const toast = useToast()
+
+let baseUrl = ref(useRuntimeConfig().app.baseURL);
+if (baseUrl.value === "/") {
+  baseUrl.value = "";
+}
 
 const cohortId = route.params.id as string
 const showAddSampleDialog = ref(false)
 
 // Load the cohort information
-const cohort = ref<CohortDTO>({} as CohortDTO)
-const loadCohort = async () => {
-  try {
-    const res = await useApi(`/cohort/${cohortId}`)
-    cohort.value = res.data.value
-  } catch (err) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load samples', life: 3000 })
-  }
+const { data: cohort, refresh } = await useApi<CohortDTO>(`/cohort/${cohortId}`)
+
+const beforeUpload = async (e : FileUploadBeforeUploadEvent) => {
+  e.formData.set("sampleId", cohort.value.id);
 }
-await loadCohort();
+
+const afterUpload = async () => {
+  await refresh();
+}
+
+const uploadError = async (e : FileUploadErrorEvent) => {
+  toast.add({
+    severity: 'error',
+    summary: "Upload Error",
+    detail: e.xhr.response,
+    life: 15000
+  })
+}
 
 // Load the samples
 const loading = ref(false)

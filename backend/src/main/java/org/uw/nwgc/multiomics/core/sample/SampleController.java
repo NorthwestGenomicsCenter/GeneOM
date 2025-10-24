@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.uw.nwgc.multiomics.api.view.SampleViewDTO;
 import org.uw.nwgc.multiomics.api.view.SampleViewService;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
+import org.uw.nwgc.multiomics.core.sample.dto.AddExternalSampleResourcesDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleFromExternalDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,6 +111,18 @@ public class SampleController {
     @PostMapping("/save")
     public ResponseEntity<Sample> save(@RequestBody SampleDTO sampleDTO) throws AuthException {
         Sample sample = sampleService.save(sampleDTO);
+        return ResponseEntity.ok(sample);
+    }
+
+    @PostMapping("/create-external-sample")
+    public ResponseEntity<Sample> createExternalSample(@RequestBody CreateSampleFromExternalDTO sampleDTO) throws AuthException {
+        Sample sample = sampleService.createExternalSample(sampleDTO);
+        return ResponseEntity.ok(sample);
+    }
+
+    @PostMapping("/add-resources")
+    public ResponseEntity<Sample> addExternalSampleResources(@RequestBody AddExternalSampleResourcesDTO externalSampleResourcesDTO) throws AuthException {
+        Sample sample = sampleService.addResourcesToExternalSample(externalSampleResourcesDTO);
         return ResponseEntity.ok(sample);
     }
 

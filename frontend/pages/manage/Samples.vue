@@ -2,6 +2,13 @@
   <div class="samples bordered">
     <div class="header">
       <h2>Samples</h2>
+      <Button
+          icon="pi pi-external-link"
+          label="Import"
+          severity="info"
+          outlined
+          raised
+          @click="importSamples" />
     </div>
     <DataTable
         :value="samples">
@@ -25,6 +32,13 @@
   </div>
 
 <!--  <SampleChip :sample="samples[0]" />-->
+  <Dialog
+      header="Import From External System"
+      v-model:visible="importDialogVisible"
+      modal
+  >
+    <ImportExternalData @update="importUpdated" />
+  </Dialog>
 
 </template>
 
@@ -32,37 +46,33 @@
 import {onMounted, ref} from 'vue';
 import {FilterMatchMode} from "@primevue/core";
 import SampleChip from '~/components/samples/SampleChip.vue';
+import ImportExternalData from "~/pages/import/ImportExternalData.vue";
 
 definePageMeta({
   layout: 'default'
 })
 
-const testData = ref();
-const getTestData = async () => {
-  const { data } = await useApi("/sample/test");
-  testData.value = data;
-}
+const { data: samples, refresh } = await useApi<SampleDTO[]>("/sample/all");
+const { data: testData } = await useApi("/sample/test");
 
-await getTestData();
-
-const samples = ref<SampleDTO[]>([]);
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
 
-const loadSamples = async () => {
-  const { data } = await useApi("/sample/all");
-  console.table(data)
-  samples.value = data.value;
-};
-
-await loadSamples();
 
 const editVisible = ref<boolean>(false);
 const sampleToEdit = ref<any>({});
 const editSample = (row) => {
   sampleToEdit.value = row;
   editVisible.value = true;
+}
+
+const importDialogVisible = ref<boolean>(false);
+const importSamples = () => importDialogVisible.value = true;
+
+const importUpdated = () => {
+  importDialogVisible.value = false;
+  refresh();
 }
 
 const fullName = (user : UserDTO) => {

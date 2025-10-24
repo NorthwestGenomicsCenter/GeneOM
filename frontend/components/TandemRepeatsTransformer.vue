@@ -63,10 +63,9 @@ const global = useGlobalStore();
 
 const sampleId = computed(() => route.query.samples);
 
-const rawData = ref<Record<string, string>[]>()
+// const rawData = ref<Record<string, string>[]>()
 // const response = await useApi(`/omic/visualize/${props.omicResourceId}`)
-const response = await useApi(`/omic/visualize/70b873e4-7aee-4cff-b7ff-ddb6cf8c3c0b`)
-rawData.value = response.data.value
+const { data: rawData } = await useApi<Record<string, string>[]>(`/omic/visualize/c896c7be-77ed-4e55-a8fb-9929c256dffc`)
 
 const search = ref('')
 

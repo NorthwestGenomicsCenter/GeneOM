@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.core.analysis.dto.AnalysisEditDTO;
 import org.uw.nwgc.multiomics.core.analysis.dto.AnalysisViewDTO;
 import org.uw.nwgc.multiomics.core.analysis.dto.CustomReferenceDTO;
+import org.uw.nwgc.multiomics.core.cohort.CohortDTO;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleMapper;
@@ -83,6 +84,11 @@ public class AnalysisMapper {
                 .stream()
                 .map(sampleMapper::toDTO)
                 .collect(Collectors.toSet()));
+
+        dto.setCohorts(analysis.getCohorts()
+            .stream()
+            .map(CohortDTO::new)
+            .collect(Collectors.toSet()));
 
         return dto;
     }

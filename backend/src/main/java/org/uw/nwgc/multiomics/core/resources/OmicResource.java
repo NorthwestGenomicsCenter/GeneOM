@@ -8,17 +8,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 import org.uw.nwgc.multiomics.assay.igv.Igv;
+import org.uw.nwgc.multiomics.core.resources.dto.AddOmicsResourceDTO;
+import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Setter
@@ -26,7 +26,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "omic_resouce")
+@Table(name = "omic_resource")
 public class OmicResource {
 
     @Id
@@ -34,8 +34,8 @@ public class OmicResource {
     @Column(columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "sample_id")
+    @ManyToOne
+    @JoinColumn(name = "sample_id", nullable = true)
     @JsonBackReference
     private Sample sample;
     private String path;
@@ -45,9 +45,20 @@ public class OmicResource {
     @JoinColumn(name = "tissue_type_url")
     private Tissue tissueType;
 
-    private List<Class<? extends VizTransformer>> vizTransformer;
+    private boolean uploaded;
 
-    public OmicResource(OmicResourceDTO dto, Sample sample) {
+    private List<Class<? extends VizTransformer>> vizTransformer = new ArrayList<>();
+
+    public OmicResource(Sample sample,  String path) {
+        this.path = path;
+        this.sample = sample;
+        if (!path.endsWith(".fastq.gz")) {
+            this.vizTransformer = List.of(Igv.class);
+        }
+    }
+
+
+    public OmicResource(AddOmicsResourceDTO dto, Sample sample) {
         this.path = dto.getPath();
         this.sample = sample;
         this.vizTransformer = List.of(Igv.class);
@@ -80,4 +91,18 @@ public class OmicResource {
             }
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof OmicResource)) return false;
+        OmicResource that = (OmicResource) o;
+        return Objects.equals(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(path);
+    }
+
 }

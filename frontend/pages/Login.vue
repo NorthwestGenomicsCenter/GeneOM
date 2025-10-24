@@ -5,32 +5,39 @@
           :src="'logo.png'"
           alt="NWGC Multiomics Browser"
           class="logo"/>
-      <div class="login-form">
-        <form @submit.prevent="handleLogin">
+      <form class="login-form" @submit.prevent="handleLogin">
           <div class="credentials">
             <label for="username">Username:</label>
-            <InputText id="username" v-model="credentials.username" placeholder="Username"/>
+            <InputText
+              id="username"
+              autocomplete="off"
+              v-model="credentials.username"
+              placeholder="Username"/>
           </div>
           <div class="credentials">
             <label for="password">Password:</label>
-            <InputText id="password" v-model="credentials.password" type="password" placeholder="Password"/>
+            <InputText
+              id="password"
+              v-model="credentials.password"
+              type="password"
+              placeholder="Password"/>
           </div>
           <div>
             <Button
-              rounded
-              raised
-              size="large"
-              type="submit">Login</Button>
+                rounded
+                raised
+                size="large"
+                type="submit">
+              Login
+            </Button>
           </div>
-        </form>
-      </div>
+      </form>
     </div>
   </section>
   <Toast />
 </template>
 
 <script setup type="ts">
-const credentials = ref({ username: 'mr83', password: '12345' })
 const { login } = useAuth()
 const router = useRouter()
 const toast = useToast()
@@ -39,9 +46,13 @@ definePageMeta({
   layout: 'login-layout'
 })
 
+const credentials = ref({ username: '', password: '' })
 
 const handleLogin = async () => {
-  const {data, error, isAuthenticated} = await login(credentials.value)
+  const username = credentials.value.username;
+  const password = credentials.value.password;
+
+  const {data, error, isAuthenticated} = await login(username, password)
 
   if (isAuthenticated.value) {
     await router.push('/')

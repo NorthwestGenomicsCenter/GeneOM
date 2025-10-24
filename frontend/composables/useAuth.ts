@@ -48,8 +48,13 @@ export const useAuth = () => {
 		}
 	}
 	
-	const login = async (credentials: { username: string, password: string }) => {
-		const {data, error}: { data: any, error: any } = await useApi('/auth/login', {
+	const login = async (username: string, password: string) => {
+		const credentials = {
+            username: username,
+            password: password
+        }
+
+        const {data, error}: { data: any, error: any } = await useApi('/auth/login', {
 			method: 'POST',
 			body: credentials,
 			credentials: 'include'

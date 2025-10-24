@@ -1,9 +1,9 @@
-package org.uw.nwgc.multiomics.core.sample;
+package org.uw.nwgc.multiomics.core.sample.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.uw.nwgc.multiomics.core.resources.OmicResourceDTO;
+import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.tag.Tag;
 import org.uw.nwgc.multiomics.core.user.UserDTO;
 

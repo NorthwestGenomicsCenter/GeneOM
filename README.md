@@ -101,6 +101,10 @@ IntelliJ should automatically generate these run configurations. If not, create 
 -   Edit  `UwMultiomicsBrowserApplication`  and ensure "Active profiles" is set to  `dev`
 
 
+### Create first user
+Run the following command to create the initial admin user
+- `./gradlew admin --args 'create-user [username] [password] [email] [first name] [last name]'`
+
 ## 4. Database Setup
 
 1.  Ensure PostgreSQL is running

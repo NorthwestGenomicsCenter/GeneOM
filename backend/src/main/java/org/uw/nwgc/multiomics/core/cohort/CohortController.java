@@ -2,16 +2,16 @@ package org.uw.nwgc.multiomics.core.cohort;
 
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.uw.nwgc.multiomics.core.cohort.dto.AddCohortResourceDTO;
+import org.uw.nwgc.multiomics.core.cohort.dto.AddCohortSampleDTO;
+import org.uw.nwgc.multiomics.core.resources.OmicService;
 import org.uw.nwgc.multiomics.core.sample.Sample;
-import org.uw.nwgc.multiomics.core.sample.SampleDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -20,19 +20,23 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/cohort")
+@Transactional
 public class CohortController {
 
     private final CohortService cohortService;
     private final SampleService sampleService;
+    private final OmicService omicService;
     private final CohortRepository cohortRepository;
 
     public CohortController(
             CohortService cohortService,
             SampleService sampleService,
-            CohortRepository cohortRepository) {
+            CohortRepository cohortRepository,
+            OmicService omicService) {
         this.cohortService = cohortService;
         this.sampleService = sampleService;
         this.cohortRepository = cohortRepository;
+        this.omicService = omicService;
     }
 
     @GetMapping("/all")
@@ -48,7 +52,6 @@ public class CohortController {
         return ResponseEntity.ok(cohort);
     }
 
-    @Transactional
     @PostMapping("/{cohortId}/update")
     public ResponseEntity<Cohort> update(@PathVariable UUID cohortId, @RequestBody CohortDTO cohortDto) {
         Optional<Cohort> cohort = cohortService.update(cohortId, cohortDto);
@@ -80,7 +83,6 @@ public class CohortController {
         return ResponseEntity.ok(samples);
     }
 
-    @Transactional
     @PostMapping("/add/samples")
     public ResponseEntity<Cohort> addCohortSamples(@RequestBody AddCohortSampleDTO addCohortSampleDTO) {
         Optional<Cohort> cohortQuery = cohortService.getById(addCohortSampleDTO.getCohortId());
@@ -101,6 +103,25 @@ public class CohortController {
         }
 
         cohort.getSamples().addAll(samples);
+        cohortRepository.save(cohort);
+
+        return ResponseEntity.ok(cohort);
+    }
+
+    @PostMapping("/upload-resource/{cohortId}")
+    public ResponseEntity<Cohort> addCohortResource(
+            @RequestParam("file") MultipartFile file,
+            @PathVariable("cohortId") UUID cohortId
+    ) throws IOException {
+        Optional<Cohort> cohortQuery = cohortService.getById(cohortId);
+
+        if (cohortQuery.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Cohort cohort = cohortQuery.get();
+
+        omicService.uploadFile(file, cohort);
         cohortRepository.save(cohort);
 
         return ResponseEntity.ok(cohort);

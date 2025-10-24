@@ -10,12 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import org.uw.nwgc.multiomics.core.user.Authority;
+import org.uw.nwgc.multiomics.core.user.AuthorityEnum;
 import org.uw.nwgc.multiomics.core.user.User;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.net.http.HttpResponse;
 import java.util.Date;
 
 @Log4j2
@@ -46,7 +45,7 @@ public class JwtUtil {
                 .add("lastName", user.getLastName())
                 .add("permissions", user.getAuthorities()
                         .stream()
-                        .map(Authority::getAuthority)
+                        .map(AuthorityEnum::getAuthority)
                         .toList())
                 .build();
 

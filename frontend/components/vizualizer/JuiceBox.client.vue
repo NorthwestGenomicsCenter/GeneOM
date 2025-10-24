@@ -39,24 +39,24 @@ const configLocal = {
   "url": "http://localhost:3000/api/omic/igv/36ff13e7-8dd2-477e-984a-696d3342a7b8/combined.hic",
 }
 
-const config =
-    {
-      "backgroundColor": "255,255,255",
-      "url": "https://www.encodeproject.org/files/ENCFF876OWE/@@download/ENCFF876OWE.hic",
-      "state": "0,0,0,0,0,640,640,1.151893315580228,NONE",
-      "colorScale": "R:5:1.6094379124341003,255,0,0:1.6094379124341003,0,0,255",
-      "nvi": "1538692704,47429",
-      "controlUrl": "https://www.encodeproject.org/files/ENCFF219YOB/@@download/ENCFF219YOB.hic",
-      "controlName": "Hi-C on A549 cell line treated with 100 nM dexamethasone for 12 hours.",
-      "displayMode": "AOB",
-      "controlNvi": "2859767211,26979"
-    };
+// const config =
+//     {
+//       "backgroundColor": "255,255,255",
+//       "url": "https://www.encodeproject.org/files/ENCFF876OWE/@@download/ENCFF876OWE.hic",
+//       "state": "0,0,0,0,0,640,640,1.151893315580228,NONE",
+//       "colorScale": "R:5:1.6094379124341003,255,0,0:1.6094379124341003,0,0,255",
+//       "nvi": "1538692704,47429",
+//       "controlUrl": "https://www.encodeproject.org/files/ENCFF219YOB/@@download/ENCFF219YOB.hic",
+//       "controlName": "Hi-C on A549 cell line treated with 100 nM dexamethasone for 12 hours.",
+//       "displayMode": "AOB",
+//       "controlNvi": "2859767211,26979"
+//     };
 
 let browser = null;
 
-const onSettings = async () => {
-  alert("Hello Settings for Juice Box");
-}
+// const onSettings = async () => {
+//   alert("Hello Settings for Juice Box");
+// }
 
 const props = defineProps<{
   componentKey: any

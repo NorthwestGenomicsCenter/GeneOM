@@ -1,7 +1,6 @@
-package org.uw.nwgc.multiomics.core.resources;
+package org.uw.nwgc.multiomics.core.resources.dto;
 
 import lombok.Data;
-import lombok.Getter;
 
 import java.util.List;
 import java.util.UUID;

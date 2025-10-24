@@ -1,8 +1,9 @@
 package org.uw.nwgc.multiomics.core.resources;
 
 import org.springframework.stereotype.Component;
+import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
-import org.uw.nwgc.multiomics.core.sample.SampleDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
 
 import java.util.ArrayList;
