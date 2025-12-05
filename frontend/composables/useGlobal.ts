@@ -1,3 +1,9 @@
+export interface GenomicPosition {
+    chr: string
+    end: number
+    start: number
+}
+
 export const useGlobalStore = defineStore('globalStore', () => {
 	
 	const gene = ref("");
@@ -6,13 +12,7 @@ export const useGlobalStore = defineStore('globalStore', () => {
 		start: "1",
 		end: "1000"
 	});
-	const globalNav = ref({
-		gene: "",
-		genes: [] as string[],
-		position: "",
-		isoform: ""
-	})
-	
+
 	const setCurrentGenomicPosition = (chrom: any, start: any, end: any) => {
 		currentGenomicPosition.value = {
 			chrom: chrom,
@@ -20,7 +20,20 @@ export const useGlobalStore = defineStore('globalStore', () => {
 			end: end,
 		};
 	}
-	
+
+    const updateGenomicPositon = ref<GenomicPosition>({} as GenomicPosition);
+    const navigate = (position : GenomicPosition) => {
+        updateGenomicPositon.value = position;
+    }
+
+	const globalNav = ref({
+		gene: "",
+		genes: [] as string[],
+		position: "",
+		isoform: ""
+	})
+
+
 	function changeGene(gene1: string) {
 		globalNav.value.gene = gene1
 		gene.value = gene1;
@@ -37,8 +50,10 @@ export const useGlobalStore = defineStore('globalStore', () => {
 		gene,
 		globalNav,
 		currentGenomicPosition,
+        updateGenomicPositon,
 		changeGene,
 		addGene,
-		setCurrentGenomicPosition
+        navigate,
+		setCurrentGenomicPosition,
 	}
 })

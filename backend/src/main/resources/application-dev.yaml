@@ -17,6 +17,9 @@ spring:
   mvc:
     servlet:
       path: /
+  datasource:
+    hikari:
+      leakDetectionThreshold: 2000
 server:
   port: 3005
   servlet:

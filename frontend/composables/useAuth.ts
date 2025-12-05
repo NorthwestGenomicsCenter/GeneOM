@@ -59,7 +59,8 @@ export const useAuth = () => {
 			body: credentials,
 			credentials: 'include'
 		})
-		
+
+        let isFirstLogin = false;
 		if (data.value && !error.value) {
 			const loginResponse: LoginResponseDTO = data.value;
 			
@@ -69,8 +70,10 @@ export const useAuth = () => {
 			isAuthenticated.value = true;
 			user.value = getToken();
 		}
+
+        isFirstLogin = user.value.firstLogin;
 		
-		return {data, error, isAuthenticated}
+		return {data, error, isAuthenticated, isFirstLogin}
 	}
 	
 	const logout = async () => {

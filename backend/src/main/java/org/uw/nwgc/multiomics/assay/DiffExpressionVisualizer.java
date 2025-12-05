@@ -45,22 +45,24 @@ public class DiffExpressionVisualizer implements VizTransformer {
                     .readValues(reader);
 
             List<DifferentialExpression> data = iterator.readAll();
-            for (DifferentialExpression dto : data) {
-                String coords = df.format(dto.getLogFC()) + "," + df.format(dto.getLogFC());
-                List<DifferentialExpression> collapsedPoint = coordMap.computeIfAbsent(coords, k -> new ArrayList<>());
-                collapsedPoint.add(dto);
-            }
+            return data;
 
-            for (List<DifferentialExpression> position : coordMap.values()) {
-                DifferentialExpressionChartDTO dto = new DifferentialExpressionChartDTO();
-                dto.setLogFC(position.getFirst().getLogFC());
-                dto.setLogCPM(position.getFirst().getLogCPM());
-                List<String> names = dto.getGeneNames();
-                for (DifferentialExpression gene : position) {
-                    names.add(gene.getGeneName());
-                }
-                chartDtos.add(dto);
-            }
+//            for (DifferentialExpression dto : data) {
+//                String coords = df.format(dto.getLogFC()) + "," + df.format(dto.getLogFC());
+//                List<DifferentialExpression> collapsedPoint = coordMap.computeIfAbsent(coords, k -> new ArrayList<>());
+//                collapsedPoint.add(dto);
+//            }
+//
+//            for (List<DifferentialExpression> position : coordMap.values()) {
+//                DifferentialExpressionChartDTO dto = new DifferentialExpressionChartDTO();
+//                dto.setLogFC(position.getFirst().getLogFC());
+//                dto.setLogCPM(position.getFirst().getLogCPM());
+//                List<String> names = dto.getGeneNames();
+//                for (DifferentialExpression gene : position) {
+//                    names.add(gene.getGeneName());
+//                }
+//                chartDtos.add(dto);
+//            }
         } catch (IOException e) {
         }
 

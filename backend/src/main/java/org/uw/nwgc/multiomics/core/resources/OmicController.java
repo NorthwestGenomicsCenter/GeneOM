@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.uw.nwgc.multiomics.assay.DiffExpressionScatterVisualizer;
 import org.uw.nwgc.multiomics.core.resources.dto.AddOmicsResourceDTO;
+import org.uw.nwgc.multiomics.core.resources.dto.EditOmicResourceDTO;
 import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
@@ -96,13 +97,15 @@ public class OmicController {
         // Don't serve a file larger than 300MB with this method
         // This number was selected to be twice what was observed
         // downloading in the production environment
-        final long chunkSize = 1024 * 1024; // 1MB
-        HttpRange range = headers.getRange().getFirst();
-        long start = range.getRangeStart(contentLength);
-        long end = range.getRangeEnd(contentLength);
-        long rangeLength = end - start + 1;
-        if (rangeLength >= (300 * chunkSize)) {
-            return ResponseEntity.badRequest().build();
+        if (!headers.getRange().isEmpty()) {
+            final long chunkSize = 1024 * 1024; // 1MB
+            HttpRange range = headers.getRange().getFirst();
+            long start = range.getRangeStart(contentLength);
+            long end = range.getRangeEnd(contentLength);
+            long rangeLength = end - start + 1;
+            if (rangeLength >= (300 * chunkSize)) {
+                return ResponseEntity.badRequest().build();
+            }
         }
 
         ResourceRegion region = getResourceRegion(file, headers, contentLength);
@@ -138,6 +141,41 @@ public class OmicController {
         }
     }
 
+
+    @GetMapping("/visualize/transform/{transformerType}/{resourceId}")
+    public ResponseEntity<?> getResourceAndTransform(
+            @PathVariable String transformerType,
+            @PathVariable UUID resourceId,
+            @RequestHeader HttpHeaders header
+    ) throws
+            InstantiationException,
+            IllegalAccessException,
+            NoSuchMethodException,
+            InvocationTargetException {
+        OmicResource resource = omicService.findById(resourceId);
+        if (resource == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+
+        VizTransformer transformer = null;
+        List<Class<? extends VizTransformer>> availableTransformers = resource.getVizTransformer();
+        for (Class<? extends VizTransformer> transformerClass : availableTransformers) {
+            if (transformerClass.getSimpleName().equals(transformerType)) {
+                transformer = transformerClass.getDeclaredConstructor().newInstance();
+            }
+        }
+
+        if (transformer == null) {
+            return ResponseEntity.badRequest().body("Unable to find transformer");
+        }
+
+        try (Reader fileReader = FileUtil.readResourcePath(resource.getPath())) {
+            return ResponseEntity.ok(transformer.serveResource(fileReader, header));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
     @GetMapping("/visualize/{resourceId}")
     public ResponseEntity<?> getResource(@PathVariable UUID resourceId, @RequestHeader HttpHeaders header) throws
@@ -226,6 +264,17 @@ public class OmicController {
         OmicResource resource = omicService.uploadFile(file, sample.get());
 
         return ResponseEntity.ok(new OmicResourceDTO(resource));
+    }
+
+    @PostMapping("/edit/{resourceId}")
+    public ResponseEntity<?> editResource(@PathVariable UUID resourceId, @RequestBody EditOmicResourceDTO body) throws IOException {
+        OmicResource resource = omicService.findById(resourceId);
+        if (resource == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        OmicResource newResource = omicService.edit(resource, body);
+        return ResponseEntity.ok(new OmicResourceDTO(newResource));
     }
 
 }

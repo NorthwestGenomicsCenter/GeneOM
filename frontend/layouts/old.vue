@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <!-- Header -->
-    <header class="header">
+    <default-header class="header">
       <em class="pi pi-bars sidebar-icon" @click="toggleNavBar"/>
       <NuxtLink href="/" class="title">UW Multiomics Browser</NuxtLink>
       <div class="search-container">
@@ -10,7 +10,7 @@
       <div class="ui-user">
         <StatusBarLogin username="Chia-Lin Wei" avatar-url="wei.jpg" />
       </div>
-    </header>
+    </default-header>
 
     <!-- Main Layout -->
     <main :class="{'main-content': true, 'collapsed': !isNavBarOpen}">

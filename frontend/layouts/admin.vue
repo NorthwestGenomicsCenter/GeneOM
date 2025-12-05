@@ -1,5 +1,5 @@
 <template>
-  <Header />
+  <DefaultHeader />
   <div
     class="layout"
     :class="{'sb-expanded': navExpanded }">

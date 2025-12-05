@@ -70,8 +70,7 @@ dependencies {
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jacksonVersion
-
-	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 	implementation 'io.jhdf:jhdf:0.10.0'
 
 }

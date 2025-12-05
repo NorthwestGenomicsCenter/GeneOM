@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.uw.nwgc.multiomics.assay.igv.Igv;
 import org.uw.nwgc.multiomics.core.admin.configuration.ConfigProperties;
 import org.uw.nwgc.multiomics.core.cohort.Cohort;
+import org.uw.nwgc.multiomics.core.resources.dto.EditOmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.util.FileUtil;
 
@@ -165,5 +166,12 @@ public class OmicService {
         }
 
         return resolvedResourcePath;
+    }
+
+    public OmicResource edit(OmicResource resource, EditOmicResourceDTO dto) {
+        resource.setDescription(dto.description());
+        resource.setDisplayName(dto.displayName());
+
+        return save(resource);
     }
 }

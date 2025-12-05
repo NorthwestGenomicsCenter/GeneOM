@@ -3,10 +3,30 @@ import DynamicViewRenderer from "~/components/DynamicViewRenderer.vue";
 import {useRoute} from "#vue-router";
 
 export const useSampleViewStore = defineStore('sampleViewStore', () => {
-	const sampleId = ref<string>(null);
+
+    // This should be the only ref object in this store
+    let _analysis = ref<AnalysisViewDTO>();
+    const analysis = computed(() => _analysis);
+    const setAnalysis = async(a) => {
+        _analysis.value = a;
+    }
+
+    const sampleId = ref<string>(null);
 	const techViewOptions = ref<SampleViewDTO[]>([]) // populated from backend
-	const selectedViews = ref([])   // array of { id, viewName, technology, x, y, w, h }
-	
+	const _selectedViews = ref([])   // array of { id, viewName, technology, x, y, w, h }
+    const setSelectedView = (view) => {
+        _selectedViews.value = view;
+    }
+    const selectedViews = computed(() => _selectedViews.value);
+
+    function reset() {
+        _analysis.value = {} as AnalysisViewDTO;
+        _selectedViews.value = [];
+        sampleId.value = null;
+        techViewOptions.value = null;
+    }
+
+
 	const queryTechViewOptions = async () => {
 		techViewOptions.value = await $fetch(`/api/sample/${sampleId.value}/views`)
 	}
@@ -14,7 +34,7 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 	// Compute layout from selectedViews
 	const layout = computed(() => {
 		console.log("Changed Layout");
-		return selectedViews.value.map(view => ({
+		return _selectedViews.value.map(view => ({
 			i: view.id,
 			x: view.x,
 			y: view.y,
@@ -26,12 +46,12 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 	const layoutMap = computed(() => {
 		console.log('Changed Layout')
 		return new Map(
-			selectedViews.value.map(v => [v.id, { i: v.id, x: v.x, y: v.y, w: v.w, h: v.h }])
+			_selectedViews.value.map(v => [v.id, { i: v.id, x: v.x, y: v.y, w: v.w, h: v.h }])
 		)
 	})
 	
 	const components = computed(() =>
-		selectedViews.value.map(view => ({
+		_selectedViews.value.map(view => ({
 			id: view.id,
 			component: DynamicViewRenderer,
 			props: {
@@ -50,38 +70,8 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 		customReference.value = customRef;
 	}
 	
-	const resourcesMap = ref<Object>()
-	
-	function ensureResources(viewId: string): Ref<AnalysisResource[]> {
-		let list = resourcesMap.value[viewId]
-		if (!list) {
-			list = ref<AnalysisResource[]>()
-			resourcesMap.value[viewId] = list
-		}
-		return list
-	}
-	
-	function addViewResource(viewId: string, resource: AnalysisResource): void {
-		ensureResources(viewId).value.push(resource)
-	}
-	
-	function setViewResources(viewId: string, items: AnalysisResource[]): void {
-		// replace array to trigger reactivity
-		const viewRef = ensureResources(viewId)
-		viewRef.value.push(...items)
-	}
-	
-	function getViewResources(viewId: string): Ref<AnalysisResource[]> {
-		debugger;
-		return ensureResources(viewId)
-	}
-	
-	function clearViewResources(viewId: string): void {
-		ensureResources(viewId).value = []
-	}
-	
 	function addView(view : SampleViewDTO) {
-		selectedViews.value.push({
+		_selectedViews.value.push({
 			id: crypto.randomUUID(), // unique per view instance
 			viewName: view.viewName,
 			technology: view.technology,
@@ -95,12 +85,12 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 	}
 	
 	function removeView(viewId: string) {
-		selectedViews.value = selectedViews.value.filter(v => v.id !== viewId)
+		_selectedViews.value = _selectedViews.value.filter(v => v.id !== viewId)
 	}
 	
 	function updateLayout(newLayout) {
 		newLayout.forEach(updated => {
-			const match = selectedViews.value.find(v => v.id === updated.i)
+			const match = _selectedViews.value.find(v => v.id === updated.i)
 			if (match) {
 				match.x = updated.x
 				match.y = updated.y
@@ -114,128 +104,29 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 		sampleId.value = id;
 		await queryTechViewOptions();
 	}
-	
-	interface IGVTrack {
-		name: string
-		url: string
-		indexUrl?: string
-		format: string
-		type: string
-		sort: TrackSort
-	}
-	
-	interface TrackSort {
-		chr: string
-		position: number
-		option: "BASE"
-		direction: "ASC" | "DESC"
-	}
-	
-	const selectedResources = ref<AnalysisResource[]>([]);
-	
-	const addAnalysisResource = (resources: AnalysisResource[]) => {
-		selectedResources.value = [];
-		for (let resource of resources) {
-			selectedResources.value.push(resource)
-		}
-	}
-	
-	/*
-	{
-	    "name": "NA12878",
-	    "url": `${baseUrl}/api/visualize/igv/${props.omicResourceId}/${props.fileName}`,
-	    "indexURL": `${baseUrl}/api/visualize/igv/${props.omicResourceId}/${props.fileName}.bai`,
-	    "format": "bam",
-	    "type": 'alignment',
-	    "sort": {
-	      chr: "1",
-	      position: 1,
-	      option: "BASE",
-	      direction: "ASC"
-	    },
-	  }
-	 */
-	
+
 	let baseUrl = useRuntimeConfig().app.baseURL;
 	if (baseUrl === "/") {
 		baseUrl = "";
 	}
-	
-	const igvTracks = computed(() => {
-		const visibleTracks : IGVTrack[] = [] as IGVTrack[];
-		for (const resource of selectedResources.value) {
-			if (resource.technologiesViewers.map(e => e.toLowerCase()).includes("igv")) {
-				const track: IGVTrack = {} as IGVTrack;
-				track.name = resource.resourceName;
-				track.url = `${baseUrl}/api/visualize/igv/${resource.resourceId}/${resource.resourceName}`;
-				if (resource.resourceName.endsWith("bam")) {
-					track.indexUrl = `${baseUrl}/api/visualize/igv/${resource.resourceId}/${resource.resourceName}.bai`;
-				}
-				track.type = getTrackType(resource.resourceName);
-				track.format = getTrackFormat(resource.resourceName);
-				
-				visibleTracks.push(track);
-			}
-		}
-		
-		return visibleTracks;
-	})
-	
-	const getTrackFormat = (filename : string) => {
-		return filename.split(".").pop();
-	}
-	
-	const getTrackType = (filename : string) => {
-		const suffix = filename.split(".").pop();
-		return trackTypes[suffix];
-	}
-	
-	const trackTypes = {
-		"wig": "wig",
-		"bigWig": "wig",
-		"bedGraph": "wig",
-		"bam": "alignment",
-		"cram": "alignment",
-		"vcf": "variant",
-		"seg": "seg",
-		"bed": "annotation",
-		"gff": "annotation",
-		"gff3": "annotation",
-		"gtf": "annotation",
-		"bedpe": "interact"
-	}
-	
-	// const igvTracks = ref<IGVTrack[]>([]);
-	const route = useRoute()
-	const analysisId = computed(() => route.params.id);
-	
-	const { data: analysis, refresh: refreshAnalysis } : { data: Ref<AnalysisViewDTO>, refresh: Function }
-		= useApi(`/analysis/view/${analysisId.value}`);
-	
-	window['resourcesMap'] = resourcesMap;
-		
+
 	return {
-		sampleId,
-		techViewOptions,
-		selectedViews,
-		layout,
+        setAnalysis,
+        reset,
+        analysis,
 		components,
+		customReference,
+		layout,
+		layoutMap,
+		sampleId,
+		selectedViews,
+		techViewOptions,
 		addView,
 		removeView,
-		updateLayout,
-		addAnalysisResource,
-		igvTracks,
-		setSampleId,
-		selectedResources,
 		setCustomReference,
-		customReference,
-		layoutMap,
-		addViewResource,
-		getViewResources,
-		setViewResources,
-		clearViewResources,
-		analysis,
-		refreshAnalysis,
-		resourcesMap
+		setSampleId,
+		updateLayout,
+        setSelectedView
+
 	}
 })

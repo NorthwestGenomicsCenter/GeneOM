@@ -9,13 +9,18 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.core.user.AuthorityEnum;
 import org.uw.nwgc.multiomics.core.user.User;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 @Log4j2
 @Component
@@ -47,6 +52,7 @@ public class JwtUtil {
                         .stream()
                         .map(AuthorityEnum::getAuthority)
                         .toList())
+                .add("firstLogin", user.getFirstLogin())
                 .build();
 
         User userPrincipal = (User) authentication.getPrincipal();

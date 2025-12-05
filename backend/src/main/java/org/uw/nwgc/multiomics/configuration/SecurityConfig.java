@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -82,11 +83,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(
                         authorizeHttp -> {
-                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher(("/"))).permitAll();
-                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher((base + "/auth/**"))).permitAll();
-                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher((base + "/favicon.svg"))).permitAll();
-                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher((base + "/css/*"))).permitAll();
-                            authorizeHttp.requestMatchers(AntPathRequestMatcher.antMatcher((base + "/error"))).permitAll();
+                            authorizeHttp.requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/")).permitAll();
+                            authorizeHttp.requestMatchers(PathPatternRequestMatcher.withDefaults().matcher((base + "/auth/**"))).permitAll();
+                            authorizeHttp.requestMatchers(PathPatternRequestMatcher.withDefaults().matcher((base + "/favicon.svg"))).permitAll();
+                            authorizeHttp.requestMatchers(PathPatternRequestMatcher.withDefaults().matcher((base + "/css/*"))).permitAll();
+                            authorizeHttp.requestMatchers(PathPatternRequestMatcher.withDefaults().matcher((base + "/error"))).permitAll();
                             authorizeHttp.anyRequest().authenticated();
                         }
                 )

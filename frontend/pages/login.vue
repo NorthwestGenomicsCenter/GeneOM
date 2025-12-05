@@ -38,7 +38,7 @@
 </template>
 
 <script setup type="ts">
-const { login } = useAuth()
+const { login, user, getToken } = useAuth()
 const router = useRouter()
 const toast = useToast()
 
@@ -52,9 +52,11 @@ const handleLogin = async () => {
   const username = credentials.value.username;
   const password = credentials.value.password;
 
-  const {data, error, isAuthenticated} = await login(username, password)
+  const {data, error, isAuthenticated, isFirstLogin} = await login(username, password)
 
-  if (isAuthenticated.value) {
+  if (isAuthenticated.value && isFirstLogin) {
+    await router.push('/welcome')
+  } else if (isAuthenticated.value) {
     await router.push('/')
   } else if (error) {
     toast.add({ severity: 'error', summary: 'Info', detail: 'Error Logging In', life: 3000 })

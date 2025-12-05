@@ -1,17 +1,33 @@
 <template>
-  <div v-if="analysis != null && layout != null">
+  <div v-if="analysis != null && layout != null" :key="route.fullPath">
     <Dialog v-model:visible="resourceTableVisible" modal header="Select Resource" :style="{ width: '90rem' }">
       <ViewerResourceTable :tableData="analysis.resources" />
     </Dialog>
-    <SplitButton
-      label="Add"
-      :model="addButtonOptions"
-      @click="resourceTableVisible = true" />
 
-<!--    <TechnologyViewSelector-->
-<!--        :tech-view-options="techViewOptions"-->
-<!--        @add-view="addView"-->
-<!--    />-->
+    <Button label="test" @click="test" />
+    {{testVal}}
+
+    <TechnologyViewSelector @add-view="addView" />
+    <Button
+      label="Save Layout"
+      severity="info"
+      outlined
+      @click="saveLayout"
+    />
+
+    <Button
+        label="Save Position"
+        severity="info"
+        outlined
+        @click="savePositionDialog = !savePositionDialog"
+    />
+
+    <Button
+        :label="`Saved Positions (${analysis.savedPositions.length})`"
+        severity="info"
+        outlined
+        @click="restoreSavePositionDialog = !restoreSavePositionDialog"
+    />
 
     <ClientOnly>
       <GridLayout
@@ -23,74 +39,87 @@
       />
     </ClientOnly>
   </div>
+
+  <Dialog
+    header="Save Genomic Position"
+    v-model:visible="savePositionDialog"
+    modal >
+    <CommonSaveGenomicPosition :analysisId="analysisId" v-model:visible="savePositionDialog" />
+  </Dialog>
+
+  <Dialog
+      header="Restore Genomic Position"
+      v-model:visible="restoreSavePositionDialog"
+      modal >
+    <CommonRestoreGenomicPosition v-model:visible="restoreSavePositionDialog" :table="analysis.savedPositions" />
+  </Dialog>
+
 </template>
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { computed } from 'vue'
-import TechnologyViewSelector from '~/components/TechnologyViewSelector.vue'
+import {computed, ref} from 'vue'
+import TechnologyViewSelector from '~/components/common/TechnologyViewSelector.vue'
 import GridLayout from '~/components/GridLayout.vue'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
-import browser from "@interactjs/utils/browser";
 import {useViewResourcesStore} from "~/composables/useViewResourcesStore";
-import DifferentialExpression from "~/components/DifferentialExpression.vue";
+import DynamicViewRenderer from "~/components/DynamicViewRenderer.vue";
 
 // The analysis that is being worked on
 const route = useRoute()
-const analysisId = computed(() => route.params.id);
+const analysisId = computed(() => route.params.id as string);
 
-const viewStore = await useSampleViewStore();
+const toast = useToast();
+
+const viewStore = useSampleViewStore();
 const {
-  analysis,
   selectedViews,
   layout,
   components
 } = storeToRefs(viewStore);
 
 const {
+  setAnalysis,
   addView,
-  refreshAnalysis,
   setCustomReference,
-  updateLayout
+  setSelectedView,
+  updateLayout,
+  reset
 } = viewStore;
 
-const addButtonOptions = [
-  {
-    label: 'Igv',
-    command: () => addView({viewName: 'Igv'})
-  },
-  {
-    label: 'Cluster',
-    command: () => addView({viewName: 'ClusterGrammer'})
-  },
-  {
-    label: 'JuiceBox',
-    command: () => addView({viewName: 'JuiceBox'})
-  },
-  {
-    label: 'Differential Peak',
-    command: () => addView({viewName: 'differential-peak'})
-  },
-  {
-    label: 'Differential Expression',
-    command: () => addView({viewName: 'differential-expression'})
-  },
-  {
-    label: 'Differential Expression Table',
-    command: () => addView({viewName: 'DifferentialExpressionTable'})
-  },
-  {
-    label: 'Tandem Repeats',
-    command: () => addView({viewName: 'TandemRepeatsTransformer'})
-  },
-  {
-    label: 'Tandem Graph',
-    command: () => addView({viewName: 'TandemRepeatsGraph'})
-  },
-]
-
 const resourceStore = useViewResourcesStore();
-const { getResourceState, updateResourceState } = resourceStore;
+const {
+  setResourceList,
+  updateResourceState,
+  state,
+  getSaveResources
+} = resourceStore;
+
+const test = () => testVal.value = getSaveResources();
+const testVal = ref();
+
+const loaded = ref<boolean>(false);
+const { data: analysis, refresh: refreshAnalysis } : { data: Ref<AnalysisViewDTO>, refresh: Function }
+    = await useApi(`/analysis/view/${analysisId.value}`);
+setResourceList(analysis.value.resources)
+
+onMounted(async() => {
+  await refreshAnalysis()
+  await setAnalysis(analysis.value);
+
+  // Restore a previous snapshot of the application
+  const snapshot = await useClientApi(`/snapshot/analysis-layout/${analysisId.value}`);
+  if (snapshot != null && snapshot.layout != null) {
+    setSelectedView(JSON.parse(snapshot.layout));
+    if (snapshot.selectedResources != null) {
+      console.table(snapshot.selectedResources)
+      updateResourceState(snapshot.selectedResources)
+    }
+  }
+
+  loaded.value = true;
+})
+
 resourceStore.$subscribe(async () => {
   const body = {
     updateTime: new Date(),
@@ -103,79 +132,46 @@ resourceStore.$subscribe(async () => {
   })
 })
 
-const message = ref<string>();
-let eventSource = null;
-onMounted(async () => {
-  let baseUrl = useRuntimeConfig().app.baseURL;
-  if (baseUrl === "/") {
-    baseUrl = "";
+const saveLayout = async () => {
+  const selectedResources = getSaveResources();
+
+  const saveLayoutDto : SaveAnalysisLayoutDTO = {
+    layout: JSON.stringify(toRaw(selectedViews.value)),
+    selectedResources: selectedResources
   }
 
-  await refreshAnalysis();
-  updateResourceState(analysis.value.selectedResources);
+    await useClientApi(`/snapshot/analysis-layout/${analysisId.value.toString()}`, {
+      method: "POST",
+      body: saveLayoutDto
+    })
+  try {
 
+    toast.add({
+      severity: "secondary",
+      summary: "Layout Saved",
+      life: 2000
+    })
 
-  eventSource = new EventSource(`${baseUrl}/api/analysis/flux/${analysisId.value}`);
-  eventSource.onmessage = (event) => {
-    message.value = event.data;
-    if (!message.value.includes("heartbeat")) {
-      viewStore.$patch(JSON.parse(event.data));
-    }
-  };
-  eventSource.onerror = (error) => {
-    console.error('SSE Error:', error);
-    eventSource.close();
-  };
-
-  const igvView : SampleViewDTO = {
-    technology: "Igv",
-    viewName: "Igv",
-    omicResourceId: "IGV",
-    fileName: "IGV"
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Trouble Saving Layout",
+      detail: `Unable to save layout:\n ${error}`,
+      life: 8000
+    })
   }
+}
 
-  if (analysis.value.customReference !== null) {
-    setCustomReference(analysis.value.customReference);
-  }
+// Save the position that is currently navigated to in the application
+const savePositionDialog = ref<boolean>(false);
+const restoreSavePositionDialog = ref<boolean>(false);
 
-  const savedView = analysis.value.layout;
-  if (savedView == null) {
-    addView(igvView);
-  } else {
-    // Restore the saved view
-    viewStore.$patch(JSON.parse(savedView));
-  }
-
-  watch(
-      viewStore.$state,
-      async (state) => {
-        try {
-          const body = {
-            updateTime: new Date(),
-            message: JSON.stringify(state)
-          }
-
-          await useClientApi(`/analysis/update/layout/${analysisId.value.toString()}`, {
-            method: "POST",
-            body: body
-          })
-        } catch (error) {
-          console.log(error)
-        }
-      },
-      { deep: true }
-  )
+onBeforeUnmount(() => {
+  reset();
+  loaded.value = false;
+  analysis.value = null;
 })
-
-onUnmounted(() => {
-  if (eventSource) {
-    eventSource.close()
-  }
-})
-
 
 const resourceTableVisible = ref<boolean>(false);
-
-
 
 </script>

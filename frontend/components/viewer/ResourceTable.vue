@@ -1,6 +1,6 @@
 <template>
   <DataTable
-      :value="analysis.resources"
+      :value="resourceList"
       :filters="filters"
       v-model:selection="selectedResources"
       selectionMode="multiple"
@@ -20,7 +20,7 @@
 
     <Column header="Sample" field="sampleId">
       <template #body="{ data } : { data: AnalysisSample }">
-        {{ data.sampleName }}
+        {{ data.name }}
       </template>
     </Column>
     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
@@ -35,49 +35,106 @@
         </Tag>
       </template>
     </Column>
-    <!--      <Column header="Omic Data">-->
-    <!--        <template #body="{ data } : { data: AnalysisResource }">-->
-    <!--          {{ data }}-->
-    <!--        </template>-->
-    <!--      </Column>-->
   </DataTable>
+  <section class="flex justify-end pt-8">
+    <Button
+      label="Cancel"
+      icon="pi pi-times"
+      severity="warning"
+      outlined
+      @click="visible = false"
+    />
+    <Button
+      label="Apply"
+      icon="pi pi-check"
+      class="ml-1"
+      @click="applyChanges"
+    />
+  </section>
+
 </template>
 
 <script setup lang="ts">
 import {ref} from "vue";
-import { FilterMatchMode } from "@primevue/core";
-import {useSampleViewStore} from "~/composables/useSampleViewStore";
-
+import {FilterMatchMode, FilterOperator} from "@primevue/core";
 
 const props = defineProps<{
-  filetypes: Array<String>,
-  tableData: AnalysisResource[]}
+  componentKey: string,
+  filetypes?: Array<String>,
+  visualizers?: String | Array<String>,
+  tableData?: AnalysisResource[]}
 >();
 
 const emit = defineEmits<{
   selectResources: [AnalysisResource[]]
 }>();
 
+const visible = defineModel<boolean>("visible");
+
+const resourceStore = useViewResourcesStore();
+const {
+  setViewResources,
+  resourceList,
+  selectedResources: f
+} = resourceStore;
 const selectedResources = ref<AnalysisResource[]>([] as AnalysisResource[]);
 
-const viewStore = useSampleViewStore();
-const {
-  analysis,
-} = storeToRefs(viewStore);
-const { refreshAnalysis } = viewStore;
+onMounted(() => {
+  const preselected = f(props.componentKey)
+  selectedResources.value = preselected.value
+})
 
-onMounted(async () => await refreshAnalysis())
-
-const filterText = ref<string>(null);
-const filters = {
-  global: { value: filterText.value, matchMode: FilterMatchMode.CONTAINS }
-};
-watch(filterText, (val) => filters.global.value = val);
+const applyChanges = () => {
+  setViewResources(props.componentKey, selectedResources.value)
+  visible.value = false;
+}
 
 // DataTable
 const selectChange = () => {
-  emit("selectResources", selectedResources.value);
+  // emit("selectResources", selectedResources.value);
+  // do nothing
 }
+
+/*******************************
+ * Filters
+ * ****************************/
+
+const visualizerFilter = computed(() => {
+  if (props.visualizers == null || props.visualizers.length == 0) return [{ value: null, matchMode: FilterMatchMode.ENDS_WITH }];
+  let constraints = [];
+
+  if (typeof props.visualizers == "string") {
+    return [{ value: props.visualizers, matchMode: FilterMatchMode.CONTAINS }];
+  }
+
+  for (let visualizers of props.visualizers) {
+    let constraint = { value: visualizers, matchMode: FilterMatchMode.CONTAINS }
+    constraints.push(constraint);
+  }
+
+  return constraints;
+});
+
+const filetypeFilters = computed(() => {
+  if (props.filetypes == null || props.filetypes.length == 0) return [{ value: null, matchMode: FilterMatchMode.ENDS_WITH }];
+  let constraints = [];
+
+  for (let filetype of props.filetypes) {
+    let constraint = { value: filetype, matchMode: FilterMatchMode.CONTAINS }
+    constraints.push(constraint);
+  }
+
+  return constraints;
+});
+
+const filterText = ref<string>(null);
+const filters = {
+  global: { value: filterText.value, matchMode: FilterMatchMode.CONTAINS },
+  resourceName: {operator: FilterOperator.OR, constraints: filetypeFilters.value },
+  technologiesViewers: {operator: FilterOperator.OR, constraints: visualizerFilter.value }
+};
+
+watch(filterText, (val) => filters.global.value = val);
 
 </script>
 

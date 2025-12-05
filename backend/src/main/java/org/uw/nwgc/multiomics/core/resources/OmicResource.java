@@ -39,6 +39,8 @@ public class OmicResource {
     @JsonBackReference
     private Sample sample;
     private String path;
+    private String displayName;
+    private String description;
     private Boolean igvTrack;
 
     @ManyToOne

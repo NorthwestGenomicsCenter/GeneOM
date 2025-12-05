@@ -76,7 +76,10 @@
     </a>
 
     <h4>Files</h4>
-    <SampleFilesTable :files="sample.omicResources" />
+    <SampleFilesTable
+      :files="sample.omicResources"
+      :refreshTableData="refresh"
+    />
 <!--    <template-->
 <!--        class="file-group"-->
 <!--        v-for="file of sample.omicResources"-->

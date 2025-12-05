@@ -21,7 +21,7 @@
 import ToggleSwitch from 'primevue/toggleswitch'
 
 defineOptions({
-  name: 'Header'
+  name: 'DefaultHeader'
 })
 
 const props = defineProps({

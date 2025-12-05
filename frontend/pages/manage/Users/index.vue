@@ -90,8 +90,8 @@
       </template>
     </Dialog>
 
-    <InputText v-model="newPassword" />
-    <Button label="Change Password" @click="changePassword" />
+<!--    <InputText v-model="newPassword" />-->
+<!--    <Button label="Change Password" @click="changePassword" />-->
 
     <!-- Delete Confirmation -->
     <Dialog v-model:visible="deleteDialog" header="Confirm" :modal="true" style="width: 350px">

@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
-import TechnologyViewSelector from '~/components/TechnologyViewSelector.vue'
+import TechnologyViewSelector from '~/components/common/TechnologyViewSelector.vue'
 import GridLayout from '~/components/GridLayout.vue'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 

@@ -4,13 +4,16 @@
     <header class="header">
       <div class="left">
         <em class="pi pi-bars sidebar-icon" @click="toggleNavBar" />
-        <NuxtLink to="/" class="title">GENE-OM</NuxtLink>
+        <NuxtLink to="/" class="title">
+          <NuxtImg src="/banner_logo.png" height="42"/>
+<!--          GENE-OM-->
+        </NuxtLink>
       </div>
       <div class="center">
         <Search />
       </div>
       <div class="right">
-        <StatusBarLogin username="Chia-Lin Wei" avatar-url="wei.jpg" />
+        <StatusBarLogin />
       </div>
     </header>
 

@@ -2,7 +2,7 @@ import DifferentialExpression from "@/components/DifferentialExpression.vue";
 
 import { VIEW_NAMES } from '@shared/viewNames.ts';
 import RnaSeqDifferentialPeak from "@/components/DifferentialPeak.vue";
-import Igv from "@/components/Igv.client.vue";
+import Igv from "~/components/vizualizer/Igv.client.vue";
 import TandemRepeatsTransformer from "@/components/TandemRepeatsTransformer.vue";
 import ClusterGrammer from "@/components/ClusterGrammer.client.vue";
 import JuiceBox from "@/components/vizualizer/JuiceBox.client.vue";

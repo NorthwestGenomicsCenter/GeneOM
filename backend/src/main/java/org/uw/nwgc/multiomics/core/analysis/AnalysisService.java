@@ -36,7 +36,7 @@ public class AnalysisService {
         return analysisRepository.save(analysis);
     }
 
-    Optional<Analysis> findById(UUID id) {
+    public Optional<Analysis> findById(UUID id) {
         return analysisRepository.findById(id);
     }
 

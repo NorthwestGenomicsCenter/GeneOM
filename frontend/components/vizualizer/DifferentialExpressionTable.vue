@@ -8,20 +8,27 @@
         <em class="pi pi-times-circle" @click="removeView(componentKey)"/>
       </template>
     </Header>
+
     <div class="table-wrapper">
       <DataTable
           :value="table"
           :paginator="true"
-          :rows="10"
           :filters="filters"
+          :rows="10"
+          v-model:contextMenuSelection="selectedRow"
           row-hover
           filterDisplay="menu"
           @row-dblclick="rowClick"
-          v-model:contextMenuSelection="selectedRow"
           @rowContextmenu="onRowContextMenu">
-<!--        <template #header>-->
-<!--          <InputText v-model="searchText" placeholder="Search..."/>-->
-<!--        </template>-->
+        <template #header>
+          <div class="flex items-center justify-between">
+            <InputText v-model="searchText" placeholder="Search..."/>
+            <Tag v-if="loadedFiles">{{loadedFiles}}</Tag>
+          </div>
+        </template>
+        <template #empty>
+          <h3>No Data loaded for Table. Click Gear to Select Data File</h3>
+        </template>
         <Column field="gene_name" header="Gene" sortable></Column>
         <Column field="logFC" header="logFC" sortable>
           <template #body="{ data }">
@@ -46,15 +53,23 @@
   </div>
 
   <ContextMenu ref="cm" :model="menuModel" @hide="selectedRow = null" />
+
+  <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
+    <ViewerResourceTable
+        :componentKey="componentKey"
+        :visualizers="['Differential Expression']"
+        v-model:visible="selectDialogVisible"
+    />
+  </Dialog>
+
 </template>
 
 <script setup lang="ts">
-import Chart from 'primevue/chart'
 import Header from "~/components/common/Header.vue"
 import GeneSelectPopover from "~/components/common/GeneSelectPopover.vue"
 
 import {useGlobalStore} from '@/composables/useGlobal'
-import {FilterMatchMode, FilterOperator} from "@primevue/core";
+import {FilterMatchMode} from "@primevue/core";
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 import DataTable from "primevue/datatable";
 
@@ -62,6 +77,47 @@ const op = ref();
 const anchor = ref();
 const genesList = ref<string[]>([]);
 const global = useGlobalStore();
+
+const toast = useToast();
+
+const viewStore = useSampleViewStore();
+const { layout, customReference, analysis } = storeToRefs(viewStore);
+const { removeView } = viewStore;
+
+const selectDialogVisible = ref<boolean>(false);
+const props = defineProps<{
+  componentKey: any
+}>();
+
+const resourcesStore = useViewResourcesStore();
+const {setViewResources, selectedResources, state} = resourcesStore;
+
+const resources = selectedResources(props.componentKey);
+
+const table = ref();
+const updateResourceData = async () => {
+  table.value = [];
+  if (resources.value.length == 0) return
+
+  try {
+    table.value = await useClientApi(`/omic/visualize/transform/DiffExpressionVisualizer/${resources.value[0].resourceId}`);
+  } catch (error) {
+    toast.add({severity: "error", summary: "Unable to Retrieve Resource", detail: `Trying to find resource for Differential Expression Table. \n\n ${error}`, life: 10_000})
+  }
+}
+
+watch(resources, updateResourceData, {deep: true, immediate: true})
+
+const loadedFiles = computed(() => {
+  if (resources.value.length == 0) return null;
+
+  let fileNames = "";
+  for (let name of resources.value) {
+    fileNames += name.resourceName + " ";
+  }
+
+  return fileNames;
+})
 
 // context menu
 const cm = ref();
@@ -80,69 +136,24 @@ const menuModel = ref([
 
 const navigateIgv = (selectedRow) => {
   const row = selectedRow.value;
-  const chrom = row.seqnames;
-  const start = row.start;
-  const end = row.end;
 
-  global.setCurrentGenomicPosition(chrom, start, end);
+  const position : GenomicPosition = {
+    chr: row.seqnames,
+    start: row.start,
+    end: row.end
+  };
+
+  global.navigate(position);
 }
-
-
-interface DifferentialExpression {
-  transcript: string
-  logFC: Number
-  logCPM: Number
-  F: Number
-  PValue: Number
-  FDR: Number
-  geneName: string
-}
-
-const selectDialogVisible = ref<boolean>(false);
-const props = defineProps<{
-  componentKey: any
-}>();
-
-const viewStore = useSampleViewStore();
-const { removeView } = viewStore;
 
 defineOptions({
   name: 'DifferentialExpressionTable'
 })
 
 const applyGlobals = ref<boolean>(false);
-const chartRawData = ref<any>();
-const chartOptions = ref<any>();
-const table = ref<Array<DifferentialExpression>>([]);
-const differentialExpressionChart = ref<any>();
-const filterLimits = ref<any>({
-  "fdr1": {
-    "min": 1.15e-89,
-    "max": 0.049999969
-  },
-  "fdr2": {
-    "min": 3.11e-60,
-    "max": 0.049973044
-  },
-  "log2fold1": {
-    "min": -8.81,
-    "max": 9.21
-  },
-  "log2fold2": {
-    "min": -9.89,
-    "max": 8.95
-  }
-});
-
-onMounted(async () => {
-  table.value = await $fetch("/api/assay/differential_expression/table/1");
-  filterLimits.value = await $fetch("/api/assay/differentialPeak/MATTRESS15/1");
-});
-
-
 const store = useGlobalStore();
 
-const searchText = ref<string>("NL");
+const searchText = ref<string>();
 const filters = computed(() => {
   const geneFilterList = store.globalNav.genes
       .map(g => {
@@ -151,12 +162,6 @@ const filters = computed(() => {
           matchMode: FilterMatchMode.EQUALS
         }
   })
-
-  // return {
-  //   global: { value: store.globalNav.gene, matchMode: FilterMatchMode.CONTAINS },
-  //   geneName: { operator: FilterOperator.OR, constraints: applyGlobals.value ? geneFilterList : [] },
-  // }
-
   return {
     global: { value: searchText.value, matchMode: FilterMatchMode.CONTAINS },
   }
@@ -169,65 +174,14 @@ function rowClick(event) {
   store.addGene(gene)
 }
 
-function select(e) {
-  console.log(e)
-}
-
-const backgroundColors = [
-  "#999999", // Neutral Grey
-  "#d5ac4d", // Red (Hot) - actually orange for accessibility
-  "#56B4E9"  // Blue (Cold)
-];
-
-const highlightColors = [
-  "#0072B2", // Deep Blue
-  "#D55E00", // Vermillion/Orange
-  "#009E73", // Bluish Green
-  "#F0E442", // Yellow
-  "#CC79A7", // Pink/Magenta
-  "#56B4E9", // Sky Blue
-  "#E69F00", // Gold/Orange
-  "#000000", // Black (high contrast)
-  "#654321", // Brown (distinct)
-  "#785EF0"  // Violet/Purple
-];
-
-const getGroupColor = (groupName) => {
-  return groupName.toLowerCase() === 'unlabeled' ? backgroundColors[0] :
-      `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`;
-};
-
-
 </script>
 
 <style scoped>
-:deep(.centered>canvas) {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-:deep(.chart) {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-:deep(.chart > canvas) {
-  width: 100% !important;
-  height: 100% !important;
-}
-
 .de-container {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 500px; /* ⬅️ This is your minimum height */
-  overflow: hidden;
-}
-
-.chart-wrapper {
-  flex: 1 1 60%;
-  min-height: 200px;
   overflow: hidden;
 }
 

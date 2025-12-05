@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@nuxt/bridge": "^3.4.0",
+    "@nuxt/image": "^2.0.0",
     "@pinia/nuxt": "^0.11.0",
     "@primevue/forms": "^4.3.3",
     "@primevue/themes": "^4.3.3",
@@ -19,7 +20,7 @@
     "clustergrammer": "^1.19.0",
     "d3": "^3.5.17",
     "h3-proxy": "^1.13.0",
-    "igv": "^3.4.1",
+    "igv": "^3.6.0",
     "interactjs": "^1.10.27",
     "jquery": "^3.7.1",
     "juicebox.js": "^2.5.1",

@@ -82,6 +82,11 @@
           {{ data.omicResources?.length }}
         </template>
       </Column>
+      <Column header="Delete" sortable>
+        <template #body="{data}">
+          <em class="pi pi-times" @click="confirmRemoveSample($event, data)"/>
+        </template>
+      </Column>
       <Column
           header="Actions"
           :body="actionTemplate"
@@ -111,7 +116,7 @@
     </Dialog>
   </div>
 
-  <Toast />
+  <ConfirmPopup />
 </template>
 
 <script setup lang="ts">
@@ -161,6 +166,7 @@ const selectedSamples = ref<SampleDTO[]>([]);
 const handleUpdate = (samples: SampleDTO[]) => {
   selectedSamples.value = samples
 }
+
 const addSample = async () => {
   try {
     const requestBody : AddAnalysisSampleDTO = {
@@ -180,6 +186,43 @@ const addSample = async () => {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to add sample', life: 3000 })
   }
 }
+
+import { useConfirm } from "primevue/useconfirm";
+const confirm = useConfirm();
+
+const confirmRemoveSample = (event, row : SampleDTO) => {
+  confirm.require({
+    target: event.currentTarget,
+    message: 'Are you sure you want to remove this sample?',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true
+    },
+    acceptProps: {
+      label: 'Remove'
+    },
+    accept: () => {
+      removeSample(row);
+    }
+  });
+};
+
+const removeSample = async (row : SampleDTO) => {
+  console.table(row)
+  try {
+    await useClientApi(`/analysis/${analysisId}/${row.id}`, {
+      method: 'DELETE',
+    })
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Sample Removed', life: 3000 })
+
+    await refresh()
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to remove sample', life: 3000 })
+  }
+}
+
 
 // Update the cohort, change the values of the data
 const updateCohort = async () => {

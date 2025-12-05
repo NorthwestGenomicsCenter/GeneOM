@@ -12,25 +12,31 @@
   <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
     <ViewerResourceTable
         :componentKey="componentKey"
-        :tableData="analysis.resources"
-        :filetypes="['bam', 'hic', 'bw', 'bedpe']"
-        @select-resources="selection"/>
+        :filetypes="['bam', 'bedpe', 'narrowPeak', 'bw']"
+        :visualizers="['igv']"
+        v-model:visible="selectDialogVisible"
+    />
   </Dialog>
 
 </template>
 
 <script setup lang="ts">
 import Header from "~/components/common/Header.vue";
-import {useGlobalStore} from '@/composables/useGlobal'
+import {type GenomicPosition, useGlobalStore} from '~/composables/useGlobal'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 import {computed} from "vue";
 
 defineOptions({name: "Igv"})
 
+// Init the browser
+let browser: any;
+let igv: any;
+
 const applyGlobals = ref<boolean>(false);
-const store = useGlobalStore();
+const globalStore = useGlobalStore();
 const selectedGene = ref<string>();
-let { gene, currentGenomicPosition } = storeToRefs(store)
+const { setCurrentGenomicPosition, navigate } = globalStore;
+let { gene, currentGenomicPosition, updateGenomicPositon } = storeToRefs(globalStore);
 
 const props = defineProps<{
   componentKey: any
@@ -38,18 +44,8 @@ const props = defineProps<{
 
 const selectDialogVisible = ref<boolean>(false);
 const resourceStore = useViewResourcesStore();
-const {
-  getViewResources,
-  setViewResources,
-  clearViewResources
-} = resourceStore;
-
-const resources = getViewResources(props.componentKey);
-
-const selection = (event) => {
-  setViewResources(props.componentKey, event)
-}
-
+const {selectedResources, registerConfigCallback, unregisterConfigCallback} = resourceStore;
+const resources = selectedResources(props.componentKey);
 
 let baseUrl = useRuntimeConfig().app.baseURL;
 if (baseUrl === "/") {
@@ -57,19 +53,26 @@ if (baseUrl === "/") {
 }
 
 const viewStore = useSampleViewStore();
-// const { igvTracks, layout, customReference, analysis } = storeToRefs(viewStore);
-const { layout, customReference, analysis } = storeToRefs(viewStore);
+const { layout, customReference } = storeToRefs(viewStore);
 const { removeView } = viewStore;
 
-// const igvTracks = ref([ { "name": "chrXmut.P6.cis.ROI.SV.9.7.bedpe", "url": "/api/visualize/igv/ccc6e89b-52e3-4654-8b69-db55de0bfdf5/chrXmut.P6.cis.ROI.SV.9.7.bedpe", "type": "interact", "format": "bedpe" }, { "name": "chrXmut.WT.cis.ROI.bedpe", "url": "/api/omic/igv/1ce71595-2875-4dca-bab2-410d58d88a43/chrXmut.WT.cis.ROI.bedpe", "type": "interact", "format": "bedpe" }, { "name": "P6_r2.summits.bed", "url": "/api/omic/igv/4b2d7f67-4c77-423c-b254-c0ab01d33ae9/P6_r2.summits.bed", "type": "annotation", "format": "bed" }, { "name": "P6_r2.bw", "url": "/api/omic/igv/eafd8e0f-5c6e-4716-9877-93dd3464bbb6/P6_r2.bw", "type": "wig", "format": "bw", "sync": true } ]);
+type IGVTrack = Track & TrackConfig;
 
-interface IGVTrack {
+interface Track {
+  id: string
   name: string
   url: string
   indexUrl?: string
   format: string
   type: string
   sort: TrackSort
+}
+
+interface TrackConfig {
+  arcOrientation?: "UP" | "DOWN"
+  color?: string
+  description?: Function
+  height?: number
 }
 
 interface TrackSort {
@@ -79,18 +82,54 @@ interface TrackSort {
   direction: "ASC" | "DESC"
 }
 
+
 const igvTracks = computed(() => {
   const visibleTracks : IGVTrack[] = [] as IGVTrack[];
+
   for (const resource of resources.value) {
     if (resource.technologiesViewers.map(e => e.toLowerCase()).includes("igv")) {
       const track: IGVTrack = {} as IGVTrack;
+      track.id = resource.resourceId
       track.name = resource.resourceName;
-      track.url = `${baseUrl}/api/omic/visualize/${resource.resourceId}/${resource.resourceName}`;
-      if (resource.resourceName.endsWith("bam")) {
-        track.indexUrl = `${baseUrl}/api/omic/visualize/${resource.resourceId}/${resource.resourceName}.bai`;
+      track.url = `${baseUrl}/api/omic/visualize/${resource.resourceId}/${resource.path}`;
+      if (resource.path.endsWith("bam")) {
+        track.indexUrl = `${baseUrl}/api/omic/visualize/${resource.resourceId}/${resource.path}.bai`;
       }
-      track.type = getTrackType(resource.resourceName);
-      track.format = getTrackFormat(resource.resourceName);
+      track.type = getTrackType(resource.path);
+      track.format = getTrackFormat(resource.path);
+
+      if (defaultTrackHeight(track.format)) {
+        track.height = defaultTrackHeight(track.format);
+        track.arcOrientation = "DOWN";
+      }
+
+      if (resource.config !== null) {
+        let config : TrackConfig = resource.config;
+        if (config.height) {
+          track.height = config.height;
+        }
+
+        if (config.arcOrientation) {
+          track.arcOrientation = config.arcOrientation;
+        }
+
+        if (config.description) {
+          track.description = config.description;
+        }
+
+        if (config.color) {
+          track.color = config.color;
+        }
+      }
+
+      if (resource.description) {
+        track.description = () => {
+          const row = document.createElement('div')
+          row.className = 'igv-track-label-popover__row'
+          row.textContent = resource.description
+          return row;
+        }
+      }
 
       visibleTracks.push(track);
     }
@@ -99,8 +138,17 @@ const igvTracks = computed(() => {
   return visibleTracks;
 })
 
+const defaultTrackHeight = (trackType : string) : number => {
+  const heights = {
+    "bedpe": 125,
+    "narrowpeak": 50
+  }
+
+  return heights[trackType];
+}
+
 const getTrackFormat = (filename : string) => {
-  return filename.split(".").pop();
+  return filename.split(".").pop().toLowerCase();
 }
 
 const getTrackType = (filename : string) => {
@@ -124,7 +172,6 @@ const trackTypes = {
   "narrowPeak": "annotation"
 }
 
-
 watch(selectedGene, () => {
   browser.search(gene.value);
   browser.zoomIn();
@@ -132,30 +179,11 @@ watch(selectedGene, () => {
   browser.zoomIn();
 })
 
-watch(currentGenomicPosition, () => {
-  const pos = currentGenomicPosition.value
-
-  browser.search(pos.chrom + ":" + pos.start + "-" + pos.end);
-  browser.zoomIn();
-  browser.zoomIn();
-  browser.zoomIn();
-})
-
-
-watch(layout, () => {
-  refresh();
-})
-
-watch(igvTracks, () => {
-  refresh();
-})
-
 // Tracks that must not be removed
 const defaultTracks = ['ideogram', 'ruler', 'sequence', 'Refseq Select', 'refseqAll'];
 
 const refresh = async () => {
   if (browser == null || browser.tracks == null) return;
-  console.table(browser.tracks);
 
   const currentIds = browser.tracks.map(t => t.id);
   const newIds = igvTracks.value.map(t => t.name);
@@ -177,6 +205,23 @@ const refresh = async () => {
   browser.visibilityChange();
 }
 
+watch(updateGenomicPositon, () => {
+  const pos = updateGenomicPositon.value
+
+  browser.search(pos.chr + ":" + pos.start + "-" + pos.end);
+  browser.zoomIn();
+  browser.zoomIn();
+  browser.zoomIn();
+})
+
+watch(layout, () => {
+  refresh();
+})
+
+watch(igvTracks, () => {
+  refresh();
+}, {deep: true, immediate: true})
+
 // The analysis that is being worked on
 const route = useRoute()
 const analysisId = computed(() => route.params.id);
@@ -185,7 +230,7 @@ let locusTimer: ReturnType<typeof setTimeout> | null = null
 let lastFrame: { chr: string; start: number; end: number } | null = null
 let updatedFromMessage = false;
 
-const onLocusChange = (referenceFrameList: any[]) => {
+const onLocusChange = (referenceFrameList: GenomicPosition[]) => {
   if (updatedFromMessage) {
     updatedFromMessage = false;
     return;
@@ -193,6 +238,8 @@ const onLocusChange = (referenceFrameList: any[]) => {
 
   const frame = referenceFrameList[0]
   lastFrame = frame
+
+  setCurrentGenomicPosition(frame.chr, frame.start, frame.end);
 
   if (locusTimer) clearTimeout(locusTimer)
 
@@ -218,14 +265,9 @@ const destroy = async () => {
     igv.default.removeBrowser(browser);
   }
 }
-onBeforeUnmount(async () => destroy());
 
-let browser: any;
-let igv: any;
 let locusEventSource = null;
-
-
-onMounted(async () => {
+const initLocusPolling = () => {
   locusEventSource = new EventSource(`${baseUrl}/api/analysis/locus/${analysisId.value}`);
 
   locusEventSource.onmessage = (event) => {
@@ -238,7 +280,9 @@ onMounted(async () => {
     console.error('SSE Error:', error);
     locusEventSource.close();
   }
+}
 
+const initIgvBrowser = async () => {
   igv = await import('igv');
   const igvDiv = document.getElementById(props.componentKey);
   if (!igvDiv) return;
@@ -263,9 +307,42 @@ onMounted(async () => {
   }
 
   browser = await igv.default.createBrowser(igvDiv, options);
-  window['igv'] = browser;
+  // window['igv'] = browser;
   browser.on("locuschange", onLocusChange);
+  browser.on("trackclick", console.table)
   refresh();
+}
+
+const setTrackConfiguration = (resourceId) => {
+  for (let track of browser.tracks) {
+    if (resourceId === track.id) {
+      const config = {} as TrackConfig;
+      config['id'] = track.id;
+      config['arcOrientation'] = track.arcOrientation;
+      config['height'] = track.height;
+      config['color'] = track.color;
+
+      return config
+    }
+  }
+
+  return {};
+}
+
+onMounted(async () => {
+
+  // Init Polling
+  initLocusPolling();
+  await initIgvBrowser();
+
+  registerConfigCallback(props.componentKey, (tracks) => setTrackConfiguration(tracks))
+});
+
+onBeforeUnmount(async () => {
+  locusEventSource.close();
+  // interval.close();
+  unregisterConfigCallback(props.componentKey)
+  destroy();
 });
 </script>
 

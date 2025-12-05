@@ -2,6 +2,7 @@ package org.uw.nwgc.multiomics.core.user;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Cascade;
@@ -19,6 +20,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
@@ -38,20 +40,13 @@ public class User implements UserDetails {
     private String lastName;
     private String password;
     private Boolean enabled;
+    private Boolean firstLogin;
 
     @Override
     public boolean isEnabled() {
         return enabled;
     }
 
-//    @ManyToMany(fetch = FetchType.EAGER)
-//    @JoinTable(
-//            name = "user_authorities",
-//            joinColumns = @JoinColumn(name = "user_id"),
-//            inverseJoinColumns = @JoinColumn(name = "authority_id")
-//    )
-//    @Cascade(CascadeType.ALL)
-//    @Fetch(FetchMode.SELECT)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_authorities",
@@ -69,7 +64,7 @@ public class User implements UserDetails {
             String lastname,
             PasswordEncoder passwordEncoder
     ) {
-                this.username = username;
+        this.username = username;
         this.password = passwordEncoder.encode(password);
         this.email = email;
         this.enabled = true;
@@ -98,5 +93,4 @@ public class User implements UserDetails {
     public int hashCode() {
         return Objects.hash(id);
     }
-
 }

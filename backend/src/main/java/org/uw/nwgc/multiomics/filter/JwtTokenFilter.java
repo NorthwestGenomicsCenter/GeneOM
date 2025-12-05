@@ -14,7 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.uw.nwgc.multiomics.core.user.UserService;
 import org.uw.nwgc.multiomics.util.JwtUtil;
@@ -38,18 +37,19 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, IOException {
         try {
             String accessToken = parseJwt(request, "accessToken");
+            String refreshToken = parseJwt(request, "refreshToken");
+            UserDetails userDetails;
             if (accessToken != null && jwtUtil.validateJwtToken(accessToken)) {
                 String username = jwtUtil.getUserNameFromJwtToken(accessToken);
-                UserDetails userDetails = userService.loadUserByUsername(username);
+                userDetails = userService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
                         userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                String refreshToken = parseJwt(request, "refreshToken");
                 if (refreshToken != null && jwtUtil.validateJwtToken(refreshToken)) {
                     String username = jwtUtil.getUserNameFromJwtToken(refreshToken);
-                    UserDetails userDetails = userService.loadUserByUsername(username);
+                    userDetails = userService.loadUserByUsername(username);
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
                             userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -66,7 +66,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            log.error("Cannot set user authentication: {}", e);
+            log.error("Cannot set user authentication", e);
             throw new BadCredentialsException("Cannot parse JWT token", e);
         }
         filterChain.doFilter(request, response);

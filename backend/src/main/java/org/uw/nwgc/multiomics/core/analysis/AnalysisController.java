@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.uw.nwgc.multiomics.core.analysis.dto.*;
 import org.uw.nwgc.multiomics.core.cohort.Cohort;
 import org.uw.nwgc.multiomics.core.cohort.CohortService;
+import org.uw.nwgc.multiomics.core.sample.Sample;
 import reactor.core.publisher.Flux;
 import org.uw.nwgc.multiomics.core.analysis.LayoutUpdatePublisher.AnalysisSSEUpdateDTO;
 
@@ -64,7 +65,6 @@ public class AnalysisController {
         return Flux.merge(heartbeat, updates.flux(id.toString()));
     }
 
-    @Transactional
     @GetMapping("/reference")
     public ResponseEntity<CustomReference> reference() {
         return ResponseEntity.ok(new CustomReference());
@@ -137,7 +137,7 @@ public class AnalysisController {
     }
 
     @Transactional
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable UUID id) {
         analysisService.delete(id);
         return ResponseEntity.ok().build();
@@ -160,4 +160,29 @@ public class AnalysisController {
 
         return ResponseEntity.ok(analysisMapper.toViewDTO(analysis));
     }
+
+    @Transactional
+    @DeleteMapping("/{id}/{sampleId}")
+    public ResponseEntity<?> deleteSample(@PathVariable UUID id, @PathVariable UUID sampleId) {
+        Optional<Analysis> analysisQuery = analysisService.findById(id);
+        if (analysisQuery.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Analysis analysis = analysisQuery.get();
+        Optional<Sample> sample = analysis.getSamples()
+                .stream()
+                .filter(s -> s.getId().equals(sampleId))
+                .findFirst();
+
+        if (sample.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        analysis.getSamples().remove(sample.get());
+        analysis = analysisService.save(analysis);
+
+        return ResponseEntity.ok(analysisMapper.toViewDTO(analysis));
+    }
+
 }

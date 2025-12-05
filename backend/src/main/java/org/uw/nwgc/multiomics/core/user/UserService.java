@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +22,8 @@ public class UserService implements UserDetailsService {
         return userRepo.save(user);
     }
 
+    @Transactional(readOnly = true)
+    @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found with username" + username));
     }
