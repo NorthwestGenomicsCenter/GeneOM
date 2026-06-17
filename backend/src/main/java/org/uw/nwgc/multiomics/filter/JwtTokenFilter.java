@@ -10,16 +10,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.uw.nwgc.multiomics.core.user.JwtUserDetails;
+import org.uw.nwgc.multiomics.core.user.LazyUserDetails;
 import org.uw.nwgc.multiomics.core.user.UserService;
 import org.uw.nwgc.multiomics.util.JwtUtil;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 @Log4j2
@@ -35,41 +38,45 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException, IOException {
         try {
             String accessToken = parseJwt(request, "accessToken");
+            String refreshToken = parseJwt(request, "refreshToken");
+
             if (accessToken != null && jwtUtil.validateJwtToken(accessToken)) {
                 String username = jwtUtil.getUserNameFromJwtToken(accessToken);
-                UserDetails userDetails = userService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
-                        userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                String refreshToken = parseJwt(request, "refreshToken");
-                if (refreshToken != null && jwtUtil.validateJwtToken(refreshToken)) {
-                    String username = jwtUtil.getUserNameFromJwtToken(refreshToken);
-                    UserDetails userDetails = userService.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
-                            userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                List<GrantedAuthority> authorities = jwtUtil.getAuthoritiesFromToken(accessToken);
+                UserDetails userDetails = new JwtUserDetails(username, authorities);
+                setAuthentication(request, userDetails);
+            } else if (refreshToken != null && jwtUtil.validateJwtToken(refreshToken)) {
+                String username = jwtUtil.getUserNameFromJwtToken(refreshToken);
+                UserDetails userDetails = new LazyUserDetails(username, userService);
+                UsernamePasswordAuthenticationToken authentication = setAuthentication(request, userDetails);
 
-                    HttpHeaders newHeaders = jwtUtil.tokenHeaders(authentication);
-                    if (response.getHeader("x-access-token") == null) {
-                        response.addHeader("x-access-token", Objects.requireNonNull(newHeaders.get("x-access-token")).getFirst());
-                    }
-
-                    if (response.getHeader("x-refresh-token") == null) {
-                        response.addHeader("x-refresh-token", Objects.requireNonNull(newHeaders.get("x-refresh-token")).getFirst());
-                    }
-                }
+                HttpHeaders newHeaders = jwtUtil.tokenHeaders(authentication);
+                addHeaderIfAbsent(response, "x-access-token", newHeaders);
+                addHeaderIfAbsent(response, "x-refresh-token", newHeaders);
             }
         } catch (Exception e) {
-            log.error("Cannot set user authentication: {}", e);
+            log.error("Cannot set user authentication", e);
             throw new BadCredentialsException("Cannot parse JWT token", e);
         }
         filterChain.doFilter(request, response);
+    }
+
+    private UsernamePasswordAuthenticationToken setAuthentication(HttpServletRequest request, UserDetails userDetails) {
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
+    }
+
+    private void addHeaderIfAbsent(HttpServletResponse response, String headerName, HttpHeaders headers) {
+        if (response.getHeader(headerName) == null) {
+            response.addHeader(headerName, Objects.requireNonNull(headers.get(headerName)).getFirst());
+        }
     }
 
     private String parseJwt(HttpServletRequest request, String tokenName) {
@@ -86,3 +93,66 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         return null;
     }
 }
+
+//    private final JwtUtil jwtUtil;
+//    private final UserService userService;
+//
+//    @Autowired
+//    public JwtTokenFilter(JwtUtil jwtUtil, UserService userService) {
+//        this.jwtUtil = jwtUtil;
+//        this.userService = userService;
+//    }
+//
+//    @Override
+//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, IOException {
+//        try {
+//            String accessToken = parseJwt(request, "accessToken");
+//            String refreshToken = parseJwt(request, "refreshToken");
+//            UserDetails userDetails;
+//            if (accessToken != null && jwtUtil.validateJwtToken(accessToken)) {
+//                String username = jwtUtil.getUserNameFromJwtToken(accessToken);
+//                userDetails = userService.loadUserByUsername(username);
+//                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
+//                        userDetails.getAuthorities());
+//                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                SecurityContextHolder.getContext().setAuthentication(authentication);
+//            } else {
+//                if (refreshToken != null && jwtUtil.validateJwtToken(refreshToken)) {
+//                    String username = jwtUtil.getUserNameFromJwtToken(refreshToken);
+//                    userDetails = userService.loadUserByUsername(username);
+//                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
+//                            userDetails.getAuthorities());
+//                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                    SecurityContextHolder.getContext().setAuthentication(authentication);
+//
+//                    HttpHeaders newHeaders = jwtUtil.tokenHeaders(authentication);
+//                    if (response.getHeader("x-access-token") == null) {
+//                        response.addHeader("x-access-token", Objects.requireNonNull(newHeaders.get("x-access-token")).getFirst());
+//                    }
+//
+//                    if (response.getHeader("x-refresh-token") == null) {
+//                        response.addHeader("x-refresh-token", Objects.requireNonNull(newHeaders.get("x-refresh-token")).getFirst());
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            log.error("Cannot set user authentication", e);
+//            throw new BadCredentialsException("Cannot parse JWT token", e);
+//        }
+//        filterChain.doFilter(request, response);
+//    }
+//
+//    private String parseJwt(HttpServletRequest request, String tokenName) {
+//        if (request.getCookies() == null) return null;
+//
+//        // Check for the access token in the request
+//        Cookie[] cookies = request.getCookies();
+//        for (Cookie cookie : cookies) {
+//            if (cookie.getName().equals(tokenName)) {
+//                return cookie.getValue();
+//            }
+//        }
+//
+//        return null;
+//    }
+

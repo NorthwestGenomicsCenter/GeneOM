@@ -3,23 +3,25 @@ package org.uw.nwgc.multiomics.core.analysis;
 import jakarta.transaction.Transactional;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.uw.nwgc.multiomics.core.analysis.dto.AddAnalysisSampleDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.AnalysisEditDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.AnalysisViewDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.CreateAnalysisDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.CreateCustomReferenceGenomeDTO;
-import org.uw.nwgc.multiomics.core.analysis.dto.RecentAnalysisDTO;
-import reactor.core.publisher.Flux;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.uw.nwgc.multiomics.core.analysis.LayoutUpdatePublisher.AnalysisSSEUpdateDTO;
+import org.uw.nwgc.multiomics.core.analysis.dto.*;
+import org.uw.nwgc.multiomics.core.cohort.Cohort;
+import org.uw.nwgc.multiomics.core.cohort.CohortService;
+import org.uw.nwgc.multiomics.core.sample.Sample;
+import org.uw.nwgc.multiomics.core.user.CurrentUserResolver;
+import org.uw.nwgc.multiomics.core.user.User;
+import org.uw.nwgc.multiomics.util.coordinates_reader.GenomicFileParser;
+import org.uw.nwgc.multiomics.util.coordinates_reader.model.ParsedGenomicDataDTO;
+import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Optional;
@@ -29,17 +31,23 @@ import java.util.UUID;
 @RequestMapping("/analysis")
 public class AnalysisController {
 
-    private final AnalysisService analysisService;
     private final AnalysisMapper analysisMapper;
+    private final AnalysisService analysisService;
+    private final CohortService cohortService;
+    private final CurrentUserResolver currentUserResolver;
     private final LayoutUpdatePublisher updates;
 
     public AnalysisController(
             AnalysisService analysisService,
             AnalysisMapper analysisMapper,
+            CohortService cohortService,
+            CurrentUserResolver currentUserResolver,
             LayoutUpdatePublisher updates
     ) {
         this.analysisService = analysisService;
         this.analysisMapper = analysisMapper;
+        this.cohortService = cohortService;
+        this.currentUserResolver = currentUserResolver;
         this.updates = updates;
     }
 
@@ -64,7 +72,6 @@ public class AnalysisController {
         return Flux.merge(heartbeat, updates.flux(id.toString()));
     }
 
-    @Transactional
     @GetMapping("/reference")
     public ResponseEntity<CustomReference> reference() {
         return ResponseEntity.ok(new CustomReference());
@@ -80,9 +87,27 @@ public class AnalysisController {
         return ResponseEntity.ok().build();
     }
 
+    @Transactional
+    @PostMapping("/update/resources/{id}")
+    public ResponseEntity<Void> updateResources(@PathVariable UUID id, @RequestBody AnalysisSSEUpdateDTO resources) {
+        boolean updated = analysisService.updateSelectedResources(id, resources.message());
+//        if (updated) {
+//            updates.publish(id.toString(), resources);
+//        }
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/all")
     public Collection<Analysis> getAll() {
         return analysisService.getAll();
+    }
+
+    @GetMapping ("/available")
+    public Collection<AvailableUserAnalysisDTO> getAvailableUserAnalysis() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails user = (UserDetails) auth.getPrincipal();
+
+        return analysisService.getAvailableUserAnalysisDTOs(user);
     }
 
     @GetMapping("/view/{id}")
@@ -92,6 +117,10 @@ public class AnalysisController {
             return ResponseEntity.notFound().build();
         }
         Analysis analysis = analysisQuery.get();
+
+        analysis.setLastModified(LocalDateTime.now());
+        analysis = analysisService.save(analysis);
+
         AnalysisViewDTO dto = analysisMapper.toViewDTO(analysis);
         return ResponseEntity.ok(dto);
     }
@@ -101,9 +130,20 @@ public class AnalysisController {
         return ResponseEntity.ok(analysisService.getEditDTO(id));
     }
 
+    @PostMapping("/{id}/update")
+    public ResponseEntity<?> updateAnalysis(@PathVariable UUID id, @RequestBody UpdateAnalysisDTO dto) {
+        Optional<Analysis> analysisQuery = analysisService.findById(id);
+        if (analysisQuery.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        analysisService.updateAnalysis(analysisQuery.get(), dto);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/recent")
-    public ResponseEntity<Collection<RecentAnalysisDTO>> recent() {
-        Collection<RecentAnalysisDTO> recent = analysisService.getRecent();
+    public ResponseEntity<RecentAnalysisDTO> recent() {
+        RecentAnalysisDTO recent = analysisService.getRecent();
         return ResponseEntity.ok(recent);
     }
 
@@ -115,9 +155,19 @@ public class AnalysisController {
     }
 
     @Transactional
+    @PostMapping("/add/users")
+    public ResponseEntity<AnalysisEditDTO> addUsers(@RequestBody AddAnalysisUsersDTO dto) {
+        analysisService.addUsers(dto);
+        return ResponseEntity.ok(analysisService.getEditDTO(dto.getAnalysisId()));
+    }
+
+    @Transactional
     @PostMapping("/create")
     public Analysis create(@RequestBody CreateAnalysisDTO dto) {
-        return analysisService.createNew(dto);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
+
+        return analysisService.createNew(dto, user);
     }
 
     @Transactional
@@ -127,9 +177,75 @@ public class AnalysisController {
     }
 
     @Transactional
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable UUID id) {
         analysisService.delete(id);
         return ResponseEntity.ok().build();
     }
+
+    @Transactional
+    @PostMapping("/add-cohort")
+    public ResponseEntity<?> createCustomReferenceGenome(@RequestBody AddAnalysisCohortDTO dto) {
+        Optional<Analysis> analysisQuery = analysisService.findById(dto.analysisId());
+        Optional<Cohort> cohortQuery = cohortService.getById(dto.cohortId());
+        if (analysisQuery.isEmpty() ||  cohortQuery.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        var analysis = analysisQuery.get();
+        var cohort = cohortQuery.get();
+
+        analysis.getCohorts().add(cohort);
+        analysis = analysisService.save(analysis);
+
+        return ResponseEntity.ok(analysisMapper.toViewDTO(analysis));
+    }
+
+    @Transactional
+    @DeleteMapping("/{id}/{sampleId}")
+    public ResponseEntity<?> deleteSample(@PathVariable UUID id, @PathVariable UUID sampleId) {
+        Optional<Analysis> analysisQuery = analysisService.findById(id);
+        if (analysisQuery.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Analysis analysis = analysisQuery.get();
+        Optional<Sample> sample = analysis.getSamples()
+                .stream()
+                .filter(s -> s.getId().equals(sampleId))
+                .findFirst();
+
+        if (sample.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        analysis.getSamples().remove(sample.get());
+        analysis = analysisService.save(analysis);
+
+        return ResponseEntity.ok(analysisMapper.toViewDTO(analysis));
+    }
+
+    @PostMapping("/import/coordinates")
+    public ResponseEntity<?> importCoordinates(@RequestParam("null") MultipartFile file) throws IOException {
+        try (GenomicFileParser parser = GenomicFileParser.from(file)) {
+            return ResponseEntity.ok(parser.detectColumns());
+        }
+    }
+
+
+    public record ChosenColumnsDTO(
+            String chromosomeColumn,
+            String startColumn,
+            String endColumn,
+            String geneColumn
+    ) {}
+    @PostMapping("/import/tabular-data")
+    public ResponseEntity<?> importTabularDataFile(@RequestParam("null") MultipartFile file) throws IOException {
+        try (GenomicFileParser parser = GenomicFileParser.from(file)) {
+
+            ParsedGenomicDataDTO pd = new ParsedGenomicDataDTO(parser.parseRecords());
+            return ResponseEntity.ok(pd);
+        }
+    }
+
 }

@@ -57,6 +57,7 @@ public class CohortService {
                 "bamshad_uwcrdr_sn_wgssr_1",
                 "bielas_external_uwcmg_ndd_1",
                 "cherry_grc_miseq_1",
+                "carbone_chiatac_1",
                 "chung_uwcrdr_und_wgsnp_2",
                 "cui_rnaseq_6",
                 "doherty_grc_rnaseq_1",

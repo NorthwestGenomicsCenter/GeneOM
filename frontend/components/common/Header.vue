@@ -1,18 +1,16 @@
 <template>
   <div class="header-container header-draggable">
     <div class="left-element">
-      <slot name="left">
-        <em class="pi pi-cog" @click="onSettings"/>
-      </slot>
+      <em class="pi pi-wrench" @click="onSettings"/>
+      <slot name="left" />
     </div>
     <h3 class="centered-title" v-html="props.title"></h3>
     <div class="right-element">
       <template v-if="!disableToggle">
         Global Filters:&nbsp;&nbsp;<ToggleSwitch v-model="modelValue"/>
       </template>
-      <slot name="right">
-        <em class="pi pi-times-circle" @click="onClose"/>
-      </slot>
+      <slot name="right" />
+      <em class="pi pi-times-circle" @click="onClose"/>
     </div>
   </div>
 </template>
@@ -21,7 +19,7 @@
 import ToggleSwitch from 'primevue/toggleswitch'
 
 defineOptions({
-  name: 'Header'
+  name: 'DefaultHeader'
 })
 
 const props = defineProps({

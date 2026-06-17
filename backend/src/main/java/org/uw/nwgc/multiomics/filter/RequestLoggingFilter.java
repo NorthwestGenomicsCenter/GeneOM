@@ -9,10 +9,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
-public class RequestLoggingFilter extends OncePerRequestFilter {
+public class RequestLoggingFilter {
+//public class RequestLoggingFilter extends OncePerRequestFilter {
 
-    @Override
+//    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,

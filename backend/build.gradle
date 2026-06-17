@@ -35,6 +35,7 @@ repositories {
 
 ext {
 	jacksonVersion = '2.18.1'
+	apachePOIVersion = "5.2.5"
 }
 
 
@@ -70,9 +71,14 @@ dependencies {
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: jacksonVersion
 	implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jacksonVersion
-
-	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 	implementation 'io.jhdf:jhdf:0.10.0'
+
+	// Apache POI - Excel support
+	implementation group: "org.apache.poi", name: "poi", version: apachePOIVersion
+	implementation group: "org.apache.poi", name: "poi-ooxml", version: apachePOIVersion
+	implementation 'org.apache.commons:commons-csv:1.11.0'
+
 
 }
 
@@ -104,6 +110,26 @@ tasks.named("build") {
 	dependsOn("generateViewNamesTS")
 }
 
+tasks.register('admin', JavaExec) {
+	outputs.upToDateWhen { false }
+	args = ["--spring.profiles.active=dev"]
+	mainClass = 'org.uw.nwgc.multiomics.UwMultiomicsBrowserApplication'
+	classpath = sourceSets.main.runtimeClasspath
+	systemProperty "spring.main.web-application-type", "NONE"
+	standardInput = System.in
+}
+
+tasks.register('generateViewNamesTS', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass.set("org.uw.nwgc.multiomics.api.GenerateTSFromEnum")
+	args = [
+			"org.uw.nwgc.multiomics.api.ViewName",
+			"${layout.projectDirectory}/../shared/viewNames.ts",
+			"VIEW_NAMES",
+			"ViewName"
+	]
+}
+
 task generateTypescript(type: GenerateTask, dependsOn: [compileJava]) {
 	inputs.files('./src/**/*.java')
 //	 outputs.files('../shared/generated/dto_interfaces.d.ts')
@@ -123,22 +149,7 @@ bootRun {
 	dependsOn("generateViewNamesTS")
 }
 
-tasks.register('admin', JavaExec) {
-	outputs.upToDateWhen { false }
-	args = ["--spring.profiles.active=dev"]
-	mainClass = 'org.uw.nwgc.multiomics.UwMultiomicsBrowserApplication'
-	classpath = sourceSets.main.runtimeClasspath
-	systemProperty "spring.main.web-application-type", "NONE"
-	standardInput = System.in
-}
-
-tasks.register('generateViewNamesTS', JavaExec) {
-	classpath = sourceSets.main.runtimeClasspath
-	mainClass.set("org.uw.nwgc.multiomics.api.GenerateTSFromEnum")
-	args = [
-			"org.uw.nwgc.multiomics.api.ViewName",
-			"${layout.projectDirectory}/../shared/viewNames.ts",
-			"VIEW_NAMES",
-			"ViewName"
-	]
+war {
+	rootSpec.exclude("**/application-dev.yaml")
+	rootSpec.exclude("**/.env*")
 }

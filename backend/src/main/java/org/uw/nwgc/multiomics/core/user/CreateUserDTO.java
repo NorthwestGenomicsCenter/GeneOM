@@ -19,18 +19,19 @@ public class CreateUserDTO {
     private String password;
     private List<String> permissions;
 
-    public User toUser(PasswordEncoder passwordEncoder, Set<Authority> authorities) {
+    public User toUser(PasswordEncoder passwordEncoder, Set<AuthorityEnum> authorities) {
         User user = new User();
         user.setUsername(username);
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setEnabled(true);
 
         if (this.permissions != null) {
             user.setAuthorities(this.permissions
                     .stream()
-                    .map(Authority::new)
+                    .map(AuthorityEnum::valueOf)
                     .collect(Collectors.toSet()));
         } else {
             user.setAuthorities(authorities);

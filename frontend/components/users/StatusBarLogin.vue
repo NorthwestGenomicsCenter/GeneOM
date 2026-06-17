@@ -5,7 +5,7 @@
     </template>
 
     <div v-else class="user-info">
-      <span class="username">{{ user.firstName }} {{ user.lastName }}</span>
+      <NuxtLink :href="`/manage/users/${user.sub}`" class="username">{{ user.firstName }} {{ user.lastName }}</NuxtLink>
       <div class="avatar-container">
         <img :src="baseUrl + '/avatar.png'" :alt="username + ' avatar'" class="avatar" />
       </div>

@@ -22,7 +22,21 @@
       </Column>
       <Column header="Create">
         <template #body="{data}">
-          <Button size="small" label="Create Sample" @click="createSample(data)" />
+          <SplitButton
+              label="Add All Sample Files"
+              size="small"
+              severity="secondary"
+              outlined
+              raised
+              :model="importButtonOption(data)"
+              @click="addAllDataToSample(data)" />
+<!--          <Button-->
+<!--              size="small"-->
+<!--              severity="secondary"-->
+<!--              outlined-->
+<!--              raised-->
+<!--              label="Add All Sample Files"-->
+<!--              @click="addAllDataToSample(data)" />-->
         </template>
       </Column>
       <template #expansion="slotProps">
@@ -49,61 +63,100 @@
     <Button label="Search External Samples" @click="querySamples" outlined />
 <!--    {{ sampleSearch }}-->
   </section>
-  <Toast />
 
 </template>
 
 <script setup lang="ts">
-const queryString = ref<string>("1674062");
-const response = ref<any>([]);
+const queryString = ref<string>("");
 
 const toast = useToast();
 
-const query = async () => {
-  const res = await useApi(`/search/integrations/${queryString.value}`);
-  response.value = res.data.value;
-}
+const emit = defineEmits(["update"]);
+
+const { data: response, refresh } = await useApi(`/search/integrations/${queryString.value}`);
 
 const sampleSearch = ref<ExternalSampleDTO[]>([]);
 const querySamples = async () => {
-  const res = await useApi(`/search/integrations/sample/${queryString.value}`);
-  if (sampleSearch.value.error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to Search for Sample', life: 8000 })
+  try {
+    sampleSearch.value = await useClientApi(`/search/integrations/sample/${queryString.value}`);
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to Search for Sample.\n' + err, life: 8000 })
   }
-  sampleSearch.value = res.data.value;
+
 }
 
-const createSample = async (data) => {
-  const dto : SampleDTO = {
-    id: null,
+const importButtonOption = (data) => {
+  return [
+    {
+      label: 'Only Create Sample',
+      command: () => createSample(data)
+    }
+  ];
+}
+
+const addAllDataToSample = async (data) => {
+  await createSample(data, true)
+}
+
+const createSample = async (data, addDataFiles: boolean = false) => {
+  let filePaths = [];
+  if (addDataFiles) {
+    filePaths = data.sampleFiles.map(e => e.path);
+  }
+
+  const externalSampleDTO : CreateSampleFromExternalDTO = {
     name: data.sampleName,
     integrationSource: data.integrationSource,
     externalLimsId: data.sampleId,
     externalProjectName: data.projectName,
     description: data.description,
-    omicResources: null,
-    tags: null,
-    users: null
-  }
+    filePaths: filePaths
+  };
 
-  const res = await useApi('/sample/save', {
-    method: "POST",
-    body: dto
-  })
+  try {
+    const res = await useApi('/sample/create-external-sample', {
+      method: "POST",
+      body: externalSampleDTO
+    })
+    toast.add({
+      severity: 'success',
+      summary: 'Created',
+      detail: `Created Sample: ${externalSampleDTO.externalLimsId}`,
+      life: 8000
+    })
+
+    emit("update")
+  } catch (err) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: `Unable to Save External Sample.\n + ${err}`,
+      life: 8000
+    })
+  }
 }
 
 const testing = ref();
 const addResource = async (data, sample : SampleDTO) => {
-  const res = await useApi('/omic/save', {
-    method: "POST",
-    body: {
-      "sampleId": sample.multiomicsSampleId,
-      "path": data.path,
-      "type": "text_File"
-    }
-  });
 
-  testing.value = res;
+  const resource : AddOmicsResourceDTO = {
+    igvTrack: false,
+    path: data.path,
+    sampleId: sample.multiomicsSampleId,
+    visualizers: []
+  };
+
+  try {
+    const res = await useClientApi('/omic/save', {
+      method: "POST",
+      body: [ resource ]
+    });
+
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Added Resource to Sample', life: 8000 })
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to Search for Sample', life: 8000 })
+  }
+
 }
 
 // Row Expansion

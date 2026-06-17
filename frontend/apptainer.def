@@ -1,0 +1,20 @@
+Bootstrap: docker
+From: node:alpine
+
+%files
+    . /app
+    ../shared/ /shared
+
+%environment
+    export NODE_ENV production
+
+%post
+    export NUXT_TELEMETRY_DISABLED=1
+    cd /app
+    rm -rf node_modules
+    npm install
+    npm run build
+
+%runscript
+    cd /app
+    node --env-file=.env .output/index.mjs

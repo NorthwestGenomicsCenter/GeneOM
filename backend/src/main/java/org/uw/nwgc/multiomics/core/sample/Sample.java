@@ -1,11 +1,6 @@
 package org.uw.nwgc.multiomics.core.sample;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,10 +10,14 @@ import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.tag.ManagedTag;
 import org.uw.nwgc.multiomics.core.tag.Tag;
 import org.uw.nwgc.multiomics.core.user.User;
+import org.uw.nwgc.multiomics.util.FileUtil;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -37,7 +36,7 @@ public class Sample {
     private String description;
     private String externalProjectName;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OmicResource> omicResources = new HashSet<>();
 
     @ManyToMany
@@ -48,5 +47,14 @@ public class Sample {
 
     @ManyToMany
     private Set<ManagedTag> managedTags = new HashSet<>();
+
+    public Map<String, OmicResource> resourceFilenameMap() {
+        return omicResources
+            .stream()
+            .collect(Collectors.toMap(
+                    r -> FileUtil.resolvePath(r.getPath()).getFileName().toString(),
+                    Function.identity()
+            ));
+    }
 
 }

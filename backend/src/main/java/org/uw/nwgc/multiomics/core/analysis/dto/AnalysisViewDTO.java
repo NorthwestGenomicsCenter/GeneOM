@@ -3,6 +3,7 @@ package org.uw.nwgc.multiomics.core.analysis.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.uw.nwgc.multiomics.core.snapshot.AnalysisPositionSnapshot;
 
 import java.util.HashSet;
 import java.util.List;
@@ -14,18 +15,23 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AnalysisViewDTO {
     private String layout;
+    private String selectedResources;
 
     public record AnalysisResource(
             UUID resourceId,
             String resourceName,
+            String description,
             UUID sampleId,
-            String sampleName,
-            List<String> technologiesViewers
+            UUID cohortId,
+            String name,
+            List<String> technologiesViewers,
+            String path
     ) {};
-    public record AnalysisSample(UUID sampleId, String sampleName, Set<AnalysisResource> resources) {};
-    private Set<AnalysisSample> samples = new HashSet<>();
 
-    private Set<AnalysisResource> resources = new HashSet<>();
+    public record AnalysisSample(UUID sampleId, String name, Set<AnalysisResource> resources) {};
 
     private CustomReferenceDTO customReference;
+    private Set<AnalysisResource> resources = new HashSet<>();
+    private Set<AnalysisSample> samples = new HashSet<>();
+    private List<AnalysisPositionSnapshot> savedPositions;
 }

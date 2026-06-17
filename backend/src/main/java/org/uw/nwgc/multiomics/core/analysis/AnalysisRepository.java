@@ -8,4 +8,6 @@ import java.util.UUID;
 public interface AnalysisRepository extends JpaRepository<Analysis, UUID> {
 
     List<Analysis> findTop5ByOrderByLastModifiedDesc();
+    List<Analysis> findByUsersIdOrderByLastModifiedDesc(Integer id);
+    List<Analysis> findByUsersUsernameOrderByLastModifiedDesc(String username);
 }

@@ -3,26 +3,17 @@ package org.uw.nwgc.multiomics.core.sample;
 import jakarta.security.auth.message.AuthException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.uw.nwgc.multiomics.api.view.SampleViewDTO;
 import org.uw.nwgc.multiomics.api.view.SampleViewService;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
+import org.uw.nwgc.multiomics.core.sample.dto.AddExternalSampleResourcesDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleFromExternalDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/sample")
@@ -78,20 +69,6 @@ public class SampleController {
         return ResponseEntity.ok(sampleDTOS);
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<List<SampleDTO>> test() {
-        Sample example = new Sample();
-        example.setExternalProjectName("udn_pnw_external_uwcrdr_unknown_wgssr_152");
-        Iterable<Sample> samples = sampleRepository.findAll(Example.of(example));
-
-        List<SampleDTO> sampleDTOS = new ArrayList<>();
-        for (Sample sample : samples) {
-            sampleDTOS.add(sampleMapper.toDTO(sample));
-        }
-
-        return ResponseEntity.ok(sampleDTOS);
-    }
-
     @GetMapping("/filter")
     public ResponseEntity<List<SampleDTO>> getSamplesWithFilter(
             @RequestParam(required = false) List<UUID> projectIds,
@@ -108,6 +85,24 @@ public class SampleController {
     @PostMapping("/save")
     public ResponseEntity<Sample> save(@RequestBody SampleDTO sampleDTO) throws AuthException {
         Sample sample = sampleService.save(sampleDTO);
+        return ResponseEntity.ok(sample);
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<Sample> create(@RequestBody CreateSampleDTO sampleDTO) throws AuthException {
+        Sample sample = sampleService.create(sampleDTO);
+        return ResponseEntity.ok(sample);
+    }
+
+    @PostMapping("/create-external-sample")
+    public ResponseEntity<Sample> createExternalSample(@RequestBody CreateSampleFromExternalDTO sampleDTO) throws AuthException {
+        Sample sample = sampleService.createExternalSample(sampleDTO);
+        return ResponseEntity.ok(sample);
+    }
+
+    @PostMapping("/add-resources")
+    public ResponseEntity<Sample> addExternalSampleResources(@RequestBody AddExternalSampleResourcesDTO externalSampleResourcesDTO) throws AuthException {
+        Sample sample = sampleService.addResourcesToExternalSample(externalSampleResourcesDTO);
         return ResponseEntity.ok(sample);
     }
 

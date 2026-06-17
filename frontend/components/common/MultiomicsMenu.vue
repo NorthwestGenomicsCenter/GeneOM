@@ -1,13 +1,20 @@
 <template>
   <ul class="menu">
-    <li v-if="recentAnalysis != null">
-      <h3 class="menu-section">Workspaces</h3>
-    </li>
-    <template v-for="item in recentAnalysis" :key="item.name">
+    <template v-if="workspace != null">
+      <li>
+        <h3 class="menu-section">Workspaces</h3>
+      </li>
+      <template v-for="item in workspace.recentAnalysisItems" :key="item.name">
+        <MenuItem
+            :to="`/analysis/view-${item.id}`"
+            icon=""
+            :text="item.name" />
+      </template>
       <MenuItem
-          :to="`/analysis/view-${item.id}`"
+          v-if="workspace.totalAnalyses > 3"
           icon=""
-          :text="item.name" />
+          text="More..."
+          @click="viewAssaysDialog = true" />
     </template>
 
     <!-- Begin Data Explorer Features-->
@@ -35,11 +42,18 @@
     </template>
 
   </ul>
+
+  <Dialog header="Available Assays" v-model:visible="viewAssaysDialog" modal>
+    <div class="p-2">
+      <RecentAnalysisTable />
+    </div>
+  </Dialog>
 </template>
 
-<script setup type="ts">
+<script lang="ts" setup>
 import {useAuth} from "~/composables/useAuth";
 import MenuItem from "~/components/common/MenuItem.vue";
+import RecentAnalysisTable from "~/components/common/RecentAnalysisTable.vue";
 
 const router = useRouter();
 const isCurrentPage = computed(() => {
@@ -56,18 +70,15 @@ defineOptions({
   name: 'Multiomics-Menu'
 })
 
-const sidebarItems = [
-  { name: 'Assay', icon: '🧬', url: "/assay" },
-  { name: 'Upload', icon: '🔬', url: "/import/ImportData" },
-  { name: 'Gene Annotations', icon: '📝' },
-  { name: 'Variant Calls', icon: '🔬' },
-  { name: 'ChIP-seq Data', icon: '📊' },
-  { name: 'RNA-seq Data', icon: '🧬' }
-]
-
-const { data: recentAnalysis } = useApi(`/analysis/recent`, {
-  method: "GET"
+const { data: workspace, refresh } = useApi<RecentAnalysisDTO>(`/analysis/recent`, {
+  method: "GET",
+  key: 'recent-analysis-projects',
+  default: () => null
 });
+
+//-----------------------------------------------
+// View additional assays for the user
+const viewAssaysDialog = ref<boolean>(false);
 
 </script>
 

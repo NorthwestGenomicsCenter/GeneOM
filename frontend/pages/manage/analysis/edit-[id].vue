@@ -1,8 +1,7 @@
 <template>
-  <h1>Edit Analysis</h1>
-  {{ analysis }}
   <div class="cohort-editor bordered">
-    <form @submit.prevent="updateCohort">
+    <h1 class="page-title">Edit Analysis</h1>
+    <form @submit.prevent="updateAnalysis">
       <div class="flex flex-col gap-8 max-w-3xl pb-4">
         <FloatLabel>
           <InputText id="name" v-model="analysis.name" class="w-full" />
@@ -40,7 +39,48 @@
       </div>
     </form>
     <Button label="Create Custom Reference" @click="createCustomReference" />
+
+    quick and dirty cohorts:
+    {{ analysis.cohorts }}
+
+    <h3 class="pt-5">Users:</h3>
+    <div class="pt-3">
+      <Tag
+        v-for="user in analysis.users"
+        key="id"
+        severity="info"
+        class="mr-2"
+      >
+        {{user.firstName}} {{user.lastName}}</Tag>
+    </div>
+    <div class="pt-3">
+      <Button
+          label="Modify Users"
+          severity="secondary"
+          outlined
+          raised
+          @click="addUsersDialogEnabled = true" />
+    </div>
   </div>
+
+  <Dialog
+    header="Add Users to Analysis"
+    v-model:visible="addUsersDialogEnabled"
+    modal
+  >
+    <div class="flex justify-center p-6">
+      <UsersSelectUsers
+          v-model:selected-users="analysis.users" />
+    </div>
+    <div class="flex justify-end">
+      <span>
+        <Button label="Cancel" @click="addUsersDialogEnabled = false; refresh()"/>
+      </span>
+        <span>
+        <Button label="Save" @click="addUsers" />
+      </span>
+    </div>
+  </Dialog>
 
   <div class="bordered">
     <DataTable
@@ -54,6 +94,24 @@
         :loading="loading"
         dataKey="id"
     >
+      <template #header>
+        <div class="flex justify-end">
+          <Button
+            severity="secondary"
+            outlined
+            raised
+            label="Add Sample"
+            icon="pi pi-plus"
+            @click="showAddSampleDialog = true" />
+          <Button
+              severity="secondary"
+              outlined
+              raised
+              label="Add Cohort"
+              icon="pi pi-plus"
+              @click="addCohort" />
+        </div>
+      </template>
       <Column field="externalLimsId" header="External Sample ID" sortable/>
       <Column field="description" header="Description" sortable/>
       <Column field="externalProjectName" header="External Project" sortable/>
@@ -62,34 +120,44 @@
           {{ data.omicResources?.length }}
         </template>
       </Column>
+      <Column header="Delete" sortable>
+        <template #body="{data}">
+          <em class="pi pi-times" @click="confirmRemoveSample($event, data)"/>
+        </template>
+      </Column>
       <Column
           header="Actions"
           :body="actionTemplate"
           style="width: 150px"
       />
-      <template #header>
-        <div class="flex justify-end">
-          <Button
-            label="Add Sample"
-            icon="pi pi-plus"
-            @click="showAddSampleDialog = true" />
-        </div>
-      </template>
     </DataTable>
 
+    <Dialog v-model:visible="showAddSampleDialog" header="Add Sample" modal style="max-width: 90vw;">
+      <ClientOnly>
+        <form @submit.prevent="addSample">
+          <CommonSamplesTable @update="handleUpdate" />
+          <div class="mt-4 flex justify-end gap-2">
+            <Button label="Cancel" severity="secondary" @click="showAddSampleDialog = false" />
+            <Button label="Add" type="submit" />
+          </div>
+        </form>
+      </ClientOnly>
+    </Dialog>
 
-    <Dialog v-model:visible="showAddSampleDialog" header="Add Sample" modal>
-      <form @submit.prevent="addSample">
-        <CommonSamplesTable @update="handleUpdate" />
+    <Dialog v-model:visible="showAddCohortDialog" header="Add Cohort" modal style="max-width: 90vw;">
+      <ClientOnly>
+      <form @submit.prevent="addCohort">
+        <CommonCohortTable @update="handleCohortUpdate" />
         <div class="mt-4 flex justify-end gap-2">
-          <Button label="Cancel" severity="secondary" @click="showAddSampleDialog = false" />
+          <Button label="Cancel" severity="secondary" @click="showAddCohortDialog = false" />
           <Button label="Add" type="submit" />
         </div>
       </form>
+      </ClientOnly>
     </Dialog>
   </div>
 
-  <Toast />
+  <ConfirmPopup />
 </template>
 
 <script setup lang="ts">
@@ -104,7 +172,9 @@ const analysisId = route.params.id as string
 const showAddSampleDialog = ref(false)
 
 // Load the analysis information
-const { data: analysis, refresh } = await useApi<AnalysisEditDTO>(`/analysis/edit/${analysisId}`)
+const { data: analysis, refresh } = useApi<AnalysisEditDTO>(`/analysis/edit/${analysisId}`, {
+  default: () => ({} as AnalysisEditDTO)
+})
 
 // Custom Reference
 const customReferenceGenomes = ref([
@@ -124,9 +194,9 @@ const createCustomReference = async () => {
       body: body
     })
 
-    await toast.add({ severity: 'success', summary: 'Success', detail: `Reference Added: ${res.data}`, life: 3000 })
+    toast.add({ severity: 'success', summary: 'Success', detail: `Reference Added: ${res.data}`, life: 3000 })
   } catch (err) {
-    await toast.add({ severity: 'error', summary: 'Something when wrong', detail: `${err}`, life: 13000 })
+    toast.add({ severity: 'error', summary: 'Something when wrong', detail: `${err}`, life: 13000 })
   }
 }
 
@@ -139,6 +209,7 @@ const selectedSamples = ref<SampleDTO[]>([]);
 const handleUpdate = (samples: SampleDTO[]) => {
   selectedSamples.value = samples
 }
+
 const addSample = async () => {
   try {
     const requestBody : AddAnalysisSampleDTO = {
@@ -159,22 +230,67 @@ const addSample = async () => {
   }
 }
 
-// Update the cohort, change the values of the data
-const updateCohort = async () => {
+import { useConfirm } from "primevue/useconfirm";
+const confirm = useConfirm();
+
+const confirmRemoveSample = (event, row : SampleDTO) => {
+  confirm.require({
+    target: event.currentTarget,
+    message: 'Are you sure you want to remove this sample?',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true
+    },
+    acceptProps: {
+      label: 'Remove'
+    },
+    accept: () => {
+      removeSample(row);
+    }
+  });
+};
+
+const removeSample = async (row : SampleDTO) => {
+  console.table(row)
   try {
-    const res = await useApi(`/cohort/${analysisId}/update`, {
+    await useClientApi(`/analysis/${analysisId}/${row.id}`, {
+      method: 'DELETE',
+    })
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Sample Removed', life: 3000 })
+
+    await refresh()
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to remove sample', life: 3000 })
+  }
+}
+
+
+// Update the analysis, change the values of the data
+const updateAnalysis = async () => {
+  const a = analysis.value;
+
+  const body : UpdateAnalysisDTO = {
+    name: a.name,
+    description: a.description,
+    referenceGenome: a.referenceGenome
+  };
+
+  try {
+    const res = await useApi(`/analysis/${analysisId}/update`, {
       method: 'POST',
-      body: analysis.value,
+      body: body,
     })
 
-    if (res.error.value == null) {
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Updated the cohort data', life: 3000 })
-      await loadCohort()
+    if (res.error.value === null) {
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Updated the analysis', life: 3000 })
+      await refresh()
     } else {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update cohort', life: 3000 })
+      toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update analysis', life: 3000 })
     }
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update cohort', life: 3000 })
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update analysis', life: 3000 })
   }
 }
 
@@ -182,7 +298,7 @@ const deleteSample = async (id: string) => {
   try {
     await useApi(`/cohort/${analysisId}/samples/${id}`, { method: 'DELETE' })
     toast.add({ severity: 'success', summary: 'Deleted', detail: 'Sample removed', life: 3000 })
-    await loadSamples()
+    await refresh()
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete sample', life: 3000 })
   }
@@ -196,13 +312,65 @@ const actionTemplate = (row: any) => {
     onClick: () => deleteSample(row.id),
   })
 }
+
+// Add cohort information to the page
+const showAddCohortDialog = ref<boolean>(false);
+const selectedCohorts = ref([]);
+const handleCohortUpdate = (cohorts : []) => {
+  selectedCohorts.value = cohorts;
+}
+
+const addCohort = async () => {
+  showAddCohortDialog.value = true;
+  let cohortId = selectedCohorts.value[0].id;
+
+  let dto = {
+    analysisId: analysisId,
+    cohortId: cohortId
+  }
+
+  const res = await useClientApi(`/analysis/add-cohort`,{
+    method: 'POST',
+    body: dto
+  })
+}
+
+//-- Add Users ----------------------------------------------------------------
+const addUsersDialogEnabled = ref<boolean>(false);
+const addUsers = async () => {
+  const body : AddAnalysisUsersDTO = {
+    analysisId: analysisId,
+    users: analysis.value.users
+  };
+
+  try {
+    const res = await useClientApi("/analysis/add/users", {
+      method: 'POST',
+      body: body
+    })
+
+    toast.add({severity: "info", summary: "Saved", life: 1000});
+    await refresh();
+
+  } catch (error) {
+    toast.add({severity: "error", summary: "Unable to Add Users", life: 1000});
+  }
+
+  addUsersDialogEnabled.value = false;
+}
+
 </script>
 
 <style scoped>
 .cohort-editor {
+  margin: 1rem;
   padding: 2rem;
 }
 .controls {
   margin-bottom: 1rem;
+}
+
+.page-title {
+  padding-bottom: 3em;
 }
 </style>

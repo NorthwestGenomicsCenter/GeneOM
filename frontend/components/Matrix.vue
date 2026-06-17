@@ -1,7 +1,5 @@
 <template>
   <div class="matrix-container">
-    <h2>Dummy Biosample×Assay Matrix</h2>
-
     <!-- The “Loading…” indicator will display only momentarily -->
     <div v-if="loading" class="loading">
       Loading matrix…
@@ -67,8 +65,8 @@ const assays = ref([])
 const biosamples = ref([])
 const counts = reactive({})
 
-const horizontalLabel = ref("Horizontal Label");
-const verticalLabel = ref("Vertical Label")
+const horizontalLabel = ref("Sequencing Technologies");
+const verticalLabel = ref("Tissue Sources")
 
 // 2) Populate with “dummy” values on mount
 onMounted(() => {

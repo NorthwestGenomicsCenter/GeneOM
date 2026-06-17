@@ -9,6 +9,7 @@ import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpressi
 import org.uw.nwgc.multiomics.core.resources.VizTransformer;
 
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.List;
 
 @Component
@@ -49,7 +50,7 @@ public class TandemRepeatsTransformer implements VizTransformer {
     }
 
     @Override
-    public boolean validateResource(Reader reader) {
+    public boolean validateResource(Reader reader, String pathString) {
         return serveResource(reader, null) != null;
     }
 }

@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { ref, onMounted, computed } from 'vue'
-import TechnologyViewSelector from '~/components/TechnologyViewSelector.vue'
+import TechnologyViewSelector from '~/components/common/TechnologyViewSelector.vue'
 import CustomGridLayout from '~/components/grid-layout/CustomGridLayout.vue'
 import DynamicViewRenderer from '~/components/DynamicViewRenderer.vue'
 

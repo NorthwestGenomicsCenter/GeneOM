@@ -19,7 +19,7 @@ public class CustomReferenceDTO {
     public CustomReferenceDTO(CustomReference ref, String baseUrl) {
         this.id = ref.getShortName();
         this.name = ref.getLongName();
-        this.fastaURL = baseUrl + "/api/omic/igv/" + ref.getFastaURL().getId().toString() + "/" + FileUtil.resolveFilename(ref.getFastaURL().getPath());
-        this.indexURL = baseUrl + "/api/omic/igv/" + ref.getIndexURL().getId().toString() + "/" + FileUtil.resolveFilename(ref.getIndexURL().getPath());
+        this.fastaURL = baseUrl + "/api/omic/visualize/" + ref.getFastaURL().getId().toString() + "/" + FileUtil.resolveFilename(ref.getFastaURL().getPath());
+        this.indexURL = baseUrl + "/api/omic/visualize/" + ref.getIndexURL().getId().toString() + "/" + FileUtil.resolveFilename(ref.getIndexURL().getPath());
     }
 }

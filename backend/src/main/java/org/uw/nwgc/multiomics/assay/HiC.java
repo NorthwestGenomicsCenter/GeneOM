@@ -5,8 +5,11 @@ import io.jhdf.api.Dataset;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.util.FileUtil;
 
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -32,7 +35,10 @@ public class HiC implements VizTransformer {
     }
 
     @Override
-    public boolean validateResource(Reader reader) {
-        return false;
+    public boolean validateResource(Reader reader, String pathString) {
+        Path resolvedPath = FileUtil.resolvePath(pathString);
+        String lowerPath = resolvedPath.toString().toLowerCase();
+
+        return lowerPath.endsWith(".hic");
     }
 }

@@ -63,9 +63,9 @@ const global = useGlobalStore();
 
 const sampleId = computed(() => route.query.samples);
 
-const rawData = ref<Record<string, string>[]>()
-const response = await useApi(`/omic/visualize/${props.omicResourceId}`)
-rawData.value = response.data.value
+// const rawData = ref<Record<string, string>[]>()
+// const response = await useApi(`/omic/visualize/${props.omicResourceId}`)
+const { data: rawData } = await useApi<Record<string, string>[]>(`/omic/visualize/c896c7be-77ed-4e55-a8fb-9929c256dffc`)
 
 const search = ref('')
 
@@ -92,6 +92,7 @@ const selectedRow = ref();
 
 const menuModel = ref([
   {label: 'Navigate to in Igv', icon: 'pi pi-fw pi-search', command: () => navigateIgv(selectedRow)},
+  {label: 'Graph', icon: 'pi pi-fw pi-search', command: () => navigateIgv(selectedRow)},
   {label: 'Save Position', icon: 'pi pi-fw pi-search', command: () => savePosition(selectedRow)},
   {label: 'Add Note', icon: 'pi pi-fw pi-search', command: () => addNote(selectedRow)},
 ]);

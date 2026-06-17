@@ -1,0 +1,135 @@
+<template>
+  <SplitButton
+      label="Add"
+      rounded
+      :model="addButtonOptions" />
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import {useSampleViewStore} from "~/composables/useSampleViewStore";
+
+const props = defineProps<{
+  techViewOptions?: any[]
+}>()
+const emit = defineEmits(['add-view'])
+
+// const viewStore = useSampleViewStore();
+// const { addView } = viewStore;
+
+
+const addButtonOptions = [
+  {
+    label: 'Igv',
+    command: () => emit("add-view", ({viewName: 'Igv'}))
+  },
+  {
+    label: 'Cluster',
+    command: () => emit("add-view", ({viewName: 'ClusterGrammer'}))
+  },
+  {
+    label: 'JuiceBox',
+    command: () => emit("add-view", ({viewName: 'JuiceBox'}))
+  },
+  {
+    label: 'Call Peak',
+    command: () => emit("add-view", ({viewName: 'CallPeak'}))
+  },
+  {
+    label: 'Differential Peak',
+    command: () => emit("add-view", ({viewName: 'differential-peak'}))
+  },
+  {
+    label: 'Differential Expression',
+    command: () => emit("add-view", ({viewName: 'differential-expression'}))
+  },
+  {
+    label: 'Differential Expression Table',
+    command: () => emit("add-view", ({viewName: 'DifferentialExpressionTable'}))
+  },
+  {
+    label: 'Tandem Repeats',
+    command: () => emit("add-view", ({viewName: 'TandemRepeatsTransformer'}))
+  },
+  {
+    label: 'Tandem Graph',
+    command: () => emit("add-view", ({viewName: 'TandemRepeatsGraph'}))
+  },
+]
+
+const showDialog = ref(false)
+const searchQuery = ref('')
+const selectedOption = ref(null)
+
+const filteredOptions = computed(() => {
+  return props.techViewOptions.filter((option) =>
+      `${option.technology} ${option.viewName}`
+          .toLowerCase()
+          .includes(searchQuery.value.toLowerCase())
+  )
+})
+
+function addSelectedView() {
+  if (selectedOption.value) {
+    emit('add-view', selectedOption.value)
+    closeDialog()
+  }
+}
+
+function closeDialog() {
+  showDialog.value = false
+  selectedOption.value = null
+  searchQuery.value = ''
+}
+</script>
+
+<style scoped>
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.view-list {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  max-height: 300px;
+}
+
+.view-option {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.view-option:hover,
+.view-option.selected {
+  background-color: #f0f0f0;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+</style>
