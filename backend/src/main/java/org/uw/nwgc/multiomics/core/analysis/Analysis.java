@@ -9,6 +9,7 @@ import org.hibernate.annotations.UuidGenerator;
 import org.uw.nwgc.multiomics.core.cohort.Cohort;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.snapshot.AnalysisPositionSnapshot;
+import org.uw.nwgc.multiomics.core.user.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +44,9 @@ public class Analysis {
 
     @ManyToMany
     private Set<Cohort> cohorts;
+
+    @ManyToMany
+    private Set<User> users;
 
     @OneToMany(
             mappedBy = "analysis",

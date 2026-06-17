@@ -1,0 +1,77 @@
+/* =============================================================================
+   DataTable compact — overrides Aura's CSS custom properties directly.
+   Aura reads these vars for all sizing/spacing, so overriding them here wins
+   cleanly without needing !important on every property.
+   ============================================================================= */
+
+.p-datatable {
+    --p-datatable-body-cell-padding:            2px 6px;
+    --p-datatable-header-cell-padding:          0 6px;
+    --p-datatable-footer-cell-padding:          2px 6px;
+
+    /* Aura uses this single var for all table borders */
+    --p-datatable-border-color:                 #d0d7de;
+
+    --p-datatable-header-cell-background:       #f8f9fa;
+    --p-datatable-header-cell-hover-background: #eef2fb;
+
+    --p-datatable-row-background:               #ffffff;
+    --p-datatable-row-hover-background:         #eef2fb;
+    --p-datatable-row-striped-background:       #f8f9fa;
+
+    --p-datatable-sort-icon-size:               0.75rem;
+
+    font-size:   13px;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+}
+
+/* ── Header cells ─────────────────────────────────────────────────────────── */
+.p-datatable .p-datatable-thead > tr > th {
+    font-size:      12px;
+    font-weight:    600;
+    letter-spacing: 0.01em;
+    white-space:    nowrap;
+    /* Aura: border-width: 0 0 1px 0 — thicken bottom, add right */
+    border-width:   0 1px 2px 0;
+}
+
+.p-datatable .p-datatable-thead > tr > th:last-child {
+    border-right-width: 0;
+}
+
+/* Sorted column */
+.p-datatable .p-datatable-thead > tr > th.p-datatable-column-sorted {
+    background: #e8eff8;
+}
+
+/* ── Body cells ───────────────────────────────────────────────────────────── */
+/* Aura sets border-width: 0 0 1px 0 — we add the right border here */
+.p-datatable .p-datatable-tbody > tr > td {
+    font-size:     13px;
+    white-space:   nowrap;
+    overflow:      hidden;
+    text-overflow: ellipsis;
+    border-width:  0 1px 1px 0;
+}
+
+.p-datatable .p-datatable-tbody > tr > td:last-child {
+    border-right-width: 0;
+}
+
+/* ── Row hover ────────────────────────────────────────────────────────────── */
+.p-datatable .p-datatable-tbody > tr:hover > td {
+    background: var(--p-datatable-row-hover-background);
+}
+
+/* ── Even/odd striping ────────────────────────────────────────────────────── */
+.p-datatable .p-datatable-tbody > tr:nth-child(even) > td {
+    background: #f8f9fa;
+}
+
+/* ── Filter row inputs ────────────────────────────────────────────────────── */
+.p-datatable .p-datatable-thead > tr.p-datatable-filter-row > td .p-inputtext {
+    --p-inputtext-padding-x: 4px;
+    --p-inputtext-padding-y: 1px;
+    font-size: 12px;
+    height:    20px;
+}

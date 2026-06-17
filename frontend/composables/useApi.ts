@@ -1,13 +1,11 @@
 import type { UseFetchOptions } from 'nuxt/app'
 
-export function useApi<T = any, E = unknown>(
+export function useApi<T = any, DefaultT = null, E = unknown>(
 	url: string | (() => string),
-	options?: UseFetchOptions<T>,
+	options?: Omit<UseFetchOptions<T>, 'default'> & { default?: () => DefaultT | Ref<DefaultT> }
 ) {
-	url = '/api' + url;
-	
-	return useFetch(url, {
+	return useFetch('/api' + url, {
 		...options,
 		$fetch: useNuxtApp().$api as typeof $fetch
-	});
+	} as UseFetchOptions<T>);
 }

@@ -13,6 +13,7 @@ import org.uw.nwgc.multiomics.util.RgbColor;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +76,7 @@ public class DiffExpressionScatterVisualizer implements VizTransformer {
     }
 
     @Override
-    public boolean validateResource(Reader reader) {
+    public boolean validateResource(Reader reader, String pathString) {
         return false;
     }
 

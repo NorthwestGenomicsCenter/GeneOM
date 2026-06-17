@@ -2,26 +2,23 @@ package org.uw.nwgc.multiomics.core.finder;
 
 import lombok.Data;
 
+import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 public class VueFinderMessage {
 
-    public static FinderMessageDTO buildFinderMessage(String adapter, String path) throws Exception {
-        FinderMessageDTO message = new FinderMessageDTO();
-        message.setAdapter(adapter);
-
-        Path basePath = FinderBasePath.fromString(adapter).getPath();
-        if (basePath == null) {
-            throw new Exception("Unsupported Adapter for VueFinder");
-        }
+    public static Path resolvePath(String adapter, String path) throws IOException {
+        Path basePath = resolveBasePath(adapter);
 
         // Get the relative path for the view
         if (path != null && !path.equals("null") && path.contains("://")) {
@@ -30,7 +27,24 @@ public class VueFinderMessage {
             path = "";
         }
 
-        Path p = new UnixFile(basePath.toString(), path).toPath();
+        return new UnixFile(basePath.toString(), path).toPath();
+    }
+
+    private static Path resolveBasePath(String adapter) throws IOException {
+        Path basePath = FinderBasePath.fromString(adapter).getPath();
+        if (basePath == null) {
+            throw new IOException("Unsupported Adapter for VueFinder");
+        }
+
+        return basePath;
+    }
+
+    public static FinderMessageDTO buildFinderMessage(String adapter, String path) throws Exception {
+        FinderMessageDTO message = new FinderMessageDTO();
+        message.setAdapter(adapter);
+
+        Path basePath = resolveBasePath(adapter);
+        Path p = resolvePath(adapter, path);
 
         // Normalize the paths
         p = p.normalize();
@@ -79,12 +93,33 @@ public class VueFinderMessage {
                 dto.setFileSize(Files.size(fullPath));
             } else {
                 dto.setExtension("");
+                dto.setFileSize(0L);
             }
 
             // Set the last modified time
             BasicFileAttributes attrs = Files.readAttributes(fullPath, BasicFileAttributes.class);
             FileTime lastModifiedTime = attrs.lastModifiedTime();
             dto.setLastModified((int) (lastModifiedTime.toMillis() / 1000));
+
+            // Derive visibility from POSIX permissions (public = world-readable, private otherwise)
+            try {
+                Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(fullPath);
+                boolean worldReadable = permissions.contains(PosixFilePermission.OTHERS_READ);
+                dto.setVisibility(worldReadable ? "public" : "private");
+            } catch (UnsupportedOperationException e) {
+                // Non-POSIX filesystem (e.g. Windows) — fall back to default
+                dto.setVisibility("public");
+            }
+
+            // Derive storage type from the filesystem provider
+            String fsProvider = fullPath.getFileSystem().provider().getScheme();
+            dto.setStorage(fsProvider.equals("file") ? "local" : fsProvider);
+
+            // Populate extraMetadata with creation time and whether it's a symbolic link
+            dto.setExtraMetadata(new ArrayList<>(List.of(
+                    Map.of("key", "createdAt", "value", attrs.creationTime().toMillis() / 1000),
+                    Map.of("key", "isSymbolicLink", "value", attrs.isSymbolicLink())
+            )));
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to create VueFinderFile from Path", e);

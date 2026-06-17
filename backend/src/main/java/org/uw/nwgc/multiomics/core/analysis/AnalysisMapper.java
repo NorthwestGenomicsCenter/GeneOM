@@ -10,6 +10,7 @@ import org.uw.nwgc.multiomics.core.cohort.CohortDTO;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleMapper;
+import org.uw.nwgc.multiomics.core.user.UserDTO;
 import org.uw.nwgc.multiomics.util.FileUtil;
 
 import java.util.Objects;
@@ -130,6 +131,11 @@ public class AnalysisMapper {
             .stream()
             .map(CohortDTO::new)
             .collect(Collectors.toSet()));
+
+        dto.setUsers(analysis.getUsers()
+            .stream()
+            .map(UserDTO::new)
+            .toList());
 
         return dto;
     }

@@ -5,14 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -75,6 +72,15 @@ public class User implements UserDetails {
     @Override
     public Set<AuthorityEnum> getAuthorities() {
         return authorities;
+    }
+
+    public static boolean isAdmin(UserDetails user) {
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        if (Objects.isNull(authorities) || authorities.isEmpty()) {
+            return false;
+        }
+
+        return authorities.contains(AuthorityEnum.ROLE_ADMIN);
     }
 
     public boolean inUserList(Set<User> users) {

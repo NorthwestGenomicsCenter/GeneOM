@@ -1,4 +1,4 @@
-import DifferentialExpression from "@/components/DifferentialExpression.vue";
+import DifferentialExpression from "~/components/vizualizer/DifferentialExpression.vue";
 
 import { VIEW_NAMES } from '@shared/viewNames.ts';
 import RnaSeqDifferentialPeak from "@/components/DifferentialPeak.vue";
@@ -6,9 +6,9 @@ import Igv from "~/components/vizualizer/Igv.client.vue";
 import TandemRepeatsTransformer from "@/components/TandemRepeatsTransformer.vue";
 import ClusterGrammer from "@/components/ClusterGrammer.client.vue";
 import JuiceBox from "@/components/vizualizer/JuiceBox.client.vue";
-// import DifferentialPeak from '@/components/vizualizer/DifferentialPeak.vue'
 import DifferentialExpressionTable from '@/components/vizualizer/DifferentialExpressionTable.vue'
 import TandemRepeatsGraph from '@/components/vizualizer/TandemRepeatsGraph.vue'
+import CallPeak from '@/components/vizualizer/CallPeakTable.vue'
 
 export const viewComponentMap = {
     [VIEW_NAMES.DIFFERENTIAL_EXPRESSION]: DifferentialExpression,
@@ -20,5 +20,6 @@ export const viewComponentMap = {
     "DifferentialExpressionTable": DifferentialExpressionTable,
     "TandemRepeatsTransformer": TandemRepeatsTransformer,
     "TandemRepeatsGraph": TandemRepeatsGraph,
+    "CallPeak": CallPeak
     
 };

@@ -9,9 +9,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.sample.dto.AddExternalSampleResourcesDTO;
+import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleDTO;
 import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleFromExternalDTO;
 import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 import org.uw.nwgc.multiomics.core.tag.Tag;
@@ -19,6 +21,7 @@ import org.uw.nwgc.multiomics.core.tag.TagRepository;
 import org.uw.nwgc.multiomics.core.tag.TagService;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
 import org.uw.nwgc.multiomics.core.tag.ontology.TissueDTO;
+import org.uw.nwgc.multiomics.core.user.CurrentUserResolver;
 import org.uw.nwgc.multiomics.core.user.User;
 
 import java.util.*;
@@ -33,17 +36,20 @@ public class SampleService {
     private final TagRepository tagRepository;
     private final TagService tagService;
     private final SampleMapper sampleMapper;
+    private final CurrentUserResolver currentUserResolver;
 
     public SampleService(
             SampleRepository sampleRepository,
             TagRepository tagRepository,
             TagService tagService,
-            SampleMapper sampleMapper
+            SampleMapper sampleMapper,
+            CurrentUserResolver currentUserResolver
     ) {
         this.sampleRepository = sampleRepository;
         this.tagRepository = tagRepository;
         this.tagService = tagService;
         this.sampleMapper = sampleMapper;
+        this.currentUserResolver = currentUserResolver;
     }
 
     public Optional<Sample> getById(UUID id) {
@@ -105,7 +111,8 @@ public class SampleService {
 
     public Sample save(Sample sample) throws AuthException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) auth.getPrincipal();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
+
         if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
             throw new AuthException("User not allowed to update Sample");
         }
@@ -116,7 +123,7 @@ public class SampleService {
     @Transactional
     public Sample save(SampleDTO sampleDTO) throws AuthException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) auth.getPrincipal();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
         Sample sample = new Sample();
         if (sampleDTO.getId() != null) {
@@ -144,7 +151,7 @@ public class SampleService {
 
     public Sample deleteTag(SampleDTO sampleDTO, UUID tagId) throws AuthException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) auth.getPrincipal();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
         Sample sample = new Sample();
         if (sampleDTO.getId() != null) {
@@ -170,7 +177,7 @@ public class SampleService {
     @Transactional
     public Sample createExternalSample(CreateSampleFromExternalDTO sampleDTO) throws AuthException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) auth.getPrincipal();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
         Sample sample = new Sample();
         List<Sample> samples = sampleRepository.findByExternalLimsIdAndIntegrationSource
@@ -204,7 +211,7 @@ public class SampleService {
 
     public Sample addResourcesToExternalSample(AddExternalSampleResourcesDTO sampleDTO) throws AuthException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) auth.getPrincipal();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
         Sample sample = null;
         if (sampleDTO.sampleId() != null) {
@@ -217,5 +224,17 @@ public class SampleService {
         }
 
         return sample;
+    }
+
+    @Transactional
+    public Sample create(CreateSampleDTO sampleDTO) throws AuthException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
+
+        Sample sample = new Sample();
+        sampleMapper.createFromExternalSample(sampleDTO, sample);
+        sample.getUsers().add(user);
+
+        return sampleRepository.save(sample);
     }
 }

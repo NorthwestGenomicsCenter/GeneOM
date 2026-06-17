@@ -1,33 +1,42 @@
 <template>
+  <CommonSubHeaderMenu>
+    <template #left>
+      <TechnologyViewSelector @add-view="addView" class="ml-1" />
+      <Button
+          label="Save Layout"
+          severity="info"
+          rounded
+          class="ml-1"
+          @click="saveLayout"
+      />
+      <Button
+          label="Save Position"
+          severity="info"
+          class="ml-1"
+          rounded
+          @click="savePositionDialog = !savePositionDialog"
+      />
+      <Button
+          :label="`Saved Positions (${analysis.savedPositions.length})`"
+          severity="info"
+          class="ml-1"
+          rounded
+          @click="restoreSavePositionDialog = !restoreSavePositionDialog"
+      />
+      <ViewerImportCoordinateFromFile class="ml-1"/>
+      <a :href="`/api/snapshot/export-analysis-bed-file/${analysisId}`" class="pl-3">
+        <em class="pi pi-cloud-download" />
+        Export Bed
+      </a>
+    </template>
+    <template #right>
+      Current Position : {{ formatPosition(currentGenomicPosition) }}
+    </template>
+  </CommonSubHeaderMenu>
   <div v-if="analysis != null && layout != null" :key="route.fullPath">
     <Dialog v-model:visible="resourceTableVisible" modal header="Select Resource" :style="{ width: '90rem' }">
       <ViewerResourceTable :tableData="analysis.resources" />
     </Dialog>
-
-    <Button label="test" @click="test" />
-    {{testVal}}
-
-    <TechnologyViewSelector @add-view="addView" />
-    <Button
-      label="Save Layout"
-      severity="info"
-      outlined
-      @click="saveLayout"
-    />
-
-    <Button
-        label="Save Position"
-        severity="info"
-        outlined
-        @click="savePositionDialog = !savePositionDialog"
-    />
-
-    <Button
-        :label="`Saved Positions (${analysis.savedPositions.length})`"
-        severity="info"
-        outlined
-        @click="restoreSavePositionDialog = !restoreSavePositionDialog"
-    />
 
     <ClientOnly>
       <GridLayout
@@ -64,12 +73,16 @@ import GridLayout from '~/components/GridLayout.vue'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 import {useViewResourcesStore} from "~/composables/useViewResourcesStore";
 import DynamicViewRenderer from "~/components/DynamicViewRenderer.vue";
+import {useGlobalStore} from "~/composables/useGlobal";
 
 // The analysis that is being worked on
 const route = useRoute()
 const analysisId = computed(() => route.params.id as string);
 
 const toast = useToast();
+
+const globalStore = useGlobalStore();
+const { currentGenomicPosition } = storeToRefs(globalStore);
 
 const viewStore = useSampleViewStore();
 const {
@@ -112,7 +125,6 @@ onMounted(async() => {
   if (snapshot != null && snapshot.layout != null) {
     setSelectedView(JSON.parse(snapshot.layout));
     if (snapshot.selectedResources != null) {
-      console.table(snapshot.selectedResources)
       updateResourceState(snapshot.selectedResources)
     }
   }
@@ -173,5 +185,9 @@ onBeforeUnmount(() => {
 })
 
 const resourceTableVisible = ref<boolean>(false);
+
+const formatPosition = (pos) => {
+  return `${pos.chrom}: ${pos.start}-${pos.end}`
+}
 
 </script>

@@ -18,6 +18,10 @@ public class UserService implements UserDetailsService {
         return userRepo.findAll();
     }
 
+    public List<User> getAllUsersInList(List<Integer> ids){
+        return userRepo.findAllById(ids);
+    }
+
     public User saveUser(User user){
         return userRepo.save(user);
     }
@@ -25,7 +29,9 @@ public class UserService implements UserDetailsService {
     @Transactional(readOnly = true)
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found with username" + username));
+        return userRepo.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with username" + username)
+        );
     }
 
 }

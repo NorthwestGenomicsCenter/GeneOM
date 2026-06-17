@@ -31,14 +31,6 @@ definePageMeta({
   layout: 'default'
 })
 
-const testData = ref();
-const getTestData = async () => {
-  const { data } = await useApi("/sample/test");
-  testData.value = data;
-}
-
-await getTestData();
-
 const samples = ref<SampleDTO[]>([]);
 const selected = ref<SampleDTO[]>([]);
 

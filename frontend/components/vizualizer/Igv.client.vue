@@ -1,30 +1,47 @@
 <template>
-  <Header title="IGV View" disableToggle>
-    <template #left>
-      <em class="pi pi-cog" @click="selectDialogVisible = true"/>
-    </template>
-    <template #right>
-      <em class="pi pi-times-circle" @click="removeView(componentKey)"/>
-    </template>
-  </Header>
-  <div :id="componentKey" ref="igv-element"></div>
+  <div>
+    <Header
+        title="IGV View"
+        disableToggle
+        @settings="selectDialogVisible = true"
+        @close="removeView(componentKey)"
+    >
+      <template #left>
+        <Tag class="ml-2">Track Changes</Tag>
+      </template>
+    </Header>
 
-  <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
-    <ViewerResourceTable
-        :componentKey="componentKey"
-        :filetypes="['bam', 'bedpe', 'narrowPeak', 'bw']"
-        :visualizers="['igv']"
-        v-model:visible="selectDialogVisible"
-    />
-  </Dialog>
+    <div :id="componentKey" ref="igv-element"></div>
 
+    <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
+      <ViewerResourceTable
+          :componentKey="componentKey"
+          :filetypes="['bam', 'bedpe', 'narrowPeak', 'bw']"
+          :visualizers="['igv']"
+          v-model:visible="selectDialogVisible"
+      />
+    </Dialog>
+
+    <Dialog header="Edit Resource" v-model:visible="editResourceDialogVisible" modal>
+      <ResourcesEditResourceDialog
+          :resource="editResource"
+          v-model:visible="editResourceDialogVisible" />
+    </Dialog>
+
+    <template v-for="m in igvMounts" :key="m.id">
+      <Teleport :to="m.el">
+        <CommonTrackInfo v-bind="m.props" @edit="clickEditResource"/>
+      </Teleport>
+    </template>
+  </div>
 </template>
 
 <script setup lang="ts">
 import Header from "~/components/common/Header.vue";
 import {type GenomicPosition, useGlobalStore} from '~/composables/useGlobal'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
-import {computed} from "vue";
+import {computed, createApp, createVNode, render, getCurrentInstance} from "vue";
+import {CommonTrackInfo} from "#components";
 
 defineOptions({name: "Igv"})
 
@@ -69,10 +86,14 @@ interface Track {
 }
 
 interface TrackConfig {
+  id: string
   arcOrientation?: "UP" | "DOWN"
   color?: string
   description?: Function
+  flipAxis?: boolean
   height?: number
+  order?: number
+  visibilityWindow: number
 }
 
 interface TrackSort {
@@ -82,11 +103,24 @@ interface TrackSort {
   direction: "ASC" | "DESC"
 }
 
+const clickEditResource = (resource: AnalysisResource) => {
+  editResource.value = resource;
+  editResourceDialogVisible.value = true
+}
+const editResource = ref();
+const editResourceDialogVisible = ref<boolean>();
 
 const igvTracks = computed(() => {
   const visibleTracks : IGVTrack[] = [] as IGVTrack[];
 
-  for (const resource of resources.value) {
+  const sortedResources = resources.value
+      .sort((a, b) => {
+        if (a.config == undefined || b.config == undefined) return undefined
+
+        return a.config.order - b.config.order
+      })
+
+  for (const resource of sortedResources) {
     if (resource.technologiesViewers.map(e => e.toLowerCase()).includes("igv")) {
       const track: IGVTrack = {} as IGVTrack;
       track.id = resource.resourceId
@@ -97,6 +131,7 @@ const igvTracks = computed(() => {
       }
       track.type = getTrackType(resource.path);
       track.format = getTrackFormat(resource.path);
+      track.visibilityWindow = 1000000;
 
       if (defaultTrackHeight(track.format)) {
         track.height = defaultTrackHeight(track.format);
@@ -105,29 +140,49 @@ const igvTracks = computed(() => {
 
       if (resource.config !== null) {
         let config : TrackConfig = resource.config;
-        if (config.height) {
+        if (config?.height) {
           track.height = config.height;
         }
 
-        if (config.arcOrientation) {
+        if (config?.arcOrientation) {
           track.arcOrientation = config.arcOrientation;
         }
 
-        if (config.description) {
+        if (config?.description) {
           track.description = config.description;
         }
 
-        if (config.color) {
+        if (config?.color) {
           track.color = config.color;
+        }
+
+        if (config?.flipAxis) {
+          track.flipAxis = config.flipAxis;
         }
       }
 
       if (resource.description) {
         track.description = () => {
-          const row = document.createElement('div')
-          row.className = 'igv-track-label-popover__row'
-          row.textContent = resource.description
-          return row;
+          // const row = document.createElement('div')
+          // row.className = 'igv-track-label-popover__row'
+          // row.textContent = resource.description || resource.resourceName
+          //
+          // const editLink = document.createElement('a');
+          // editLink.textContent = 'Edit'
+          //
+          // const lineBreak = document.createElement('br')
+          // row.append(' ', lineBreak)
+          // row.append(' ', editLink)
+          //
+          // editLink.addEventListener("click", () => {
+          //   editResourceDialogVisible.value = true;
+          //   editResource.value = resource;
+          // })
+          // // return row;
+          // // return vueRenderer("feature")
+          const el = document.createElement('div')
+          const id = registerMount(el, {resource: resource})
+          return el;
         }
       }
 
@@ -137,6 +192,33 @@ const igvTracks = computed(() => {
 
   return visibleTracks;
 })
+
+
+/*
+IGV MOUNT POINT FOR TELEPORT
+ */
+
+const igvMounts = reactive<
+    { id: string; el: HTMLElement; props: any }[]
+>([])
+
+function registerMount(el: HTMLElement, props: any) {
+  const id = crypto.randomUUID()
+  igvMounts.push({ id, el, props })
+  return id
+}
+
+function unregisterMount(id: string) {
+  const idx = igvMounts.findIndex(m => m.id === id)
+  if (idx >= 0) igvMounts.splice(idx, 1)
+}
+
+
+
+
+/*
+END
+ */
 
 const defaultTrackHeight = (trackType : string) : number => {
   const heights = {
@@ -307,7 +389,7 @@ const initIgvBrowser = async () => {
   }
 
   browser = await igv.default.createBrowser(igvDiv, options);
-  // window['igv'] = browser;
+  window['igv'] = browser;
   browser.on("locuschange", onLocusChange);
   browser.on("trackclick", console.table)
   refresh();
@@ -317,10 +399,12 @@ const setTrackConfiguration = (resourceId) => {
   for (let track of browser.tracks) {
     if (resourceId === track.id) {
       const config = {} as TrackConfig;
-      config['id'] = track.id;
-      config['arcOrientation'] = track.arcOrientation;
-      config['height'] = track.height;
-      config['color'] = track.color;
+      config.id = track.id;
+      config.arcOrientation = track.arcOrientation;
+      config.height = track.height;
+      config.color = track.color;
+      config.flipAxis = track.flipAxis;
+      config.order = track.order;
 
       return config
     }

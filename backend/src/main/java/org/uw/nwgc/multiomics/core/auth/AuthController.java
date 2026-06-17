@@ -6,11 +6,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.uw.nwgc.multiomics.core.user.CurrentUserResolver;
 import org.uw.nwgc.multiomics.core.user.User;
 import org.uw.nwgc.multiomics.core.user.UserRepo;
 import org.uw.nwgc.multiomics.core.user.UserService;
@@ -22,22 +24,27 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    private UserRepo userRepository;
-    private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final CurrentUserResolver currentUserResolver;
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepo userRepository;
+    private final UserService userService;
 
-    public AuthController(UserRepo userRepository,
-                          PasswordEncoder passwordEncoder,
-                          UserService userService,
-                          AuthenticationManager authenticationManager,
-                          JwtUtil jwtUtil) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userService = userService;
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            CurrentUserResolver currentUserResolver,
+            JwtUtil jwtUtil,
+            PasswordEncoder passwordEncoder,
+            UserRepo userRepository,
+            UserService userService
+    ) {
         this.authenticationManager = authenticationManager;
+        this.currentUserResolver = currentUserResolver;
         this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -73,7 +80,9 @@ public class AuthController {
                     .body("Authentication required");
         }
 
-        User user = (User) authentication.getPrincipal();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
+
         user.setPassword(passwordEncoder.encode(passwordChangeRequest.password));
         userRepository.save(user);
         return ResponseEntity.ok("Password changed");

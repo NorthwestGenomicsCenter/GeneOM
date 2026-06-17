@@ -33,7 +33,6 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 
 	// Compute layout from selectedViews
 	const layout = computed(() => {
-		console.log("Changed Layout");
 		return _selectedViews.value.map(view => ({
 			i: view.id,
 			x: view.x,

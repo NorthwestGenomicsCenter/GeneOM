@@ -10,7 +10,6 @@ import org.uw.nwgc.multiomics.util.FileUtil;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -44,7 +43,13 @@ public class OmicResourceDTO {
         if (omicResource.getVizTransformer() != null) {
             this.visualizers = omicResource.getVizTransformer()
                     .stream()
-                    .map(Class::getSimpleName)
+                    .map(viz -> {
+                        if (viz != null) {
+                            return viz.getSimpleName();
+                        }
+
+                        return null;
+                    })
                     .toList();
         }
 

@@ -4,6 +4,7 @@
       :rows="10"
       :rowsPerPageOptions="[5,10,20]"
       :sort-order="1"
+      :filters="filters"
       class="p-datatable-sm"
       dataKey="omicResourceId"
       rowHover
@@ -18,10 +19,14 @@
   >
     <template #header>
       <div class="table-header">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search" />
-<!--            <InputText v-model="filters.global.value" placeholder="Search users..." />-->
-          </span>
+        <IconField>
+          <InputIcon class="pi pi-search" />
+          <InputText v-model="filters.global.value" placeholder="Search files..." />
+        </IconField>
+        <div>
+          <slot name="header-right" />
+          <Button :label="showAll ? 'Show Visualizable' : 'Show All'" @click="show()" />
+        </div>
       </div>
     </template>
 
@@ -64,24 +69,44 @@
     </Column>
     <Column field="integrationSource" header="Lims Source" sortable></Column>
     <Column :rowEditor="true" style="width: 10%; min-width: 8rem" bodyStyle="text-align:center"></Column>
+    <template #footer>
+      Files: {{ props.files?.length }}
+    </template>
   </DataTable>
 </template>
 
 <script setup lang="ts">
 import TissueDropdown from "~/components/common/TissueDropdown.vue";
 import type {DataTableRowEditSaveEvent} from "primevue";
+import {FilterMatchMode} from "@primevue/core";
 
 const toast = useToast();
 
+defineOptions({
+  name: "SampleFilesTable"
+});
+
 const props = defineProps<{
-  files: any,
+  files: any[],
   refreshTableData: Function
 }>();
 
-const visualizerOptions = [
-  { label: 'Igv', value: "IGV" },
-  { label: 'Differential Expression Table', value: 'DifferentialExpressionTable'}
-]
+const filterText = ref<string>();
+const filters = ref({
+  global: { value: filterText.value, matchMode: FilterMatchMode.CONTAINS },
+  visualizationComponents: { value: [], matchMode: FilterMatchMode.NOT_EQUALS}
+});
+const showAll = ref<boolean>(false);
+const show = () => {
+  showAll.value = !showAll.value;
+  if (showAll.value) {
+    delete filters.value.visualizationComponents
+  } else {
+    filters.value['visualizationComponents'] = { value: [], matchMode: FilterMatchMode.NOT_EQUALS}
+  }
+}
+
+const visualizerOptions = useApi("/omic/visualizer-options").data;
 
 const editingRows = ref();
 const onRowEditSave = async (row : DataTableRowEditSaveEvent) => {
@@ -132,5 +157,8 @@ const tissueChange = () => {
 </script>
 
 <style scoped>
-
+.table-header {
+  display: flex;
+  justify-content: space-between
+}
 </style>

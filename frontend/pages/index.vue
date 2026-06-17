@@ -1,35 +1,35 @@
 <template>
   <div class="multiomics-browser">
     <h1>GENE-OM</h1>
-    <section class="getting-started">
+    <section v-if="!isAuthenticated" class="getting-started">
       <h2>Getting Started</h2>
-      <p>Select an assay from the right menu to begin.</p>
-    </section>
-
-    <section class="assays">
-      <h2>Available Assays</h2>
       <ul>
-        <li>Differential Expression</li>
-        <li>Differential Peaks</li>
-        <li>IGV Viewer (with structural tracks)</li>
+        <li>Contact system administrator to create an account</li>
+        <li>Login to the application</li>
+        <li>Load your data</li>
+        <li>Create your analysis</li>
+        <li>Start Exploring</li>
       </ul>
     </section>
 
-    <section class="filters">
-      <h2>Global Filters</h2>
-      <p>Apply filters to refine data across all assay types.</p>
+    <section v-if="isAuthenticated" class="assays">
+      <p>Welcome Back {{user.firstName}}</p>
+      <h2>Continue Working on Recent Assays</h2>
+      <RecentAnalysisTable />
     </section>
   </div>
 
 </template>
 
 <script setup lang="ts">
+import RecentAnalysisTable from "~/components/common/RecentAnalysisTable.vue";
+
 const auth = useAuth();
+const { user, isAuthenticated } = useAuth();
 
 definePageMeta({
   layout: 'default'
 })
-
 </script>
 
 <style scoped>

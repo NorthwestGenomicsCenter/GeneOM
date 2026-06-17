@@ -1,7 +1,7 @@
 <template>
-  <h1>Edit Analysis</h1>
   <div class="cohort-editor bordered">
-    <form @submit.prevent="updateCohort">
+    <h1 class="page-title">Edit Analysis</h1>
+    <form @submit.prevent="updateAnalysis">
       <div class="flex flex-col gap-8 max-w-3xl pb-4">
         <FloatLabel>
           <InputText id="name" v-model="analysis.name" class="w-full" />
@@ -42,7 +42,45 @@
 
     quick and dirty cohorts:
     {{ analysis.cohorts }}
+
+    <h3 class="pt-5">Users:</h3>
+    <div class="pt-3">
+      <Tag
+        v-for="user in analysis.users"
+        key="id"
+        severity="info"
+        class="mr-2"
+      >
+        {{user.firstName}} {{user.lastName}}</Tag>
+    </div>
+    <div class="pt-3">
+      <Button
+          label="Modify Users"
+          severity="secondary"
+          outlined
+          raised
+          @click="addUsersDialogEnabled = true" />
+    </div>
   </div>
+
+  <Dialog
+    header="Add Users to Analysis"
+    v-model:visible="addUsersDialogEnabled"
+    modal
+  >
+    <div class="flex justify-center p-6">
+      <UsersSelectUsers
+          v-model:selected-users="analysis.users" />
+    </div>
+    <div class="flex justify-end">
+      <span>
+        <Button label="Cancel" @click="addUsersDialogEnabled = false; refresh()"/>
+      </span>
+        <span>
+        <Button label="Save" @click="addUsers" />
+      </span>
+    </div>
+  </Dialog>
 
   <div class="bordered">
     <DataTable
@@ -94,18 +132,20 @@
       />
     </DataTable>
 
-
-    <Dialog v-model:visible="showAddSampleDialog" header="Add Sample" modal>
-      <form @submit.prevent="addSample">
-        <CommonSamplesTable @update="handleUpdate" />
-        <div class="mt-4 flex justify-end gap-2">
-          <Button label="Cancel" severity="secondary" @click="showAddSampleDialog = false" />
-          <Button label="Add" type="submit" />
-        </div>
-      </form>
+    <Dialog v-model:visible="showAddSampleDialog" header="Add Sample" modal style="max-width: 90vw;">
+      <ClientOnly>
+        <form @submit.prevent="addSample">
+          <CommonSamplesTable @update="handleUpdate" />
+          <div class="mt-4 flex justify-end gap-2">
+            <Button label="Cancel" severity="secondary" @click="showAddSampleDialog = false" />
+            <Button label="Add" type="submit" />
+          </div>
+        </form>
+      </ClientOnly>
     </Dialog>
 
-    <Dialog v-model:visible="showAddCohortDialog" header="Add Cohort" modal>
+    <Dialog v-model:visible="showAddCohortDialog" header="Add Cohort" modal style="max-width: 90vw;">
+      <ClientOnly>
       <form @submit.prevent="addCohort">
         <CommonCohortTable @update="handleCohortUpdate" />
         <div class="mt-4 flex justify-end gap-2">
@@ -113,6 +153,7 @@
           <Button label="Add" type="submit" />
         </div>
       </form>
+      </ClientOnly>
     </Dialog>
   </div>
 
@@ -131,7 +172,9 @@ const analysisId = route.params.id as string
 const showAddSampleDialog = ref(false)
 
 // Load the analysis information
-const { data: analysis, refresh } = await useApi<AnalysisEditDTO>(`/analysis/edit/${analysisId}`)
+const { data: analysis, refresh } = useApi<AnalysisEditDTO>(`/analysis/edit/${analysisId}`, {
+  default: () => ({} as AnalysisEditDTO)
+})
 
 // Custom Reference
 const customReferenceGenomes = ref([
@@ -151,9 +194,9 @@ const createCustomReference = async () => {
       body: body
     })
 
-    await toast.add({ severity: 'success', summary: 'Success', detail: `Reference Added: ${res.data}`, life: 3000 })
+    toast.add({ severity: 'success', summary: 'Success', detail: `Reference Added: ${res.data}`, life: 3000 })
   } catch (err) {
-    await toast.add({ severity: 'error', summary: 'Something when wrong', detail: `${err}`, life: 13000 })
+    toast.add({ severity: 'error', summary: 'Something when wrong', detail: `${err}`, life: 13000 })
   }
 }
 
@@ -224,22 +267,30 @@ const removeSample = async (row : SampleDTO) => {
 }
 
 
-// Update the cohort, change the values of the data
-const updateCohort = async () => {
+// Update the analysis, change the values of the data
+const updateAnalysis = async () => {
+  const a = analysis.value;
+
+  const body : UpdateAnalysisDTO = {
+    name: a.name,
+    description: a.description,
+    referenceGenome: a.referenceGenome
+  };
+
   try {
-    const res = await useApi(`/cohort/${analysisId}/update`, {
+    const res = await useApi(`/analysis/${analysisId}/update`, {
       method: 'POST',
-      body: analysis.value,
+      body: body,
     })
 
-    if (res.error.value == null) {
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Updated the cohort data', life: 3000 })
+    if (res.error.value === null) {
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Updated the analysis', life: 3000 })
       await refresh()
     } else {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update cohort', life: 3000 })
+      toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update analysis', life: 3000 })
     }
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update cohort', life: 3000 })
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update analysis', life: 3000 })
   }
 }
 
@@ -284,13 +335,42 @@ const addCohort = async () => {
   })
 }
 
+//-- Add Users ----------------------------------------------------------------
+const addUsersDialogEnabled = ref<boolean>(false);
+const addUsers = async () => {
+  const body : AddAnalysisUsersDTO = {
+    analysisId: analysisId,
+    users: analysis.value.users
+  };
+
+  try {
+    const res = await useClientApi("/analysis/add/users", {
+      method: 'POST',
+      body: body
+    })
+
+    toast.add({severity: "info", summary: "Saved", life: 1000});
+    await refresh();
+
+  } catch (error) {
+    toast.add({severity: "error", summary: "Unable to Add Users", life: 1000});
+  }
+
+  addUsersDialogEnabled.value = false;
+}
+
 </script>
 
 <style scoped>
 .cohort-editor {
+  margin: 1rem;
   padding: 2rem;
 }
 .controls {
   margin-bottom: 1rem;
+}
+
+.page-title {
+  padding-bottom: 3em;
 }
 </style>

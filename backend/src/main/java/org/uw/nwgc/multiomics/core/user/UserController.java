@@ -6,33 +6,31 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.uw.nwgc.multiomics.core.user.dto.ChangePasswordRequestDTO;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @RestController
 @RequestMapping("/users/")
 public class UserController {
 
-    UserService userService;
-    PasswordEncoder passwordEncoder;
+    private final CurrentUserResolver currentUserResolver;
+    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     @Autowired
     public UserController(
-            UserService userService,
-            PasswordEncoder passwordEncoder
+            CurrentUserResolver currentUserResolver,
+            PasswordEncoder passwordEncoder,
+            UserService userService
     ) {
-        this.userService = userService;
+        this.currentUserResolver = currentUserResolver;
         this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
     }
 
     @GetMapping("/all")
@@ -66,8 +64,9 @@ public class UserController {
     @Transactional
     @PostMapping("/change-password")
     public ResponseEntity<?> changeUserPassword(@RequestBody ChangePasswordRequestDTO requestDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
+
         if (!user.getAuthorities().contains(AuthorityEnum.ROLE_ADMIN) && !user.getUsername().equals(requestDTO.username())) {
             ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

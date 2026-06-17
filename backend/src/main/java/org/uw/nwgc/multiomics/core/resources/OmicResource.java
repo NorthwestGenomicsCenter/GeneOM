@@ -1,13 +1,7 @@
 package org.uw.nwgc.multiomics.core.resources;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 import org.uw.nwgc.multiomics.assay.igv.Igv;
@@ -15,14 +9,15 @@ import org.uw.nwgc.multiomics.core.resources.dto.AddOmicsResourceDTO;
 import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
+import org.uw.nwgc.multiomics.service.assay_detector.types.DetectedFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Setter
 @Getter
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -51,7 +46,10 @@ public class OmicResource {
 
     private List<Class<? extends VizTransformer>> vizTransformer = new ArrayList<>();
 
-    public OmicResource(Sample sample,  String path) {
+//    @Enumerated(EnumType.STRING)
+//    private List<Transformer> transformers = new ArrayList<>();
+
+    public OmicResource(Sample sample, String path) {
         this.path = path;
         this.sample = sample;
         if (!path.endsWith(".fastq.gz")) {
@@ -59,11 +57,17 @@ public class OmicResource {
         }
     }
 
-
     public OmicResource(AddOmicsResourceDTO dto, Sample sample) {
         this.path = dto.getPath();
         this.sample = sample;
         this.vizTransformer = List.of(Igv.class);
+    }
+
+    public OmicResource updateFromDetectedFile(DetectedFile detectedFile) {
+        this.displayName = detectedFile.pattern().description();
+        this.description = detectedFile.pattern().description();
+        this.vizTransformer = detectedFile.pattern().resourceType().getTransformers();
+        return this;
     }
 
     public List<String> getVisualizers() {
@@ -92,19 +96,6 @@ public class OmicResource {
                 this.tissueType = tissue;
             }
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof OmicResource)) return false;
-        OmicResource that = (OmicResource) o;
-        return Objects.equals(path, that.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(path);
     }
 
 }

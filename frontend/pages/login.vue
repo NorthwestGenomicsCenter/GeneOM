@@ -20,6 +20,7 @@
               id="password"
               v-model="credentials.password"
               type="password"
+              autocomplete="off"
               placeholder="Password"/>
           </div>
           <div>

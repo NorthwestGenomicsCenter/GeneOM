@@ -28,7 +28,6 @@ const props = defineProps({
 })
 
 const dynamicComponentProps = computed(() => {
-  console.table(props.componentProps)
   return props.componentProps
 })
 

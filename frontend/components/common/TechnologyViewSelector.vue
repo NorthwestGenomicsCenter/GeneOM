@@ -1,45 +1,8 @@
 <template>
   <SplitButton
       label="Add"
+      rounded
       :model="addButtonOptions" />
-
-<!--  <div>-->
-<!--    <button-->
-<!--        @click="showDialog = true"-->
-<!--        class="p-button"-->
-<!--    >-->
-<!--      + Add View-->
-<!--    </button>-->
-
-
-<!--    <div v-if="showDialog" class="overlay">-->
-<!--      <div class="dialog">-->
-<!--        <h2>Select a View</h2>-->
-<!--        <input-->
-<!--            type="text"-->
-<!--            v-model="searchQuery"-->
-<!--            placeholder="Search views..."-->
-<!--        />-->
-
-<!--        <div class="view-list">-->
-<!--          <div-->
-<!--              v-for="(option, index) in filteredOptions"-->
-<!--              :key="index"-->
-<!--              class="view-option"-->
-<!--              :class="{ selected: selectedOption === option }"-->
-<!--              @click="selectedOption = option"-->
-<!--          >-->
-<!--            {{ option.technology }} - {{ option.viewName }}-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        <div class="dialog-buttons">-->
-<!--          <button @click="addSelectedView" :disabled="!selectedOption">Add</button>-->
-<!--          <button @click="closeDialog">Cancel</button>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
 </template>
 
 <script setup lang="ts">
@@ -67,6 +30,10 @@ const addButtonOptions = [
   {
     label: 'JuiceBox',
     command: () => emit("add-view", ({viewName: 'JuiceBox'}))
+  },
+  {
+    label: 'Call Peak',
+    command: () => emit("add-view", ({viewName: 'CallPeak'}))
   },
   {
     label: 'Differential Peak',

@@ -2,9 +2,9 @@ package org.uw.nwgc.multiomics.core.resources;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.uw.nwgc.multiomics.assay.Transformer;
 import org.uw.nwgc.multiomics.assay.igv.Igv;
 import org.uw.nwgc.multiomics.core.admin.configuration.ConfigProperties;
 import org.uw.nwgc.multiomics.core.cohort.Cohort;
@@ -17,10 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Log4j2
 @Service
@@ -171,6 +168,14 @@ public class OmicService {
     public OmicResource edit(OmicResource resource, EditOmicResourceDTO dto) {
         resource.setDescription(dto.description());
         resource.setDisplayName(dto.displayName());
+
+        resource.setVizTransformer(new ArrayList<>());
+        for (String vizualizer : dto.visualizationComponents()) {
+            Transformer t = Transformer.fromString(vizualizer);
+            if (t != null) {
+                resource.getVizTransformer().add(Objects.requireNonNull(t.instantiate()).getClass());
+            }
+        }
 
         return save(resource);
     }

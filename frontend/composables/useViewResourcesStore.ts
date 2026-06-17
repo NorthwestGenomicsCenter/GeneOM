@@ -31,7 +31,7 @@ export const useViewResourcesStore = defineStore('viewResourcesStore', () => {
 
     const state = computed(() => {return _selectedResources})
 	
-	function updateResourceState(state : Record<string, string[]>) {
+	function updateResourceState(state : Record<string, ComponentResources[]>) {
         for (let [viewId, items] of Object.entries(state)) {
             _selectedResources[viewId] = items;
         }
@@ -46,9 +46,11 @@ export const useViewResourcesStore = defineStore('viewResourcesStore', () => {
 
             _selectedResources[viewId] = [];
 
-            for (const el of items) {
-                if (!_selectedResources[viewId].includes(el.resourceId)) {
-                    _selectedResources[viewId].push(el.resourceId);
+            for (const item of items) {
+                if (!_selectedResources[viewId].find(selectedResource => selectedResource.id === item.resourceId)) {
+                    let componentResource = {} as ComponentResources;
+                    componentResource.id = item.resourceId
+                    _selectedResources[viewId].push(componentResource);
                 }
             }
         } catch (_) {}

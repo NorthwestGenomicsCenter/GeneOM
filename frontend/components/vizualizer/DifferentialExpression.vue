@@ -1,46 +1,36 @@
 <template>
-  <div class="de-container">
-    <Header title="Differential Expression" v-model="applyGlobals" />
-    <div class="chart-wrapper">
-      <Chart
-          type="scatter"
-          :data="computeChartData"
-          :options="chartOptions"
-          @select="select"
-          class="chart centered"
-          ref="differentialExpressionChart"
-      />
+  <div>
+    <div class="de-container">
+      <Header
+          title="Differential Expression"
+          v-model="applyGlobals"
+          @settings="selectDialogVisible = true"
+          @close="removeView(componentKey)"
+      >
+      </Header>
+
+      <div class="chart-wrapper">
+        <div class="popover-anchor" style="position: absolute" ref="anchor"></div>
+        <Chart
+            type="scatter"
+            :data="computeChartData"
+            :options="chartOptions"
+            @select="select"
+            class="chart centered"
+            ref="differentialExpressionChart"
+        />
+      </div>
+
+      <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
+        <ViewerResourceTable
+            :componentKey="componentKey"
+            :visualizers="['Differential Expression']"
+            v-model:visible="selectDialogVisible"
+        />
+      </Dialog>
+
+      <GeneSelectPopover :genes="genesList" ref="op"/>
     </div>
-<!--    <div class="table-wrapper">-->
-<!--      <DataTable-->
-<!--          :value="table"-->
-<!--          :paginator="true"-->
-<!--          :rows="10"-->
-<!--          :filters="filters"-->
-<!--          row-hover-->
-<!--          filterDisplay="menu"-->
-<!--          @row-dblclick="rowClick">-->
-<!--        <Column field="geneName" header="gene" sortable/>-->
-<!--        <Column field="logFC" header="logFC" sortable>-->
-<!--          <template #body="{ data }">-->
-<!--            {{ data.logFC }}-->
-<!--          </template>-->
-<!--          <template #filter="{ filterModel }">-->
-<!--            <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />-->
-<!--          </template>-->
-<!--        </Column>-->
-<!--        <Column field="logCPM" header="logCPM" sortable></Column>-->
-<!--        <Column field="F" header="F" sortable></Column>-->
-<!--        <Column field="PValue" header="PValue" sortable></Column>-->
-<!--        <Column field="FDR" header="FDR" sortable></Column>-->
-<!--        <template #footer>-->
-
-<!--        </template>-->
-<!--      </DataTable>-->
-<!--    </div>-->
-
-    <GeneSelectPopover :genes="genesList" ref="op" />
-    <div class="popover-anchor" style="position: absolute" ref="anchor"></div>
   </div>
 </template>
 
@@ -49,9 +39,12 @@ import Chart from 'primevue/chart'
 import Header from "~/components/common/Header.vue"
 import GeneSelectPopover from "~/components/common/GeneSelectPopover.vue"
 
-import {useGlobalStore} from '@/composables/useGlobal'
+import {useGlobalStore} from '~/composables/useGlobal'
 import {FilterMatchMode, FilterOperator} from "@primevue/core";
+import {useSampleViewStore} from "~/composables/useSampleViewStore";
 
+
+const toast = useToast();
 const op = ref();
 const anchor = ref();
 const genesList = ref<string[]>([]);
@@ -70,10 +63,40 @@ defineOptions({
   name: 'DifferentialExpression'
 })
 
-const applyGlobals = ref<boolean>(false);
+const selectDialogVisible = ref<boolean>(false);
+const props = defineProps<{
+  componentKey: any
+}>();
+
+const viewStore = useSampleViewStore();
+const {layout, customReference, analysis} = storeToRefs(viewStore);
+const {removeView} = viewStore;
+
+const resourcesStore = useViewResourcesStore();
+const {selectedResources} = resourcesStore;
+const resources = selectedResources(props.componentKey);
+
 const chartRawData = ref<any>();
+const updateResourceData = async () => {
+  chartRawData.value = [];
+  if (resources.value.length == 0) return
+
+  try {
+    chartRawData.value = await useClientApi(`/omic/visualize/transform/DiffExpressionVisualizer/${resources.value[0].resourceId}`);
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Unable to Retrieve Resource",
+      detail: `Trying to find resource for Differential Expression Table. \n\n ${error}`,
+      life: 10_000
+    })
+  }
+}
+
+watch(resources, updateResourceData, {deep: true, immediate: true})
+
+const applyGlobals = ref<boolean>(false);
 const chartOptions = ref<any>();
-const table = ref<Array<DifferentialExpression>>([]);
 const differentialExpressionChart = ref<any>();
 const filterLimits = ref<any>({
   "fdr1": {
@@ -95,15 +118,8 @@ const filterLimits = ref<any>({
 });
 
 onMounted(async () => {
-  table.value = await $fetch("/api/assay/differential_expression/table/1");
-  chartRawData.value = await $fetch("/api/assay/differential_expression/chart/1");
-
-  filterLimits.value = await $fetch("/api/assay/differentialPeak/filterLimits/1");
-
-  // chartData.value = computeChartData();
   chartOptions.value = setChartOptions();
 });
-
 
 const store = useGlobalStore();
 
@@ -114,24 +130,13 @@ const filters = computed(() => {
           value: g,
           matchMode: FilterMatchMode.EQUALS
         }
-  })
+      })
 
   return {
-    global: { value: store.globalNav.gene, matchMode: FilterMatchMode.CONTAINS },
-    geneName: { operator: FilterOperator.OR, constraints: applyGlobals.value ? geneFilterList : [] },
+    global: {value: store.globalNav.gene, matchMode: FilterMatchMode.CONTAINS},
+    geneName: {operator: FilterOperator.OR, constraints: applyGlobals.value ? geneFilterList : []},
   }
 })
-
-function rowClick(event) {
-  let data = event.data;
-  let gene = data.gene_name;
-  let store = useGlobalStore();
-  store.addGene(gene)
-}
-
-function select(e) {
-  console.log(e)
-}
 
 const backgroundColors = [
   "#999999", // Neutral Grey
@@ -157,7 +162,11 @@ const getGroupColor = (groupName) => {
       `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`;
 };
 
-const computeChartData : any = computed(() => {
+const select = async (event) => {
+  console.table(event)
+}
+
+const computeChartData: any = computed(() => {
   if (chartRawData.value === undefined || chartRawData.value?.length == 0) return [];
 
   const selectGenes = store.globalNav.genes;
@@ -167,7 +176,7 @@ const computeChartData : any = computed(() => {
     yAxisKey: 'logCPM',
   }
 
-  const result : Record<string, DifferentialExpression[]> = {};
+  const result: Record<string, DifferentialExpression[]> = {};
   for (const gene of selectGenes) {
     result[gene] = [];
   }
@@ -230,22 +239,14 @@ const chartOnClick = (event) => {
 
     genesList.value = []
     genesList.value.push(...genes);
-    //store.addGene(dataPoint.geneNames[0])
 
     // Position the popover
     let pointerEvent = event.native;
-    const meta = chart.getDatasetMeta(datasetIndex);
-    const point = meta.data[dataIndex];
-    const { x, y } = point.getProps(['x', 'y']); // Get pixel coordinates
 
-    // Get the canvas's position on the page
-    const canvasRect = chart.canvas.getBoundingClientRect();
+    const pageX = event.x - 18;
+    const pageY = event.y + 2;
 
-    // Calculate absolute page coordinates
-    const pageX = canvasRect.left + x + window.scrollX - 20;
-    const pageY = canvasRect.top + y + window.scrollY;
-
-    let el : HTMLElement = anchor.value;
+    let el: HTMLElement = anchor.value;
     el.style.position = 'absolute';
     el.style.left = `${pageX}px`;
     el.style.top = `${pageY}px`;
@@ -318,6 +319,7 @@ function setChartOptions() {
   flex: 1 1 60%;
   min-height: 200px;
   overflow: hidden;
+  position: relative;
 }
 
 .table-wrapper {

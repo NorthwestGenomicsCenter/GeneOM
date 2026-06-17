@@ -3,21 +3,25 @@ package org.uw.nwgc.multiomics.core.analysis;
 import jakarta.transaction.Transactional;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.uw.nwgc.multiomics.core.analysis.LayoutUpdatePublisher.AnalysisSSEUpdateDTO;
 import org.uw.nwgc.multiomics.core.analysis.dto.*;
 import org.uw.nwgc.multiomics.core.cohort.Cohort;
 import org.uw.nwgc.multiomics.core.cohort.CohortService;
 import org.uw.nwgc.multiomics.core.sample.Sample;
+import org.uw.nwgc.multiomics.core.user.CurrentUserResolver;
+import org.uw.nwgc.multiomics.core.user.User;
+import org.uw.nwgc.multiomics.util.coordinates_reader.GenomicFileParser;
+import org.uw.nwgc.multiomics.util.coordinates_reader.model.ParsedGenomicDataDTO;
 import reactor.core.publisher.Flux;
-import org.uw.nwgc.multiomics.core.analysis.LayoutUpdatePublisher.AnalysisSSEUpdateDTO;
 
+import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Optional;
@@ -27,20 +31,23 @@ import java.util.UUID;
 @RequestMapping("/analysis")
 public class AnalysisController {
 
-    private final AnalysisService analysisService;
     private final AnalysisMapper analysisMapper;
+    private final AnalysisService analysisService;
     private final CohortService cohortService;
+    private final CurrentUserResolver currentUserResolver;
     private final LayoutUpdatePublisher updates;
 
     public AnalysisController(
             AnalysisService analysisService,
             AnalysisMapper analysisMapper,
             CohortService cohortService,
+            CurrentUserResolver currentUserResolver,
             LayoutUpdatePublisher updates
     ) {
         this.analysisService = analysisService;
         this.analysisMapper = analysisMapper;
         this.cohortService = cohortService;
+        this.currentUserResolver = currentUserResolver;
         this.updates = updates;
     }
 
@@ -95,6 +102,14 @@ public class AnalysisController {
         return analysisService.getAll();
     }
 
+    @GetMapping ("/available")
+    public Collection<AvailableUserAnalysisDTO> getAvailableUserAnalysis() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails user = (UserDetails) auth.getPrincipal();
+
+        return analysisService.getAvailableUserAnalysisDTOs(user);
+    }
+
     @GetMapping("/view/{id}")
     public ResponseEntity<AnalysisViewDTO> viewAnalysis(@PathVariable UUID id) throws InterruptedException {
         Optional<Analysis> analysisQuery = analysisService.findById(id);
@@ -102,6 +117,10 @@ public class AnalysisController {
             return ResponseEntity.notFound().build();
         }
         Analysis analysis = analysisQuery.get();
+
+        analysis.setLastModified(LocalDateTime.now());
+        analysis = analysisService.save(analysis);
+
         AnalysisViewDTO dto = analysisMapper.toViewDTO(analysis);
         return ResponseEntity.ok(dto);
     }
@@ -111,9 +130,20 @@ public class AnalysisController {
         return ResponseEntity.ok(analysisService.getEditDTO(id));
     }
 
+    @PostMapping("/{id}/update")
+    public ResponseEntity<?> updateAnalysis(@PathVariable UUID id, @RequestBody UpdateAnalysisDTO dto) {
+        Optional<Analysis> analysisQuery = analysisService.findById(id);
+        if (analysisQuery.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        analysisService.updateAnalysis(analysisQuery.get(), dto);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/recent")
-    public ResponseEntity<Collection<RecentAnalysisDTO>> recent() {
-        Collection<RecentAnalysisDTO> recent = analysisService.getRecent();
+    public ResponseEntity<RecentAnalysisDTO> recent() {
+        RecentAnalysisDTO recent = analysisService.getRecent();
         return ResponseEntity.ok(recent);
     }
 
@@ -125,9 +155,19 @@ public class AnalysisController {
     }
 
     @Transactional
+    @PostMapping("/add/users")
+    public ResponseEntity<AnalysisEditDTO> addUsers(@RequestBody AddAnalysisUsersDTO dto) {
+        analysisService.addUsers(dto);
+        return ResponseEntity.ok(analysisService.getEditDTO(dto.getAnalysisId()));
+    }
+
+    @Transactional
     @PostMapping("/create")
     public Analysis create(@RequestBody CreateAnalysisDTO dto) {
-        return analysisService.createNew(dto);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
+
+        return analysisService.createNew(dto, user);
     }
 
     @Transactional
@@ -183,6 +223,29 @@ public class AnalysisController {
         analysis = analysisService.save(analysis);
 
         return ResponseEntity.ok(analysisMapper.toViewDTO(analysis));
+    }
+
+    @PostMapping("/import/coordinates")
+    public ResponseEntity<?> importCoordinates(@RequestParam("null") MultipartFile file) throws IOException {
+        try (GenomicFileParser parser = GenomicFileParser.from(file)) {
+            return ResponseEntity.ok(parser.detectColumns());
+        }
+    }
+
+
+    public record ChosenColumnsDTO(
+            String chromosomeColumn,
+            String startColumn,
+            String endColumn,
+            String geneColumn
+    ) {}
+    @PostMapping("/import/tabular-data")
+    public ResponseEntity<?> importTabularDataFile(@RequestParam("null") MultipartFile file) throws IOException {
+        try (GenomicFileParser parser = GenomicFileParser.from(file)) {
+
+            ParsedGenomicDataDTO pd = new ParsedGenomicDataDTO(parser.parseRecords());
+            return ResponseEntity.ok(pd);
+        }
     }
 
 }

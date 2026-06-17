@@ -1,12 +1,28 @@
 <template>
   <Header title="Tandem Repeats Graph" disableToggle />
-  <img :src="`/ZIC3.png`"></img>
+  <VuePlotly :data="data" :layout="layout" :display-mode-bar="false"></VuePlotly>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
+import { VuePlotly } from 'vue3-plotly'
 
-import InputText from "primevue/inputtext";
-import Header from "~/components/common/Header.vue";
+export default {
+  components: {
+    VuePlotly
+  },
+  data() {
+    return {
+      data:[{
+        x: [1,2,3,4],
+        y: [10,15,13,17],
+        type:"scatter"
+      }],
+      layout:{
+        title: "My graph"
+      }
+    }
+  }
+}
 </script>
 
 <style scoped>

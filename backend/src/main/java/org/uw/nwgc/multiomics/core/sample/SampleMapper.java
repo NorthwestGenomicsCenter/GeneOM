@@ -5,6 +5,7 @@ import org.uw.nwgc.multiomics.core.resources.OmicResource;
 import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.resources.OmicResourceMapper;
 import org.uw.nwgc.multiomics.core.resources.OmicService;
+import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleDTO;
 import org.uw.nwgc.multiomics.core.sample.dto.CreateSampleFromExternalDTO;
 import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 import org.uw.nwgc.multiomics.core.tag.Tag;
@@ -108,5 +109,11 @@ public class SampleMapper {
         sample.setExternalLimsId(dto.getExternalLimsId());
         sample.setDescription(dto.getDescription());
         sample.setExternalProjectName(dto.getExternalProjectName());
+    }
+
+    public void createFromExternalSample(CreateSampleDTO dto, Sample sample) {
+        sample.setName(dto.getName());
+        sample.setDescription(dto.getDescription());
+        sample.setExternalProjectName(dto.getProjectName());
     }
 }

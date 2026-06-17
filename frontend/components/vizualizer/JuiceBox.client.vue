@@ -1,62 +1,37 @@
 <template>
-  <section ref="panel" class="panel">
-    <CommonHeader
-        title="Juice Box"
-        @close="removeView(componentKey)"
-        @settings="onSettings">
-    </CommonHeader>
-    <div :id="componentKey" class="juice-box-app" ref="juiceboxRef"></div>
-    <!--    <template v-if="juiceboxResources == null">-->
-    <!--      <Button label="Add Resources" @click="addResource"/>-->
-    <!--    </template>-->
-    <!--    <template v-else>-->
-    <!--      <div id="app-container-juice-box" ref="juiceboxRef"></div>-->
-    <!--    </template>-->
-    <!--    <Button label="Goto" @click="goto" />-->
-    <!--    <Button label="Clear" @click="clear" />-->
+  <div>
+    <section ref="panel" class="panel">
+      <CommonHeader
+          title="Juice Box"
+          @close="removeView(componentKey)"
+          @settings="onSettings">
+      </CommonHeader>
+      <div
+          :id="componentKey"
+          class="juice-box-app"
+          style="width: 640px; height: 480px"
+          ref="juiceboxRef">
+      <div class="content-container">
+        </div>
+      </div>
 
-  </section>
+    </section>
 
-  <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
-    <ViewerResourceTable
-        :componentKey="componentKey"
-        :tableData="analysis.resources"
-        :filetypes="['bam', 'hic']"
-        @select-resources="selection"/>
-  </Dialog>
+    <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
+      <ViewerResourceTable
+          :componentKey="componentKey"
+          :visualizers="['hic']"
+          v-model:visible="selectDialogVisible" />
+    </Dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
-import {computed} from 'vue'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
-import {Skeleton} from "primevue";
+import {useGlobalStore} from "~/composables/useGlobal";
 
-const configOld = {
-  "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/combined.hic",
-}
-
-const configLocal = {
-  "url": "http://localhost:3000/api/omic/igv/36ff13e7-8dd2-477e-984a-696d3342a7b8/combined.hic",
-}
-
-// const config =
-//     {
-//       "backgroundColor": "255,255,255",
-//       "url": "https://www.encodeproject.org/files/ENCFF876OWE/@@download/ENCFF876OWE.hic",
-//       "state": "0,0,0,0,0,640,640,1.151893315580228,NONE",
-//       "colorScale": "R:5:1.6094379124341003,255,0,0:1.6094379124341003,0,0,255",
-//       "nvi": "1538692704,47429",
-//       "controlUrl": "https://www.encodeproject.org/files/ENCFF219YOB/@@download/ENCFF219YOB.hic",
-//       "controlName": "Hi-C on A549 cell line treated with 100 nM dexamethasone for 12 hours.",
-//       "displayMode": "AOB",
-//       "controlNvi": "2859767211,26979"
-//     };
-
+const juiceboxRef = ref<HTMLElement | null>(null)
 let browser = null;
-
-// const onSettings = async () => {
-//   alert("Hello Settings for Juice Box");
-// }
 
 const props = defineProps<{
   componentKey: any
@@ -73,7 +48,13 @@ interface JuiceBoxConfig {
   controlName?: string;
   displayMode?: "AOB" | string;
   controlNvi?: string;
+  height?: string;
+  width?: string;
 }
+
+const globalStore = useGlobalStore();
+const { setCurrentGenomicPosition } = globalStore;
+const { currentGenomicPosition } = storeToRefs(globalStore);
 
 const selectDialogVisible = ref<boolean>(false);
 const onSettings = async () => {
@@ -81,31 +62,14 @@ const onSettings = async () => {
 }
 
 const viewStore = useSampleViewStore();
-const {layoutMap, analysis} = storeToRefs(viewStore)
 const {
   removeView,
 } = viewStore;
 
 
 const resourceStore = useViewResourcesStore();
-const {
-  getViewResources,
-  setViewResources,
-  clearViewResources
-} = resourceStore;
-const resources = getViewResources(props.componentKey);
-
-const layout = computed(() => layoutMap.value.get(props.componentKey))
-watch(layout, () => {
-  const size = Math.min(width.value, height.value - 250);
-
-  browser.layoutController.doLayoutWithRootContainerSize({
-        width: size,
-        height: size
-      }
-  );
-})
-
+const {selectedResources, setViewResources, registerConfigCallback, unregisterConfigCallback} = resourceStore;
+const resources = selectedResources(props.componentKey);
 const juiceboxResources = ref<JuiceBoxConfig | null>(null);
 
 const selection = (event) => {
@@ -115,35 +79,93 @@ const selection = (event) => {
   }
 
   setViewResources(props.componentKey, event)
+  selectDialogVisible.value = false;
 }
 
 const buildUrl = usePartialContentUrl();
 
 const config = ref<JuiceBoxConfig | null>()
 
-const goto = async () => {
-  const locus = browser.parseLocusString('17:44,100,000-44,600,000');
-  await browser.goto(locus.chr, locus.start, locus.end, locus.chr, locus.start, locus.end, 10000)
-}
+watch(currentGenomicPosition, async () => {
+  // const WINDOW = 10000;
+  //
+  const chr = currentGenomicPosition.value.chrom;
+  let start = Number(currentGenomicPosition.value.start);
+  let end = Number(currentGenomicPosition.value.end);
+  //
+  // let range = Math.abs(end - start)
+  // if (range < WINDOW) {
+  //   let additionalBp = Math.floor((WINDOW - range) / 2)
+  //
+  //   start = start - additionalBp
+  //   end = end + additionalBp
+  // }
+
+  await browser.goto(chr, Number(start), Number(end), chr, Number(start), Number(end))
+})
 
 const clear = async () => {
-  clearViewResources(props.componentKey)
   juiceboxResources.value = null;
 }
 
-const locusChange = (e) => {
-  console.table(browser.state)
-  console.log(e)
-  console.log(`Now at ${e.chr1}:${e.x} vs ${e.chr2}:${e.y}`);
+type LocusChange = {
+  state: {
+    chr1: number
+    chr2: number
+    zoom: number
+    x: number
+    y: number
+    pixelSize: number
+    normalization: string
+    locus: {
+      x: {
+        chr: string
+        start: number
+        end: number
+      }
+      y: {
+        chr: string
+        start: number
+        end: number
+      }
+    }
+  }
+}
+
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let lastGenomicPosition = {
+  chr: null,
+  start: null,
+  end: null,
+};
+const locusChange = (lc : LocusChange) => {
+  const newGenomicPosition = lc.state.locus.x;
+  if (newGenomicPosition === lastGenomicPosition) {
+    return;
+  }
+
+  lastGenomicPosition = newGenomicPosition;
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    setCurrentGenomicPosition(newGenomicPosition.chr, newGenomicPosition.start, newGenomicPosition.end);
+  }, 300);
 };
 
-const panel = ref<HTMLElement | null>(null);
 let ro: ResizeObserver | null = null
-const width = ref(0);
-const height = ref(0);
 
+const panel = ref<HTMLElement | null>(null);
+type PanelDimensions = {
+  width: number;
+  height: number;
+}
+const panelDimensions = ref<PanelDimensions>({width: 0, height: 0});
+
+let isInitializing = false;
 const initializeJuiceBox = async () => {
   if (import.meta.client && config.value != null) {
+    if (isInitializing) return;
+    isInitializing = true;
+
     if (browser != null) {
       await destroy();
     }
@@ -151,13 +173,18 @@ const initializeJuiceBox = async () => {
     const juiceboxModule = await import('juicebox.js')
     const juicebox = juiceboxModule.default;
 
-    browser = await juicebox.init(document.getElementById(props.componentKey), config.value);
-    // window['juicebox'] = browser;
+    browser = await juicebox.createBrowser(
+        document.getElementById(props.componentKey),
+        config.value
+    );
+    window['j'] = browser;
+    browser.coordinator.externalCallbacks.onLocusChange.push(locusChange);
+    // if (juiceboxResources.value != null) {
+    //   browser.eventBus.subscribe('LocusChange', locusChange);
+    // }
 
-    if (juiceboxResources.value != null) {
-      browser.eventBus.subscribe('LocusChange', locusChange);
-    }
-
+    isInitializing = false
+    // resizeHicRoots(panel.value.getBoundingClientRect());
   }
 }
 
@@ -167,16 +194,44 @@ onMounted(async () => {
 
     ro = new ResizeObserver(([entry]) => {
       const cr = entry.contentRect
-      width.value = cr.width
-      height.value = cr.height
+      resizeHicRoots(cr);
     })
-    ro.observe(panel.value)
+    ro.observe(panel.value);
   }
 })
 
+const size = ref<Number>(600);
+function resizeHicRoots(cr : DOMRectReadOnly): void {
+  panelDimensions.value.width = cr.width
+  panelDimensions.value.height = cr.height
+
+  let width = cr.width
+  let height = cr.height - 30
+
+  size.value = Math.max(Math.min(width, height), 400);
+  size.value = 600;
+
+  const w = 480; // String(size.value)
+  const h = 640; // String(size.value)
+
+  console.log(`container H(px)=${height}, W(px)=${width}, Computed Size(px)=${size.value}`)
+
+  if (!juiceboxRef.value) return
+  const hicRoots = Array.from(juiceboxRef.value.querySelectorAll('.hic-root'))
+
+  hicRoots.forEach(el => {
+    (el as any).style.width = `${w}px`;
+    (el as any).style.height = `${h}px`;
+  })
+
+  if (browser != null) {
+    browser.repaint()
+  }
+}
+
 const destroy = async () => {
   browser.unsyncSelf();
-  // browser.rootElement.remove();
+  browser.rootElement.remove();
   browser = null;
 
   // unsync listensers

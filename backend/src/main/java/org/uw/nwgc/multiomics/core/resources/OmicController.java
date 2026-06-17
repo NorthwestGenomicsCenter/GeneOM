@@ -5,25 +5,27 @@ import jakarta.transaction.Transactional;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRange;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.uw.nwgc.multiomics.assay.DiffExpressionScatterVisualizer;
+import org.uw.nwgc.multiomics.assay.Transformer;
+import org.uw.nwgc.multiomics.assay.call_peek.CallPeakParser;
 import org.uw.nwgc.multiomics.core.resources.dto.AddOmicsResourceDTO;
 import org.uw.nwgc.multiomics.core.resources.dto.EditOmicResourceDTO;
+import org.uw.nwgc.multiomics.core.resources.dto.ImportOmicsDirectoryDTO;
 import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
+import org.uw.nwgc.multiomics.service.assay_detector.AssayDetectionService;
+import org.uw.nwgc.multiomics.service.assay_detector.types.AssayDetectionResult;
+import org.uw.nwgc.multiomics.service.assay_detector.types.AssayType;
 import org.uw.nwgc.multiomics.util.FileUtil;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,16 +37,19 @@ public class OmicController {
 
     private final OmicService omicService;
     private final SampleService sampleService;
-    private final List<VizTransformer> transformers;
+    private List<VizTransformer> transformers;
+    private AssayDetectionService assayDetectionService;
 
     public OmicController(
             OmicService omicService,
             SampleService sampleService,
-            List<VizTransformer> transformers
+            List<VizTransformer> transformers,
+            AssayDetectionService assayDetectionService
     ) {
         this.omicService = omicService;
         this.sampleService = sampleService;
         this.transformers = transformers;
+        this.assayDetectionService = assayDetectionService;
     }
 
     @GetMapping("/transformers")
@@ -103,9 +108,9 @@ public class OmicController {
             long start = range.getRangeStart(contentLength);
             long end = range.getRangeEnd(contentLength);
             long rangeLength = end - start + 1;
-            if (rangeLength >= (300 * chunkSize)) {
-                return ResponseEntity.badRequest().build();
-            }
+//            if (rangeLength >= (300 * chunkSize)) {
+//                return ResponseEntity.badRequest().build();
+//            }
         }
 
         ResourceRegion region = getResourceRegion(file, headers, contentLength);
@@ -129,6 +134,20 @@ public class OmicController {
         return new ResourceRegion(resource, start, rangeLength);
     }
 
+    public record VisualizerTransformerDTO(String label, String value) {
+    }
+
+    ;
+
+    @GetMapping("/visualizer-options")
+    public ResponseEntity<List<VisualizerTransformerDTO>> getVisualizerOptions(@RequestHeader HttpHeaders header) {
+        return ResponseEntity.ok(
+                Arrays.stream(Transformer.values())
+                        .map(transformer -> new VisualizerTransformerDTO(transformer.getDisplayName(), transformer.name()))
+                        .toList()
+        );
+    }
+
     @GetMapping("/visualize/scatter")
     public ResponseEntity<?> getResourceScatter(@RequestHeader HttpHeaders header) {
         final String TEST_FILE_PATH = "/net/nwgc/vol1/techdev/multiomics-browser/carbone_diff_expression.csv";
@@ -140,7 +159,6 @@ public class OmicController {
             return ResponseEntity.notFound().build();
         }
     }
-
 
     @GetMapping("/visualize/transform/{transformerType}/{resourceId}")
     public ResponseEntity<?> getResourceAndTransform(
@@ -200,27 +218,48 @@ public class OmicController {
         }
     }
 
+    @GetMapping("/validate/sample/{sampleId}")
+    public ResponseEntity<?> validateSampleResources(@PathVariable UUID sampleId) throws
+            InstantiationException,
+            IllegalAccessException,
+            NoSuchMethodException,
+            InvocationTargetException,
+            IOException {
+        Optional<List<Sample>> samplesQuery = sampleService.findByIds(List.of(sampleId));
+        if (samplesQuery.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        System.out.println("Trying to validate sample resources");
+        Sample sample = samplesQuery.get().getFirst();
+
+        for (OmicResource resource : sample.getOmicResources()) {
+            Path resolvedPath = FileUtil.resolvePath(resource);
+            if (!Files.exists(resolvedPath)) continue;
+
+            resource.getVizTransformer().clear();
+            List<Class<? extends VizTransformer>> resourceTransformers = FileUtil.findVisualizationTransformers(resource.getPath());
+            resource.setVizTransformer(resourceTransformers);
+            omicService.save(resource);
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/validate/{resourceId}")
     public ResponseEntity<?> validateResource(@PathVariable UUID resourceId) throws
             InstantiationException,
             IllegalAccessException,
             NoSuchMethodException,
-            InvocationTargetException {
+            InvocationTargetException,
+            IOException {
         OmicResource resource = omicService.findById(resourceId);
         if (resource == null) {
             return ResponseEntity.notFound().build();
         }
 
-        VizTransformer transformer = resource.getVizTransformer()
-                .get(0)
-                .getDeclaredConstructor()
-                .newInstance();
-
-        try (Reader fileReader = FileUtil.readResourcePath(resource.getPath())) {
-            return ResponseEntity.ok(transformer.validateResource(fileReader));
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+        List<Class<? extends VizTransformer>> resourceTransformers = FileUtil.findVisualizationTransformers(resource.getPath());
+        return ResponseEntity.ok(resourceTransformers);
     }
 
     @PostMapping("/save")
@@ -275,6 +314,23 @@ public class OmicController {
 
         OmicResource newResource = omicService.edit(resource, body);
         return ResponseEntity.ok(new OmicResourceDTO(newResource));
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> test() throws IOException {
+        return ResponseEntity.ok(
+                CallPeakParser.parse(Path.of("/net/nwgc/vol1/techdev/udn_chiatac_UDN240959/UDN240959_AT5-5-17_peaks.xls"))
+        );
+    }
+
+    @PostMapping("/import/directory")
+    public ResponseEntity<?> importDirectory(@RequestBody ImportOmicsDirectoryDTO dto) throws IOException, AuthException {
+        AssayType assayType = AssayType.valueOf(dto.assayType());
+
+        AssayDetectionResult result = assayDetectionService.initializeDirectory(Path.of(dto.directoryPath()), assayType);
+        assayDetectionService.importAssay(dto.sampleId(), result);
+
+        return ResponseEntity.ok("OK");
     }
 
 }

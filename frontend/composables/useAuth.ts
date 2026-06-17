@@ -1,8 +1,21 @@
 import {jwtDecode} from 'jwt-decode'
 
+let logoutTimer: ReturnType<typeof setTimeout> | null = null;
+
 // composables/useAuth.ts
 export const useAuth = () => {
-	const isAuthenticated = useState('isAuthenticated', () => false)
+	const isAuthenticated = computed(() => {
+		const cookie = useCookie('refreshToken');
+		const token = cookie.value;
+
+		try {
+			jwtDecode(token)
+			return true;
+		} catch (error) {
+			console.error('Failed to decode JWT:', error);
+			return false;
+		}
+	});
 	
 	const getToken = (): any => {
 		const cookie = useCookie('refreshToken');
@@ -60,14 +73,13 @@ export const useAuth = () => {
 			credentials: 'include'
 		})
 
-        let isFirstLogin = false;
+        let isFirstLogin;
 		if (data.value && !error.value) {
 			const loginResponse: LoginResponseDTO = data.value;
 			
 			// Set the token from response data
 			setAuthCookies(loginResponse.accessToken, loginResponse.refreshToken)
-			
-			isAuthenticated.value = true;
+
 			user.value = getToken();
 		}
 
@@ -81,8 +93,7 @@ export const useAuth = () => {
 		accessCookie.value = null;
 		const refreshCookie = useCookie('refreshToken');
 		refreshCookie.value = null;
-		
-		isAuthenticated.value = false;
+
 		user.value = null;
 		
 		const router = useRouter();
@@ -90,22 +101,29 @@ export const useAuth = () => {
 	}
 	
 	const user = ref(getToken())
-	
-	const expire = computed(() => {
-		const expire = new Date(getToken().exp * 1000);
-		const now = new Date();
-		const delay = expire.getTime() - now.getTime();
-		
+
+	const scheduleLogout = () => {
+		// Clear any existing timer to avoid duplicates
+		if (logoutTimer) {
+			clearTimeout(logoutTimer)
+			logoutTimer = null
+		}
+
+		const tokenData = getToken();
+		if (!tokenData?.exp) return;
+
+		const expiry = new Date(tokenData.exp * 1000);
+		const delay = expiry.getTime() - Date.now() - 7000000;
+		console.log("SCHEDULING with delay " + delay)
+
 		if (delay <= 0) {
-			// If the target date is in the past, execute the callback immediately
+			// Token is already expired
 			logout();
 		} else {
-			setTimeout(logout, delay);
+			logoutTimer = setTimeout(logout, delay)
 		}
-		
-		return delay
-	})
+	}
 	
 	// return { isAuthenticated, checkAuth, login, logout, getToken, user }
-	return {login, logout, getToken, setAuthCookies, isAuthenticated, user, expire}
+	return {login, logout, getToken, setAuthCookies, isAuthenticated, user, scheduleLogout}
 }

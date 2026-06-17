@@ -1,5 +1,5 @@
 <template>
-  <li>
+  <li v-bind="$attrs">
     <NuxtLink
       :to="to"
       class="sidebar-button"
@@ -9,7 +9,11 @@
         v-if="icon !== null && icon !== ''"
         class="icon"
         v-html="icon"/>
-      <span class="text">{{ text }}</span>
+      <span
+        class="text"
+        :style="pt">
+        {{ text }}
+      </span>
     </NuxtLink>
   </li>
 </template>
@@ -18,10 +22,15 @@
 const router = useRouter();
 
 interface Props {
-  to: string
+  to?: string
   text: string
   icon: string
+  pt?: string
 }
+
+defineOptions({
+  inheritAttrs: false  // prevent attrs being applied to <li> instead
+})
 
 const props = defineProps<Props>()
 
