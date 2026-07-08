@@ -24,6 +24,7 @@ import org.uw.nwgc.multiomics.core.tag.ontology.TissueDTO;
 import org.uw.nwgc.multiomics.core.user.CurrentUserResolver;
 import org.uw.nwgc.multiomics.core.user.User;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -125,9 +126,10 @@ public class SampleService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
-        Sample sample = new Sample();
+        Sample sample = new Sample(user);
         if (sampleDTO.getId() != null) {
-            sample = getById(sampleDTO.getId()).orElseThrow(() -> new ObjectNotFoundException("Sample not found", sampleDTO.getId()));
+            sample = getById(sampleDTO.getId()).orElseThrow(() ->
+                    new ObjectNotFoundException("Sample not found", sampleDTO.getId()));
 
             if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
                 throw new AuthException("User not allowed to update Sample");
@@ -146,6 +148,10 @@ public class SampleService {
 
         sampleMapper.updateFromDto(sampleDTO, sample, tissues);
         sample.getUsers().add(user);
+
+        sample.setModifier(user);
+        sample.setModificationDateTime(LocalDateTime.now());
+
         return sampleRepository.save(sample);
     }
 
@@ -153,7 +159,7 @@ public class SampleService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
-        Sample sample = new Sample();
+        Sample sample = new Sample(user);
         if (sampleDTO.getId() != null) {
             sample = getById(sampleDTO.getId()).orElseThrow(() -> new ObjectNotFoundException("Sample not found", sampleDTO.getId()));
 
@@ -179,7 +185,7 @@ public class SampleService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
-        Sample sample = new Sample();
+        Sample sample = new Sample(user);
         List<Sample> samples = sampleRepository.findByExternalLimsIdAndIntegrationSource
                 (sampleDTO.getExternalLimsId(), sampleDTO.getIntegrationSource());
         if (samples.size() == 1) {
@@ -213,15 +219,20 @@ public class SampleService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
-        Sample sample = null;
-        if (sampleDTO.sampleId() != null) {
-            sample = getById(sampleDTO.sampleId())
-                    .orElseThrow(() -> new ObjectNotFoundException("Sample not found", sampleDTO.sampleId()));
-
-            if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
-                throw new AuthException("User not allowed to update Sample");
-            }
+        if (sampleDTO.sampleId() == null) {
+            throw new ObjectNotFoundException("Sample not found", sampleDTO.sampleId());
         }
+
+        Sample sample;
+        sample = getById(sampleDTO.sampleId())
+                .orElseThrow(() -> new ObjectNotFoundException("Sample not found", sampleDTO.sampleId()));
+
+        if (!sample.getUsers().isEmpty() && !user.inUserList(sample.getUsers())) {
+            throw new AuthException("User not allowed to update Sample");
+        }
+
+        sample.setModifier(user);
+        sample.setModificationDateTime(LocalDateTime.now());
 
         return sample;
     }
@@ -231,7 +242,7 @@ public class SampleService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = currentUserResolver.resolve((UserDetails) auth.getPrincipal());
 
-        Sample sample = new Sample();
+        Sample sample = new Sample(user);
         sampleMapper.createFromExternalSample(sampleDTO, sample);
         sample.getUsers().add(user);
 

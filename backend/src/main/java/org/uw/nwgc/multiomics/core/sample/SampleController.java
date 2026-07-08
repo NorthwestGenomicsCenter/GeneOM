@@ -38,7 +38,7 @@ public class SampleController {
     }
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<SampleDTO> searchSampleByName(@PathVariable UUID uuid) {
+    public ResponseEntity<SampleDTO> editSampleInformation(@PathVariable UUID uuid) {
         Optional<Sample> optional = sampleService.getById(uuid);
         if  (optional.isPresent()) {
             Sample sample = optional.get();

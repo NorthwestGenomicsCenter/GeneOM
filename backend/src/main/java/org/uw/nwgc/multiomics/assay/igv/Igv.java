@@ -1,10 +1,11 @@
 package org.uw.nwgc.multiomics.assay.igv;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.core.transformer.ServableResource;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 import org.uw.nwgc.multiomics.util.FileUtil;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +19,7 @@ public class Igv implements VizTransformer {
     }
 
     @Override
-    public Object serveResource(Reader reader, HttpHeaders header) {
+    public Object serveResource(ServableResource servableResource) throws IOException {
         return null;
     }
 

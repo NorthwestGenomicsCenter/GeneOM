@@ -1,6 +1,7 @@
 <template>
   <CommonSubHeaderMenu>
     <template #left>
+      <TechnologyViewSelectorNew @add-view="addView" class="ml-1" />
       <TechnologyViewSelector @add-view="addView" class="ml-1" />
       <Button
           label="Save Layout"
@@ -37,7 +38,6 @@
     <Dialog v-model:visible="resourceTableVisible" modal header="Select Resource" :style="{ width: '90rem' }">
       <ViewerResourceTable :tableData="analysis.resources" />
     </Dialog>
-
     <ClientOnly>
       <GridLayout
           :layout="layout"
@@ -69,11 +69,12 @@
 import { useRoute } from 'vue-router'
 import {computed, ref} from 'vue'
 import TechnologyViewSelector from '~/components/common/TechnologyViewSelector.vue'
-import GridLayout from '~/components/GridLayout.vue'
+import GridLayout from '~/components/grid-layout/GridLayout.vue'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 import {useViewResourcesStore} from "~/composables/useViewResourcesStore";
-import DynamicViewRenderer from "~/components/DynamicViewRenderer.vue";
+import DynamicViewRenderer from "~/components/grid-layout/DynamicViewRenderer.vue";
 import {useGlobalStore} from "~/composables/useGlobal";
+import TechnologyViewSelectorNew from "~/components/common/TechnologyViewSelectorNew.vue";
 
 // The analysis that is being worked on
 const route = useRoute()

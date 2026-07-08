@@ -1,23 +1,20 @@
 <template>
-<!--  <ViewerImportCoordinateFromFile class="ml-1" @uploaded="uploaded"/>-->
   <div>
-    <FileUpload
-        mode="basic"
-        auto
-        url="/api/analysis/import/tabular-data"
-        @upload="uploaded" />
+    <Header
+        title="Table"
+        disableToggle
+        @settings="selectDialogVisible = true"
+        @close="removeView(componentKey)"
+    >
+    </Header>
 
-    <div v-if="data !== null">
-  <!--    {{data.columnFilters}}-->
-  <!--    <template v-for="(filter, key) in data.columnFilters">-->
-  <!--      <p>-->
-  <!--        {{key}}: {{filter}}-->
-  <!--      </p>-->
-  <!--    </template>-->
+    {{ resources }}
+    {{ table }}
+    <div v-if="table !== null">
 
-      {{filters}}
+<!--      {{filters}}-->
       <DataTable
-          :value="data.rawValues"
+          :value="table.rawValues"
           stripedRows
           rowHover
           scrollable
@@ -36,21 +33,21 @@
           <InputText v-model="filters['global'].value" />
         </template>
 
-        <template v-for="header in data.columnHeaders">
+        <template v-for="header in table.columnHeaders">
           <Column :header="header" :field="header" sortable>
-            <template #filter="{ filterModel }" v-if="data.columnFilters.hasOwnProperty(header)">
-              <div v-if="data.columnFilters[header].filterType === 'discrete'">
+            <template #filter="{ filterModel }" v-if="table.columnFilters.hasOwnProperty(header)">
+              <div v-if="table.columnFilters[header].filterType === 'discrete'">
                 <MultiSelect
                     v-model="filterModel.value"
-                    :options="data.columnFilters[header].values"
+                    :options="table.columnFilters[header].values"
                     filter
                     placeholder="Any"/>
               </div>
-              <div v-if="data.columnFilters[header].filterType === 'numeric'">
+              <div v-if="table.columnFilters[header].filterType === 'numeric'">
                 <CommonMinMaxSliderFilter
                     v-model="filterModel.value"
-                    :minValue="data.columnFilters[header].min"
-                    :maxValue="data.columnFilters[header].max"
+                    :minValue="table.columnFilters[header].min"
+                    :maxValue="table.columnFilters[header].max"
                 />
               </div>
             </template>
@@ -63,20 +60,60 @@
     </div>
   </div>
   <ContextMenu ref="cm" :model="menuModel" @hide="selectedRow = null" />
+
+  <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
+    <ViewerResourceTable
+        :componentKey="componentKey"
+        :visualizers="['generic-table']"
+        v-model:visible="selectDialogVisible"
+    />
+  </Dialog>
+
+
 </template>
 
 <script setup lang="ts">
 import {FilterMatchMode, FilterOperator, FilterService} from "@primevue/core";
+import Header from "~/components/common/Header.vue";
+import {useSampleViewStore} from "~/composables/useSampleViewStore";
 
 defineOptions({
   name: 'GenericTable'
 })
 
-const data = ref<ParsedGenomicDataDTO | null>(null);
-const uploaded = (event) => {
-  data.value = JSON.parse(event.xhr.response);
-  updateFilters();
+const props = defineProps<{
+  componentKey: any
+}>();
+
+const viewStore = useSampleViewStore();
+const { removeView } = viewStore;
+
+const table = ref<ParsedGenomicDataDTO | null>(null);
+
+// -- Select Resource for the Table -------------------------------------------
+const selectDialogVisible = ref<boolean>(false);
+const resourceStore = useViewResourcesStore();
+const {selectedResources, registerConfigCallback, unregisterConfigCallback} = resourceStore;
+const resources = selectedResources(props.componentKey);
+
+const updateResourceData = async () => {
+  table.value = {} as ParsedGenomicDataDTO;
+  if (resources.value.length == 0) return
+
+  try {
+    table.value = await useClientApi(`/omic/visualize/transform/GenericTableVisualizer/${resources.value[0].resourceId}`);
+  } catch (error) {
+  //   toast.add({
+  //     severity: "error",
+  //     summary: "Unable to Retrieve Resource",
+  //     detail: `Trying to find resource for Differential Expression Table. \n\n ${error}`,
+  //     life: 10_000
+  //   })
+    console.warn("Unable to access genomic data")
+  }
 }
+
+watch(resources, updateResourceData, {deep: true, immediate: true})
 
 const updateFilters = () => {
   const newFilters = {

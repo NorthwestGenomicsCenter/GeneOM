@@ -13,6 +13,8 @@ import org.uw.nwgc.multiomics.util.coordinates_reader.model.GenomicRecord;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -184,6 +186,14 @@ public class GenomicFileParser implements Closeable {
 
     public static GenomicFileParser fromBytes(byte[] bytes) throws IOException {
         return new GenomicFileParser(SpreadsheetReader.fromBytes(bytes), new Config());
+    }
+
+    public static GenomicFileParser fromStream(InputStream is, Path filename) throws IOException {
+        return new GenomicFileParser(SpreadsheetReader.fromStream(is, filename.getFileName().toString()), new Config());
+    }
+
+    public static GenomicFileParser fromStream(InputStream is, SpreadsheetReader.Format fmt) throws IOException {
+        return new GenomicFileParser(SpreadsheetReader.fromStream(is, fmt), new Config());
     }
 
     // ── Public API ─────────────────────────────────────────────────────────

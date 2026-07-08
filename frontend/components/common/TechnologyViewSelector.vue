@@ -14,8 +14,8 @@ const props = defineProps<{
 }>()
 const emit = defineEmits(['add-view'])
 
-// const viewStore = useSampleViewStore();
-// const { addView } = viewStore;
+const viewStore = useSampleViewStore();
+const { addView } = viewStore;
 
 
 const addButtonOptions = [
@@ -54,6 +54,16 @@ const addButtonOptions = [
   {
     label: 'Tandem Graph',
     command: () => emit("add-view", ({viewName: 'TandemRepeatsGraph'}))
+  },
+  {
+    label: 'Generic Table',
+    command: () => addView({
+          new: "new",
+          technology: "generic-table",
+          viewName: "generic-table",
+          omicResourceId: "string;",
+          fileName: "string;"
+    })
   },
 ]
 

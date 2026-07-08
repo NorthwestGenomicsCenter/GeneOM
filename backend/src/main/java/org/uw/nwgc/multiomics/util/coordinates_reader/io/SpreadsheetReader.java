@@ -70,20 +70,6 @@ public class SpreadsheetReader implements Closeable {
     }
 
     /**
-     * Open a spreadsheet from a Reader. Only CSV and TSV are supported from
-     * a plain Reader; use the InputStream factory for XLS/XLSX.
-     *
-     * @param reader input reader
-     * @param format CSV or TSV
-     */
-    public static SpreadsheetReader fromReader(Reader reader, Format format) {
-        if (format == Format.XLS || format == Format.XLSX) {
-            throw new IllegalArgumentException("XLS/XLSX requires an InputStream, not a Reader");
-        }
-        return new SpreadsheetReader(format, reader, null);
-    }
-
-    /**
      * Open a spreadsheet from an InputStream.
      * Format must be provided explicitly. This supports all four formats.
      */
@@ -104,7 +90,7 @@ public class SpreadsheetReader implements Closeable {
      */
     public static SpreadsheetReader fromStream(InputStream stream, String filename) throws IOException {
         Format fmt = detectFormat(filename);
-        return fromStream(stream, fmt);
+        return fromStream(stream, Format.TSV);
     }
 
     /**
@@ -152,27 +138,6 @@ public class SpreadsheetReader implements Closeable {
 
         throw new IllegalArgumentException("Could not read file as CSV, TSV, XLS, or XLSX");
     }
-//    public SheetData readSheet(int sheetIndex, boolean hasHeader) throws IOException {
-//        return switch (format) {
-//            case CSV  -> readDelimited(CSVFormat.DEFAULT.builder()
-//                    .setCommentMarker('#')
-//                    .setTrim(true)
-//                    .setIgnoreEmptyLines(false)
-//                    .build(),
-//                    "CSV",
-//                    hasHeader);
-//            case TSV  -> readDelimited(CSVFormat.DEFAULT.builder()
-//                    .setCommentMarker('#')
-//                    .setDelimiter('\t')
-//                    .setTrim(true)
-//                    .setIgnoreEmptyLines(false)
-//                    .build(),
-//                    "TSV",
-//                    hasHeader);
-//            case XLS  -> readPoiSheet(sheetIndex, false);
-//            case XLSX -> readPoiSheet(sheetIndex, true);
-//        };
-//    }
 
     /**
      * For XLS/XLSX: list all sheet names.

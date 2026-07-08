@@ -45,10 +45,11 @@
 <script setup lang="ts">
 import { ref, computed, defineProps, defineEmits, onMounted, onBeforeUnmount } from 'vue'
 import { GridLayout, GridItem } from 'vue3-grid-layout'
+import type {LayoutPosition} from "~/composables/useSampleViewStore";
 
 const props = defineProps({
   layout: {
-    type: Array,
+    type: Array<LayoutPosition>,
     required: true
   },
   components: {

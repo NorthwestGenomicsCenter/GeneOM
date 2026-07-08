@@ -57,6 +57,15 @@ public class SampleMapper {
                 .map(OmicResourceDTO::new)
                 .toList());
 
+        dto.setSampleAnalysis(sample.getAnalysis()
+                .stream()
+                .map(analysis -> new SampleDTO.SampleAnalysisDTO(
+                        analysis.getId(),
+                        analysis.getName(),
+                        analysis.getDescription()
+                ))
+                .collect(Collectors.toList()));
+
         return dto;
     }
 

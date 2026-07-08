@@ -2,13 +2,13 @@ package org.uw.nwgc.multiomics.assay;
 
 import io.jhdf.HdfFile;
 import io.jhdf.api.Dataset;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.core.transformer.ServableResource;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 import org.uw.nwgc.multiomics.util.FileUtil;
 
+import java.io.IOException;
 import java.io.Reader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -22,7 +22,8 @@ public class HiC implements VizTransformer {
     }
 
     @Override
-    public Object serveResource(Reader reader, HttpHeaders header) {
+    public Object serveResource(ServableResource servableResource) throws IOException {
+        Reader reader = servableResource.getReader();
         try (HdfFile hdfFile = new HdfFile(Paths.get("/temp/hic/P6_r2.hic"))) {
             Dataset dataset = hdfFile.getDatasetByPath("/");
             // data will be a Java array with the dimensions of the HDF5 dataset

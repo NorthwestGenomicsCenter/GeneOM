@@ -8,40 +8,52 @@
         </FloatLabel>
 
         <FloatLabel variant="on" class="input">
+          <InputText id="externalLimsId" class="w-full" v-model="sample.externalLimsId"/>
+          <label for="externalLimsId">External LIMS Id</label>
+        </FloatLabel>
+
+
+        <FloatLabel variant="on" class="input">
           <InputText id="project-name" class="w-full" v-model="sample.externalProjectName"/>
           <label for="project-name">Project Name</label>
         </FloatLabel>
 
         <FloatLabel variant="on" class="input">
-        <TextArea
+          <TextArea
             id="description"
             v-model="sample.description"
             rows="5" cols="60"
             class="w-full"/>
           <label for="project-name">Description</label>
         </FloatLabel>
-      </section>
-      <section class="details">
-        <div>
 
+        <h3>Analysis Containing Sample</h3>
+        <div v-for="analysis in sample.sampleAnalysis" key="id">
+          <a style="text-decoration: underline; color: blue;">
+            <NuxtLink :to="`/manage/analysis/edit-${analysis.id}`">{{analysis.name}}</NuxtLink>
+          </a>
         </div>
-        <h3>Upload Data Files</h3>
-        <FileUpload
-            name="file"
-            :url="`${baseUrl}/api/omic/upload`"
-            :multiple="true"
-            :maxFileSize="1000000000"
-            @beforeUpload="beforeUpload"
-            @upload="afterUpload"
-            @error="uploadError" >
-          <template #empty>
-            <p>Drag and drop files to here to upload.</p>
-          </template>
-        </FileUpload>
-        <br />
-        <h3>Add File from Filesystem</h3>
-        <Button size="small" label="Add File" outlined raised @click="addVisible = true" />
       </section>
+
+<!--      <section class="details">-->
+
+<!--        <h3>Upload Data Files</h3>-->
+<!--        <FileUpload-->
+<!--            name="file"-->
+<!--            :url="`${baseUrl}/api/omic/upload`"-->
+<!--            :multiple="true"-->
+<!--            :maxFileSize="1000000000"-->
+<!--            @beforeUpload="beforeUpload"-->
+<!--            @upload="afterUpload"-->
+<!--            @error="uploadError" >-->
+<!--          <template #empty>-->
+<!--            <p>Drag and drop files to here to upload.</p>-->
+<!--          </template>-->
+<!--        </FileUpload>-->
+<!--        <br />-->
+<!--        <h3>Add File from Filesystem</h3>-->
+<!--        -->
+<!--      </section>-->
     </div>
 
     <h4>Tags</h4>
@@ -74,17 +86,12 @@
     <Button text small label="Add Tag" @click="addTag" />
     <Button small outlined raised label="Save" @click="save"/>
 
-    <h4>Files</h4>
-    <Button label="Add Files" @click="addFilesDialogVisible = true"/>
-
-    <Dialog
-      header="Add Files"
-      v-model:visible="addFilesDialogVisible"
-      modal
-      style="min-width: 70em; max-width: 90vw;">
-      <WizardAddSampleFiles :sampleId="sample.id"/>
-    </Dialog>
     <ClientOnly>
+
+      <div id="sample-files-header">
+        <h1>Sample Files</h1>
+      </div>
+      <Button size="small" label="Add Files" outlined raised @click="addVisible = true" />
       <SampleFilesTable
           :files="sample.omicResources"
           :refreshTableData="refresh">
@@ -98,12 +105,43 @@
     </ClientOnly>
   </div>
 
-  <Dialog header="AddFile" modal v-model:visible="addVisible" :style="{ 'min-width': '65rem', 'max-width': '95rem' }">
-    <VueFinder
-        id="vf"
-        :features="[]"
-        :request="request"
-        @select="handleSelectEvent" />
+  <Dialog header="Add Files" modal v-model:visible="addVisible" :style="{
+    'min-width': '65rem',
+    'max-width': '65rem',
+    'min-height': '40rem',
+    'max-height': '40rem',
+
+  }">
+    <Tabs value="file-system">
+      <TabList>
+        <Tab value="file-system">From File System</Tab>
+        <Tab value="upload">Upload</Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel value="file-system">
+          <VueFinder
+              id="vf"
+              :features="[]"
+              :request="request"
+              @select="handleSelectEvent" />
+        </TabPanel>
+        <TabPanel value="upload">
+          <FileUpload
+              name="file"
+              :url="`${baseUrl}/api/omic/upload`"
+              :multiple="true"
+              :maxFileSize="1000000000"
+              @beforeUpload="beforeUpload"
+              @upload="afterUpload"
+              @error="uploadError" >
+            <template #empty>
+              <p>Drag and drop files to here to upload.</p>
+            </template>
+          </FileUpload>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
+
     <section class="add-files-footer-bar">
       <div>
         <template v-if="assayType !== null">
@@ -247,9 +285,6 @@ const save = async () => {
   visible.value = false;
 }
 
-//-- Add Files ----------------------------------------------------------------
-const addFilesDialogVisible = ref<boolean>(false);
-
 // -- Import Full Directory ---------------------------------------------------
 const importDirectory = ref<string>();
 const assayType = ref<string>();
@@ -297,6 +332,14 @@ const importFullDirectory = async () => {
 </script>
 
 <style scoped>
+#sample-files-header > h1 {
+  font-size: 2em;
+  padding-top: 0.5em;
+  padding-bottom: 0.75em;
+  width: 100%;
+  text-align: center;
+}
+
 .add-files-footer-bar {
   display: flex;
   flex-direction: row;

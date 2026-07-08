@@ -3,10 +3,11 @@ package org.uw.nwgc.multiomics.util;
 import org.uw.nwgc.multiomics.assay.Transformer;
 import org.uw.nwgc.multiomics.core.finder.FinderBasePath;
 import org.uw.nwgc.multiomics.core.resources.OmicResource;
-import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,6 +57,11 @@ public class FileUtil {
     public static BufferedReader readResourcePath(String filename) throws IOException {
         Path fullPath = resolvePath(filename);
         return Files.newBufferedReader(fullPath);
+    }
+
+    public static InputStream resourcePathInputStream(String filename) throws IOException {
+        Path fullPath = resolvePath(filename);
+        return Files.newInputStream(fullPath);
     }
 
     public static List<Class<? extends VizTransformer>> findVisualizationTransformers(String filename) throws IOException {

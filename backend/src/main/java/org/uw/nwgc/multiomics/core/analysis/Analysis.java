@@ -1,5 +1,6 @@
 package org.uw.nwgc.multiomics.core.analysis;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,7 +40,13 @@ public class Analysis {
     @ManyToOne(cascade = CascadeType.ALL)
     private CustomReference customReference;
 
+    @JsonManagedReference
     @ManyToMany
+    @JoinTable(
+            name = "analysis_samples",
+            joinColumns = @JoinColumn(name = "analysis_id"),
+            inverseJoinColumns = @JoinColumn(name = "samples_id")
+    )
     private Set<Sample> samples;
 
     @ManyToMany
