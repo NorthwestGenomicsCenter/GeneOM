@@ -250,10 +250,9 @@ html, body {
   padding-left: 0.75em;
 }
 
-/* Main grid layout */
+/* Main flex layout */
 .main-layout {
-  display: grid;
-  grid-template-columns: 14em 1fr;
+  display: flex;
   flex: 1;
   min-height: 0;
 }
@@ -264,6 +263,7 @@ html, body {
   top: var(--header-height);
   height: fit-content;
   align-self: start;
+  flex: 0 0 14em;   /* fixed 14em width, no grow/shrink */
 }
 
 .main-content {
@@ -271,6 +271,7 @@ html, body {
   padding: 0;
   min-width: 0;
   overflow: hidden;
+  flex: 1 1 0;      /* takes remaining space (replaces the 1fr column) */
 }
 
 /* Footer styles */

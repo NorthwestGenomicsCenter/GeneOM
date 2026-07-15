@@ -1,6 +1,7 @@
 <template>
-<!--  <ViewerImportCoordinateFromFile class="ml-1" @uploaded="uploaded"/>-->
   <div>
+    <div v-for="v in visualizers" :key="v.id" @click="active = v.component">{{ v }}</div>
+    <component :is="active" v-if="active" :data="data" />
     <FileUpload
         mode="basic"
         auto
@@ -8,12 +9,6 @@
         @upload="uploaded" />
 
     <div v-if="data !== null">
-  <!--    {{data.columnFilters}}-->
-  <!--    <template v-for="(filter, key) in data.columnFilters">-->
-  <!--      <p>-->
-  <!--        {{key}}: {{filter}}-->
-  <!--      </p>-->
-  <!--    </template>-->
 
       {{filters}}
       <DataTable
@@ -67,6 +62,9 @@
 
 <script setup lang="ts">
 import {FilterMatchMode, FilterOperator, FilterService} from "@primevue/core";
+import { visualizers } from '~/components/vizualizer/registry';
+
+const active = ref();
 
 const data = ref<ParsedGenomicDataDTO | null>(null);
 const uploaded = (event) => {

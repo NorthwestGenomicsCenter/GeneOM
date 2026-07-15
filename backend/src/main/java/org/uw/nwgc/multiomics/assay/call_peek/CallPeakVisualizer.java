@@ -1,19 +1,13 @@
 package org.uw.nwgc.multiomics.assay.call_peek;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.apache.commons.io.IOUtils;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpression;
-import org.uw.nwgc.multiomics.core.resources.VizTransformer;
-import org.uw.nwgc.multiomics.util.RgbColor;
+import org.uw.nwgc.multiomics.core.transformer.ServableResource;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -25,9 +19,9 @@ public class CallPeakVisualizer implements VizTransformer {
     }
 
     @Override
-    public Object serveResource(Reader reader, HttpHeaders header) {
-        try {
-            return CallPeakParser.parse(IOUtils.toByteArray(reader));
+    public Object serveResource(ServableResource servableResource) throws IOException {
+        try (InputStream is = servableResource.streamSource().open()) {
+            return CallPeakParser.parse(IOUtils.toByteArray(is));
         } catch (Exception ignored) {}
 
         return List.of();

@@ -25,25 +25,7 @@ public class SampleDTO {
     private List<UserDTO> users;
     private List<OmicResourceDTO> omicResources;
 
-//    public SampleDTO(Sample sample) {
-//        this.id = sample.getId();
-//        this.name = sample.getName();
-//        this.integrationSource = sample.getIntegrationSource();
-//        this.externalLimsId = sample.getExternalLimsId();
-//        this.externalProjectName = sample.getExternalProjectName();
-//        this.description = sample.getDescription();
-//        this.tags = sample.getTags().stream().map(tag -> {
-//                if (tag != null) {
-//                    return new Tag.SampleTagDTO(tag.getId(), tag.getLabel(), tag.getValue());
-//                }
-//                return null;
-//            })
-//            .filter(Objects::nonNull)
-//            .collect(Collectors.toSet());
-//        this.users = sample.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
-//        this.omicResources = sample.getOmicResources().stream()
-//                .filter(Objects::nonNull)
-//                .map(OmicResourceDTO::new)
-//                .toList();
-//    }
+    public record SampleAnalysisDTO(UUID id, String name, String description) {};
+    private List<SampleAnalysisDTO> sampleAnalysis;
+
 }

@@ -70,33 +70,11 @@ public class SpreadsheetReader implements Closeable {
     }
 
     /**
-     * Open a spreadsheet from a Reader. Only CSV and TSV are supported from
-     * a plain Reader; use the InputStream factory for XLS/XLSX.
-     *
-     * @param reader input reader
-     * @param format CSV or TSV
-     */
-    public static SpreadsheetReader fromReader(Reader reader, Format format) {
-        if (format == Format.XLS || format == Format.XLSX) {
-            throw new IllegalArgumentException("XLS/XLSX requires an InputStream, not a Reader");
-        }
-        return new SpreadsheetReader(format, reader, null);
-    }
-
-    /**
      * Open a spreadsheet from an InputStream.
      * Format must be provided explicitly. This supports all four formats.
      */
     public static SpreadsheetReader fromStream(InputStream stream, Format format) throws IOException {
-        if (format == Format.CSV || format == Format.TSV) {
-            // Wrap InputStream in Reader, sniff BOM
-            InputStream buffered = stream.markSupported() ? stream : new BufferedInputStream(stream);
-            Charset charset = sniffBom(buffered);
-            Reader reader = new InputStreamReader(buffered, charset);
-            return new SpreadsheetReader(format, reader, null);
-        } else {
-            return new SpreadsheetReader(format, null, stream);
-        }
+        return new SpreadsheetReader(format, null, stream);
     }
 
     /**
@@ -104,7 +82,7 @@ public class SpreadsheetReader implements Closeable {
      */
     public static SpreadsheetReader fromStream(InputStream stream, String filename) throws IOException {
         Format fmt = detectFormat(filename);
-        return fromStream(stream, fmt);
+        return fromStream(stream, Format.TSV);
     }
 
     /**
@@ -130,10 +108,10 @@ public class SpreadsheetReader implements Closeable {
     public SheetData readSheet(int sheetIndex, boolean hasHeader) {
         List<SheetReader> attempts = List.of(
                 () -> {
-                    char delimiter = detectDelimiter(sheetBytes);
+//                    char delimiter = detectDelimiter(sheetBytes);
                     return readDelimited(CSVFormat.DEFAULT.builder()
                             .setCommentMarker('#')
-                            .setDelimiter(delimiter)
+                            .setDelimiter('\t')
                             .setTrim(true)
                             .setIgnoreEmptyLines(false)
                             .build(), "TSV", hasHeader);
@@ -145,34 +123,11 @@ public class SpreadsheetReader implements Closeable {
         for (SheetReader attempt : attempts) {
             try {
                 return attempt.read();
-            } catch (Exception e) {
-                // try next format
-            }
+            } catch (Exception ignored) {}
         }
 
         throw new IllegalArgumentException("Could not read file as CSV, TSV, XLS, or XLSX");
     }
-//    public SheetData readSheet(int sheetIndex, boolean hasHeader) throws IOException {
-//        return switch (format) {
-//            case CSV  -> readDelimited(CSVFormat.DEFAULT.builder()
-//                    .setCommentMarker('#')
-//                    .setTrim(true)
-//                    .setIgnoreEmptyLines(false)
-//                    .build(),
-//                    "CSV",
-//                    hasHeader);
-//            case TSV  -> readDelimited(CSVFormat.DEFAULT.builder()
-//                    .setCommentMarker('#')
-//                    .setDelimiter('\t')
-//                    .setTrim(true)
-//                    .setIgnoreEmptyLines(false)
-//                    .build(),
-//                    "TSV",
-//                    hasHeader);
-//            case XLS  -> readPoiSheet(sheetIndex, false);
-//            case XLSX -> readPoiSheet(sheetIndex, true);
-//        };
-//    }
 
     /**
      * For XLS/XLSX: list all sheet names.
@@ -211,6 +166,8 @@ public class SpreadsheetReader implements Closeable {
     // ── Private: CSV/TSV reading ───────────────────────────────────────────
 
     private SheetData readDelimited(CSVFormat csvFormat, String sheetName, boolean hasHeader) throws IOException {
+        sheetBytes = streamForPoi.readAllBytes();
+
         try (CSVParser parser = new CSVParser(stripFileComments(sheetBytes), csvFormat)) {
             List<List<String>> rows = StreamSupport.stream(parser.spliterator(), false)
                     .map(record -> {

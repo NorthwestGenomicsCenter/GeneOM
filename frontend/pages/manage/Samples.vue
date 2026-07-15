@@ -31,9 +31,20 @@
         v-model:filters="filters"
         filterDisplay="menu"
     >
-      <Column header="Name" field="name" sortable />
-      <Column header="External Lims Id" field="externalLimsId" sortable />
-      <Column header="External Project Name" field="externalProjectName" :showFilterMatchModes="false" sortable>
+      <Column header="Name" field="name" :sortable="true" >
+        <template #body="{data}">
+          <span style="width: 22ch; display: block;">
+            {{data.name}}
+          </span>
+        </template>
+      </Column>
+      <Column header="External Lims Id" field="externalLimsId" :sortable="true" />
+      <Column header="External Project Name" field="externalProjectName" :showFilterMatchModes="false" :sortable="true">
+        <template #body="{data}">
+          <span style="width: 54ch; display: block;">
+            {{data.externalProjectName}}
+          </span>
+        </template>
         <template #filter="{ filterModel, filterCallback }">
           <h2>Project Name</h2>
           <Dropdown
@@ -45,12 +56,14 @@
           />
         </template>
       </Column>
-      <Column header="Description" field="description" sortable >
+      <Column header="Description" field="description" :sortable="true" >
         <template #body="{data}">
-          <CommonTruncate :text="data.description" :stop="30" />
+          <span style="width: 40ch; display: block;">
+            <CommonTruncate :text="data.description" :stop="30" />
+          </span>
         </template>
       </Column>
-      <Column header="Owners" field="users" sortable >
+      <Column header="Owners" field="users" :sortable="true">
         <template #body="{data}">
           <Tag v-for="user in data.users">
             {{ fullName(user) }}

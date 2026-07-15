@@ -7,6 +7,7 @@ import java.nio.file.Path;
 public enum FinderBasePath {
 //    sample("/net/nwgc/vol1/data/processed/samples/"),
     mendelian_projects("/net/nwgc/vol1/mendelian_projects/"),
+    gene_om("/net/nwgc/vol2/data/processed/geneom/"),
     sharing("/net/nwgc/vol1/sharing"),
     nobackup("/net/nwgc/vol1/nobackup"),
     techdev("/net/nwgc/vol1/techdev"),

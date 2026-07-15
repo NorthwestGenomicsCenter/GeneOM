@@ -1,6 +1,7 @@
 <template>
   <CommonSubHeaderMenu>
     <template #left>
+      <TechnologyViewSelectorNew @add-view="addView" class="ml-1" />
       <TechnologyViewSelector @add-view="addView" class="ml-1" />
       <Button
           label="Save Layout"
@@ -30,14 +31,13 @@
       </a>
     </template>
     <template #right>
-      Current Position : {{ formatPosition(currentGenomicPosition) }}
+      Current Position : {{ formattedCurrentGenomicPosition }}
     </template>
   </CommonSubHeaderMenu>
   <div v-if="analysis != null && layout != null" :key="route.fullPath">
     <Dialog v-model:visible="resourceTableVisible" modal header="Select Resource" :style="{ width: '90rem' }">
       <ViewerResourceTable :tableData="analysis.resources" />
     </Dialog>
-
     <ClientOnly>
       <GridLayout
           :layout="layout"
@@ -53,14 +53,14 @@
     header="Save Genomic Position"
     v-model:visible="savePositionDialog"
     modal >
-    <CommonSaveGenomicPosition :analysisId="analysisId" v-model:visible="savePositionDialog" />
+    <CommonNotesSaveEditGenomicPosition :analysisId="analysisId" v-model:visible="savePositionDialog" />
   </Dialog>
 
   <Dialog
       header="Restore Genomic Position"
       v-model:visible="restoreSavePositionDialog"
       modal >
-    <CommonRestoreGenomicPosition v-model:visible="restoreSavePositionDialog" :table="analysis.savedPositions" />
+    <CommonNotesRestoreGenomicPosition v-model:visible="restoreSavePositionDialog" :table="analysis.savedPositions" />
   </Dialog>
 
 </template>
@@ -69,11 +69,12 @@
 import { useRoute } from 'vue-router'
 import {computed, ref} from 'vue'
 import TechnologyViewSelector from '~/components/common/TechnologyViewSelector.vue'
-import GridLayout from '~/components/GridLayout.vue'
+import GridLayout from '~/components/grid-layout/GridLayout.vue'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 import {useViewResourcesStore} from "~/composables/useViewResourcesStore";
-import DynamicViewRenderer from "~/components/DynamicViewRenderer.vue";
+import DynamicViewRenderer from "~/components/grid-layout/DynamicViewRenderer.vue";
 import {useGlobalStore} from "~/composables/useGlobal";
+import TechnologyViewSelectorNew from "~/components/common/TechnologyViewSelectorNew.vue";
 
 // The analysis that is being worked on
 const route = useRoute()
@@ -82,7 +83,7 @@ const analysisId = computed(() => route.params.id as string);
 const toast = useToast();
 
 const globalStore = useGlobalStore();
-const { currentGenomicPosition } = storeToRefs(globalStore);
+const { currentGenomicPosition, formattedCurrentGenomicPosition } = storeToRefs(globalStore);
 
 const viewStore = useSampleViewStore();
 const {
@@ -185,9 +186,5 @@ onBeforeUnmount(() => {
 })
 
 const resourceTableVisible = ref<boolean>(false);
-
-const formatPosition = (pos) => {
-  return `${pos.chrom}: ${pos.start}-${pos.end}`
-}
 
 </script>

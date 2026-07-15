@@ -2,7 +2,7 @@ package org.uw.nwgc.multiomics.service.assay_detector.types;
 
 import org.uw.nwgc.multiomics.assay.HiC;
 import org.uw.nwgc.multiomics.assay.igv.Igv;
-import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 
 import java.util.ArrayList;
 import java.util.Arrays;

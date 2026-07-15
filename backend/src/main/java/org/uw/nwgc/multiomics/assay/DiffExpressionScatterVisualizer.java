@@ -4,21 +4,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpression;
-import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpressionChartDTO;
-import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.core.transformer.ServableResource;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 import org.uw.nwgc.multiomics.util.RgbColor;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class DiffExpressionScatterVisualizer implements VizTransformer {
@@ -36,7 +32,8 @@ public class DiffExpressionScatterVisualizer implements VizTransformer {
     }
 
     @Override
-    public Object serveResource(Reader reader, HttpHeaders header) {
+    public Object serveResource(ServableResource servableResource) throws IOException {
+        Reader reader = servableResource.getReader();
         CsvMapper mapper = new CsvMapper();
 
         // Configure schema for TSV (tab-separated with header)

@@ -2,8 +2,9 @@ package org.uw.nwgc.multiomics.assay;
 
 import lombok.Getter;
 import org.uw.nwgc.multiomics.assay.call_peek.CallPeakVisualizer;
+import org.uw.nwgc.multiomics.assay.generic_table.GenericTableVisualizer;
 import org.uw.nwgc.multiomics.assay.igv.Igv;
-import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 
 import java.util.Arrays;
 
@@ -13,7 +14,7 @@ public enum Transformer {
     DiffExpressionScatterVisualizer("Differential Expression Scatter", DiffExpressionVisualizer.class),
     HIC("HiC", HiC.class),
     IGV("IGV", Igv.class),
-    ;
+    GenericTable("Generic Table", GenericTableVisualizer.class);
 
     @Getter
     private String displayName;

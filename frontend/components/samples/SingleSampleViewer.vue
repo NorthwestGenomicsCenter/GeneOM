@@ -23,7 +23,7 @@
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 import TechnologyViewSelector from '~/components/common/TechnologyViewSelector.vue'
-import GridLayout from '~/components/GridLayout.vue'
+import GridLayout from '~/components/grid-layout/GridLayout.vue'
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
 
 const route = useRoute()

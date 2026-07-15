@@ -1,23 +1,16 @@
 <template>
-<!--  <ViewerImportCoordinateFromFile class="ml-1" @uploaded="uploaded"/>-->
   <div>
-    <FileUpload
-        mode="basic"
-        auto
-        url="/api/analysis/import/tabular-data"
-        @upload="uploaded" />
+    <Header
+        :title="tableName"
+        disableToggle
+        @settings="selectDialogVisible = true"
+        @close="removeView(componentKey)"
+    >
+    </Header>
 
-    <div v-if="data !== null">
-  <!--    {{data.columnFilters}}-->
-  <!--    <template v-for="(filter, key) in data.columnFilters">-->
-  <!--      <p>-->
-  <!--        {{key}}: {{filter}}-->
-  <!--      </p>-->
-  <!--    </template>-->
-
-      {{filters}}
+    <div v-if="table !== null">
       <DataTable
-          :value="data.rawValues"
+          :value="table.rawValues"
           stripedRows
           rowHover
           scrollable
@@ -36,21 +29,21 @@
           <InputText v-model="filters['global'].value" />
         </template>
 
-        <template v-for="header in data.columnHeaders">
+        <template v-for="header in table.columnHeaders">
           <Column :header="header" :field="header" sortable>
-            <template #filter="{ filterModel }" v-if="data.columnFilters.hasOwnProperty(header)">
-              <div v-if="data.columnFilters[header].filterType === 'discrete'">
+            <template #filter="{ filterModel }" v-if="table.columnFilters.hasOwnProperty(header)">
+              <div v-if="table.columnFilters[header].filterType === 'discrete'">
                 <MultiSelect
                     v-model="filterModel.value"
-                    :options="data.columnFilters[header].values"
+                    :options="table.columnFilters[header].values"
                     filter
                     placeholder="Any"/>
               </div>
-              <div v-if="data.columnFilters[header].filterType === 'numeric'">
+              <div v-if="table.columnFilters[header].filterType === 'numeric'">
                 <CommonMinMaxSliderFilter
                     v-model="filterModel.value"
-                    :minValue="data.columnFilters[header].min"
-                    :maxValue="data.columnFilters[header].max"
+                    :minValue="table.columnFilters[header].min"
+                    :maxValue="table.columnFilters[header].max"
                 />
               </div>
             </template>
@@ -63,20 +56,72 @@
     </div>
   </div>
   <ContextMenu ref="cm" :model="menuModel" @hide="selectedRow = null" />
+
+  <Dialog header="Select Samples" v-model:visible="selectDialogVisible" modal>
+    <ViewerResourceTable
+        :componentKey="componentKey"
+        :visualizers="['generic-table']"
+        v-model:visible="selectDialogVisible"
+    />
+  </Dialog>
+
+
 </template>
 
 <script setup lang="ts">
 import {FilterMatchMode, FilterOperator, FilterService} from "@primevue/core";
+import Header from "~/components/common/Header.vue";
+import {useSampleViewStore} from "~/composables/useSampleViewStore";
+import {useGlobalStore} from "~/composables/useGlobal";
 
 defineOptions({
   name: 'GenericTable'
 })
 
-const data = ref<ParsedGenomicDataDTO | null>(null);
-const uploaded = (event) => {
-  data.value = JSON.parse(event.xhr.response);
-  updateFilters();
+const props = defineProps<{
+  componentKey: any
+}>();
+
+const viewStore = useSampleViewStore();
+const { removeView } = viewStore;
+
+const table = ref<ParsedGenomicDataDTO | null>(null);
+
+const global = useGlobalStore();
+const toast = useToast();
+
+// -- Select Resource for the Table -------------------------------------------
+const selectDialogVisible = ref<boolean>(false);
+const resourceStore = useViewResourcesStore();
+const {selectedResources, registerConfigCallback, unregisterConfigCallback} = resourceStore;
+const resources = selectedResources(props.componentKey);
+
+const updateResourceData = async () => {
+  table.value = {} as ParsedGenomicDataDTO;
+  if (resources.value.length == 0) return
+
+  try {
+    const res = await useClientApi(`/omic/visualize/transform/GenericTableVisualizer/${resources.value[0].resourceId}`);
+    table.value = res.body;
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Unable to Retrieve Resource",
+      detail: `Trying to find resource for this tabular Data. \n\n ${error}`,
+      life: 10_000
+    })
+  }
 }
+
+watch(resources, updateResourceData, {deep: true, immediate: true})
+
+const tableName = computed(() => {
+  if (table.value.displayName !== undefined) {
+    return table.value.displayName;
+  }
+
+  return "Table";
+})
 
 const updateFilters = () => {
   const newFilters = {
@@ -116,9 +161,15 @@ const menuModel = ref([
 const navigateIgv = (selectedRow) => {
   const row = selectedRow.value;
 
-  alert(row.nav_genomic_coords)
+  const position : GenomicPosition = {
+    chr: row.nav_genomic_coords.chromosome,
+    start: row.nav_genomic_coords.start,
+    end: row.nav_genomic_coords.end
+  }
 
-  // global.navigate(position);
+  console.table(row.nav_genomic_coords)
+  console.table (position)
+  global.navigate(position);
 }
 
 const selectedRow = ref();

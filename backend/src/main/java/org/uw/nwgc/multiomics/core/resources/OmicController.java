@@ -17,13 +17,14 @@ import org.uw.nwgc.multiomics.core.resources.dto.ImportOmicsDirectoryDTO;
 import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.SampleService;
+import org.uw.nwgc.multiomics.core.transformer.ServableResource;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 import org.uw.nwgc.multiomics.service.assay_detector.AssayDetectionService;
 import org.uw.nwgc.multiomics.service.assay_detector.types.AssayDetectionResult;
 import org.uw.nwgc.multiomics.service.assay_detector.types.AssayType;
 import org.uw.nwgc.multiomics.util.FileUtil;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -153,8 +154,9 @@ public class OmicController {
         final String TEST_FILE_PATH = "/net/nwgc/vol1/techdev/multiomics-browser/carbone_diff_expression.csv";
 
         VizTransformer transformer = new DiffExpressionScatterVisualizer();
-        try (Reader fileReader = FileUtil.readResourcePath(TEST_FILE_PATH)) {
-            return ResponseEntity.ok(transformer.serveResource(fileReader, header));
+        try {
+            ServableResource servableResource = new ServableResource(() -> FileUtil.resourcePathInputStream(TEST_FILE_PATH), Path.of(TEST_FILE_PATH), header);
+            return ResponseEntity.ok(transformer.serveResource(servableResource));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -188,8 +190,9 @@ public class OmicController {
             return ResponseEntity.badRequest().body("Unable to find transformer");
         }
 
-        try (Reader fileReader = FileUtil.readResourcePath(resource.getPath())) {
-            return ResponseEntity.ok(transformer.serveResource(fileReader, header));
+        try {
+            ServableResource servableResource = new ServableResource(() -> FileUtil.resourcePathInputStream(resource.getPath()), Path.of(resource.getPath()), header);
+            return ResponseEntity.ok(transformer.serveResource(servableResource));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -211,8 +214,9 @@ public class OmicController {
                 .getDeclaredConstructor()
                 .newInstance();
 
-        try (Reader fileReader = FileUtil.readResourcePath(resource.getPath())) {
-            return ResponseEntity.ok(transformer.serveResource(fileReader, header));
+        try {
+            ServableResource servableResource = new ServableResource(() -> FileUtil.resourcePathInputStream(resource.getPath()), Path.of(resource.getPath()), header);
+            return ResponseEntity.ok(transformer.serveResource(servableResource));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -220,17 +224,12 @@ public class OmicController {
 
     @GetMapping("/validate/sample/{sampleId}")
     public ResponseEntity<?> validateSampleResources(@PathVariable UUID sampleId) throws
-            InstantiationException,
-            IllegalAccessException,
-            NoSuchMethodException,
-            InvocationTargetException,
             IOException {
         Optional<List<Sample>> samplesQuery = sampleService.findByIds(List.of(sampleId));
         if (samplesQuery.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        System.out.println("Trying to validate sample resources");
         Sample sample = samplesQuery.get().getFirst();
 
         for (OmicResource resource : sample.getOmicResources()) {

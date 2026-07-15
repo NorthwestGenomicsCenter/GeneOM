@@ -9,6 +9,7 @@ import org.uw.nwgc.multiomics.core.resources.dto.AddOmicsResourceDTO;
 import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 import org.uw.nwgc.multiomics.service.assay_detector.types.DetectedFile;
 
 import java.util.ArrayList;

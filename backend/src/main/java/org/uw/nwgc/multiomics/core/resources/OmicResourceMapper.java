@@ -5,6 +5,7 @@ import org.uw.nwgc.multiomics.core.resources.dto.OmicResourceDTO;
 import org.uw.nwgc.multiomics.core.sample.Sample;
 import org.uw.nwgc.multiomics.core.sample.dto.SampleDTO;
 import org.uw.nwgc.multiomics.core.tag.ontology.Tissue;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -6,12 +6,14 @@ import java.util.*;
 
 @Data
 public class ParsedGenomicDataDTO {
+    private String displayName;
     private List<String> columnHeaders;
     private Map<String, String> dataTypes;
     private Map<String, Object> columnFilters;
-    private List<Map<String, String>> rawValues;
+    private List<Map<String, Object>> rawValues;
 
-    public ParsedGenomicDataDTO(List<GenomicRecord> records) {
+    public ParsedGenomicDataDTO(String displayName, List<GenomicRecord> records) {
+        this.displayName = displayName;
         init(records);
     }
 
@@ -32,8 +34,8 @@ public class ParsedGenomicDataDTO {
 
         this.rawValues = records.stream()
                 .map(record -> {
-                    Map<String, String> values = record.getRawValues();
-                    values.put("nav_genomic_coords", record.getCoordinate().toString());
+                    Map<String, Object> values = record.getRawValues();
+                    values.put("nav_genomic_coords", record.getCoordinate().orElse(null));
                     return values;
                 })
 //                .limit(500)
@@ -42,7 +44,8 @@ public class ParsedGenomicDataDTO {
         for (String column : columnHeaders) {
             List<String> values = records.stream()
                     .map(r -> r.getRawValues().get(column))
-                    .filter(v -> v != null && !v.isBlank())
+                    .filter(v -> v instanceof String && !((String) v).isBlank())
+                    .map(v -> (String) v)
                     .toList();
 
             if (isNumericColumn(values)) {

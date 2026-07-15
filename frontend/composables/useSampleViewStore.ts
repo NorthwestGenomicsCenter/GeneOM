@@ -1,6 +1,15 @@
 import {computed, onMounted, ref} from "vue";
-import DynamicViewRenderer from "~/components/DynamicViewRenderer.vue";
+import DynamicViewRenderer from "~/components/grid-layout/DynamicViewRenderer.vue";
 import {useRoute} from "#vue-router";
+
+export type LayoutPosition = {
+	i: string,
+	x: string,
+	y: string,
+	w: string,
+	h: string,
+	viewName: string
+}
 
 export const useSampleViewStore = defineStore('sampleViewStore', () => {
 
@@ -32,13 +41,14 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 	}
 
 	// Compute layout from selectedViews
-	const layout = computed(() => {
+	const layout = computed<LayoutPosition[]>(() => {
 		return _selectedViews.value.map(view => ({
 			i: view.id,
 			x: view.x,
 			y: view.y,
 			w: view.w,
-			h: view.h
+			h: view.h,
+			viewName: view.viewName
 		}))
 	})
 	
@@ -79,7 +89,7 @@ export const useSampleViewStore = defineStore('sampleViewStore', () => {
 			x: 0,
 			y: 0,
 			w: 40,
-			h: 15
+			h: 15,
 		})
 	}
 	

@@ -22,7 +22,7 @@ public class GenomicRecord {
     private final String transcriptId;
     private final String variantId;                 // rsID, HGVS, etc.
     private final String strand;
-    private final Map<String, String> rawValues;    // All original column→value pairs
+    private final Map<String, Object> rawValues;    // All original column→value pairs
     private final Map<String, String> parseWarnings;// columnName → warning message
 
     private GenomicRecord(Builder builder) {
@@ -44,7 +44,7 @@ public class GenomicRecord {
     public Optional<String> getTranscriptId()           { return Optional.ofNullable(transcriptId); }
     public Optional<String> getVariantId()              { return Optional.ofNullable(variantId); }
     public Optional<String> getStrand()                 { return Optional.ofNullable(strand); }
-    public Map<String, String> getRawValues()           { return rawValues; }
+    public Map<String, Object> getRawValues()           { return rawValues; }
     public Map<String, String> getParseWarnings()       { return parseWarnings; }
 
     /** True if the row produced any usable genomic data. */

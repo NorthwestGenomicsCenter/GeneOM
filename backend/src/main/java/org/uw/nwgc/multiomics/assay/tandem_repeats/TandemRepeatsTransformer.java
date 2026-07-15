@@ -3,13 +3,13 @@ package org.uw.nwgc.multiomics.assay.tandem_repeats;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.uw.nwgc.multiomics.assay.differential_expression.DifferentialExpression;
-import org.uw.nwgc.multiomics.core.resources.VizTransformer;
+import org.uw.nwgc.multiomics.core.transformer.ServableResource;
+import org.uw.nwgc.multiomics.core.transformer.VizTransformer;
 
+import java.io.IOException;
 import java.io.Reader;
-import java.nio.file.Path;
 import java.util.List;
 
 @Component
@@ -21,7 +21,8 @@ public class TandemRepeatsTransformer implements VizTransformer {
     }
 
     @Override
-    public Object serveResource(Reader reader, HttpHeaders header) {
+    public Object serveResource(ServableResource servableResource) throws IOException {
+        Reader reader = servableResource.getReader();
         CsvMapper mapper = new CsvMapper();
 
         // Configure schema for TSV (tab-separated with header)
@@ -51,6 +52,6 @@ public class TandemRepeatsTransformer implements VizTransformer {
 
     @Override
     public boolean validateResource(Reader reader, String pathString) {
-        return serveResource(reader, null) != null;
+        return false;
     }
 }
