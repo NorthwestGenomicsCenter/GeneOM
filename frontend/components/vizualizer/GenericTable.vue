@@ -1,18 +1,14 @@
 <template>
   <div>
     <Header
-        title="Table"
+        :title="tableName"
         disableToggle
         @settings="selectDialogVisible = true"
         @close="removeView(componentKey)"
     >
     </Header>
 
-    {{ resources }}
-    {{ table }}
     <div v-if="table !== null">
-
-<!--      {{filters}}-->
       <DataTable
           :value="table.rawValues"
           stripedRows
@@ -76,6 +72,7 @@
 import {FilterMatchMode, FilterOperator, FilterService} from "@primevue/core";
 import Header from "~/components/common/Header.vue";
 import {useSampleViewStore} from "~/composables/useSampleViewStore";
+import {useGlobalStore} from "~/composables/useGlobal";
 
 defineOptions({
   name: 'GenericTable'
@@ -90,6 +87,9 @@ const { removeView } = viewStore;
 
 const table = ref<ParsedGenomicDataDTO | null>(null);
 
+const global = useGlobalStore();
+const toast = useToast();
+
 // -- Select Resource for the Table -------------------------------------------
 const selectDialogVisible = ref<boolean>(false);
 const resourceStore = useViewResourcesStore();
@@ -101,19 +101,27 @@ const updateResourceData = async () => {
   if (resources.value.length == 0) return
 
   try {
-    table.value = await useClientApi(`/omic/visualize/transform/GenericTableVisualizer/${resources.value[0].resourceId}`);
+    const res = await useClientApi(`/omic/visualize/transform/GenericTableVisualizer/${resources.value[0].resourceId}`);
+    table.value = res.body;
   } catch (error) {
-  //   toast.add({
-  //     severity: "error",
-  //     summary: "Unable to Retrieve Resource",
-  //     detail: `Trying to find resource for Differential Expression Table. \n\n ${error}`,
-  //     life: 10_000
-  //   })
-    console.warn("Unable to access genomic data")
+    toast.add({
+      severity: "error",
+      summary: "Unable to Retrieve Resource",
+      detail: `Trying to find resource for this tabular Data. \n\n ${error}`,
+      life: 10_000
+    })
   }
 }
 
 watch(resources, updateResourceData, {deep: true, immediate: true})
+
+const tableName = computed(() => {
+  if (table.value.displayName !== undefined) {
+    return table.value.displayName;
+  }
+
+  return "Table";
+})
 
 const updateFilters = () => {
   const newFilters = {
@@ -153,9 +161,15 @@ const menuModel = ref([
 const navigateIgv = (selectedRow) => {
   const row = selectedRow.value;
 
-  alert(row.nav_genomic_coords)
+  const position : GenomicPosition = {
+    chr: row.nav_genomic_coords.chromosome,
+    start: row.nav_genomic_coords.start,
+    end: row.nav_genomic_coords.end
+  }
 
-  // global.navigate(position);
+  console.table(row.nav_genomic_coords)
+  console.table (position)
+  global.navigate(position);
 }
 
 const selectedRow = ref();

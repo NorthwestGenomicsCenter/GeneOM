@@ -26,7 +26,8 @@ public class GenericTableVisualizer implements VizTransformer {
         for (SpreadsheetReader.Format fmt : SpreadsheetReader.Format.values()) {
             System.out.println("Trying to Read Format " + fmt.name());
             try (InputStream is = resource.streamSource().open(); GenomicFileParser parser = GenomicFileParser.fromStream(is, fmt)) {
-                ParsedGenomicDataDTO pd = new ParsedGenomicDataDTO(parser.parseRecords());
+                String displayName = resource.path().getFileName().toString();
+                ParsedGenomicDataDTO pd = new ParsedGenomicDataDTO(displayName, parser.parseRecords());
                 return ResponseEntity.ok(pd);
             } catch (Exception e) {
                 e.printStackTrace();

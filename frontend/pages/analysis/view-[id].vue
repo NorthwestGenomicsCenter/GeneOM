@@ -31,7 +31,7 @@
       </a>
     </template>
     <template #right>
-      Current Position : {{ formatPosition(currentGenomicPosition) }}
+      Current Position : {{ formattedCurrentGenomicPosition }}
     </template>
   </CommonSubHeaderMenu>
   <div v-if="analysis != null && layout != null" :key="route.fullPath">
@@ -53,14 +53,14 @@
     header="Save Genomic Position"
     v-model:visible="savePositionDialog"
     modal >
-    <CommonSaveGenomicPosition :analysisId="analysisId" v-model:visible="savePositionDialog" />
+    <CommonNotesSaveEditGenomicPosition :analysisId="analysisId" v-model:visible="savePositionDialog" />
   </Dialog>
 
   <Dialog
       header="Restore Genomic Position"
       v-model:visible="restoreSavePositionDialog"
       modal >
-    <CommonRestoreGenomicPosition v-model:visible="restoreSavePositionDialog" :table="analysis.savedPositions" />
+    <CommonNotesRestoreGenomicPosition v-model:visible="restoreSavePositionDialog" :table="analysis.savedPositions" />
   </Dialog>
 
 </template>
@@ -83,7 +83,7 @@ const analysisId = computed(() => route.params.id as string);
 const toast = useToast();
 
 const globalStore = useGlobalStore();
-const { currentGenomicPosition } = storeToRefs(globalStore);
+const { currentGenomicPosition, formattedCurrentGenomicPosition } = storeToRefs(globalStore);
 
 const viewStore = useSampleViewStore();
 const {
@@ -186,9 +186,5 @@ onBeforeUnmount(() => {
 })
 
 const resourceTableVisible = ref<boolean>(false);
-
-const formatPosition = (pos) => {
-  return `${pos.chrom}: ${pos.start}-${pos.end}`
-}
 
 </script>

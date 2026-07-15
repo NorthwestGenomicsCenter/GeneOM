@@ -10,7 +10,7 @@
     <Textarea v-model="notes" class="notes-text-area pb-8"/>
   </section>
   <section class="flex justify-end">
-    <Button label="Save" @click="save"/>
+    <Button :label="saveLabel" @click="save"/>
   </section>
 </template>
 
@@ -21,7 +21,8 @@ const {currentGenomicPosition: pos} = storeToRefs(global)
 const toast = useToast();
 
 const props = defineProps<{
-  analysisId: string
+  analysisId?: string,
+  genomicPositionId?: string,
 }>();
 
 const visible = defineModel<boolean>("visible");
@@ -49,6 +50,8 @@ const save = async () => {
     toast.add({severity: "error", summary: "Unable to Save", detail: `Unable to save\n${error}`, life: 8000})
   }
 }
+
+const saveLabel = computed(() => props.genomicPositionId === undefined ? 'Save' : "Update")
 
 </script>
 

@@ -45,6 +45,24 @@ export const useGlobalStore = defineStore('globalStore', () => {
 			globalNav.value.genes = [...globalNav.value.genes]
 		}
 	}
+
+	const formattedCurrentGenomicPosition = computed(() => {
+		const pos = currentGenomicPosition.value;
+		if (pos == null || pos.chrom == null || pos.start == null || pos.end == null) {
+			return "hello";
+		}
+
+		const formatter = (num: number|string) => {
+			if (typeof num === "string") num = Number(num);
+
+			return new Intl.NumberFormat("en-us", {
+				minimumFractionDigits: 0,
+				maximumFractionDigits: 0
+			}).format(num);
+		};
+
+		return `${pos.chrom}: ${formatter(pos.start)}-${formatter(pos.end)}`
+	})
 	
 	return {
 		gene,
@@ -55,5 +73,6 @@ export const useGlobalStore = defineStore('globalStore', () => {
 		addGene,
         navigate,
 		setCurrentGenomicPosition,
+		formattedCurrentGenomicPosition
 	}
 })

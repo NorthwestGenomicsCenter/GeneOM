@@ -236,7 +236,7 @@ public class AnalysisController {
     public ResponseEntity<?> importTabularDataFile(@RequestParam("null") MultipartFile file) throws IOException {
         try (GenomicFileParser parser = GenomicFileParser.from(file)) {
 
-            ParsedGenomicDataDTO pd = new ParsedGenomicDataDTO(parser.parseRecords());
+            ParsedGenomicDataDTO pd = new ParsedGenomicDataDTO(file.getName(), parser.parseRecords());
             return ResponseEntity.ok(pd);
         }
     }
