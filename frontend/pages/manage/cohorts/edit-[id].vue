@@ -52,10 +52,10 @@
         :loading="loading"
         dataKey="id"
     >
-      <Column field="externalLimsId" header="External Sample ID" sortable/>
-      <Column field="description" header="Description" sortable/>
-      <Column field="externalProjectName" header="External Project" sortable/>
-      <Column field="files" header="Data Files" sortable>
+      <Column field="externalLimsId" header="External Sample ID" :sortable="true" />
+      <Column field="description" header="Description" :sortable="true" />
+      <Column field="externalProjectName" header="External Project" :sortable="true" />
+      <Column field="files" header="Data Files" :sortable="true" >
         <template #body="{data}">
           {{ data.omicResources?.length }}
         </template>
@@ -70,17 +70,27 @@
           <Button
             label="Add Sample"
             icon="pi pi-plus"
-            @click="showAddSampleDialog = true" />
+            @click="showAddSampleDialog" />
         </div>
       </template>
     </DataTable>
 
 
-    <Dialog v-model:visible="showAddSampleDialog" header="Add Sample" modal>
+    <Dialog
+        v-model:visible="addSampleDialogVisible"
+        header="Add Sample"
+        style="width: 100em;"
+        modal>
       <form @submit.prevent="addSample">
-        <CommonSamplesTable @update="handleUpdate" />
+        <CommonSamplesTable
+            :samples="allSamples"
+            v-model:selection="selectedSamples">
+          <template #left>
+            <Column selectionMode="multiple" headerStyle="width: 3rem" />
+          </template>
+        </CommonSamplesTable>
         <div class="mt-4 flex justify-end gap-2">
-          <Button label="Cancel" severity="secondary" @click="showAddSampleDialog = false" />
+          <Button label="Cancel" severity="secondary" @click="addSampleDialogVisible = false" />
           <Button label="Add" type="submit" />
         </div>
       </form>
@@ -90,9 +100,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
+import {ref} from 'vue'
+import {useRoute} from 'vue-router'
+import {useToast} from 'primevue/usetoast'
 import type {FileUploadBeforeUploadEvent, FileUploadErrorEvent} from "primevue";
 
 const route = useRoute()
@@ -104,7 +114,19 @@ if (baseUrl.value === "/") {
 }
 
 const cohortId = route.params.id as string
-const showAddSampleDialog = ref(false)
+
+// -- Add Sample Dialog -------------------------------------------------------
+const addSampleDialogVisible = ref(false)
+const showAddSampleDialog = async () => {
+  try {
+    allSamples.value = await useClientApi<SampleDTO[]>("/sample/all");
+    addSampleDialogVisible.value = true;
+  } catch (error) {
+    toast.add({severity: "error", summary: "Unable to Retrieve Samples List", detail: `${error}`, life: 8000})
+  }
+}
+const allSamples = ref<SampleDTO[]>([]);
+const selectedSamples = ref<SampleDTO[]>([]);
 
 // Load the cohort information
 const { data: cohort, refresh } = await useApi<CohortDTO>(`/cohort/${cohortId}`)
@@ -143,10 +165,6 @@ const loadSamples = async () => {
 await loadSamples();
 
 // Select the new samples that are part of this cohort
-const selectedSamples = ref<SampleDTO[]>([]);
-const handleUpdate = (samples: SampleDTO[]) => {
-  selectedSamples.value = samples
-}
 const addSample = async () => {
   try {
     const requestBody : AddCohortSampleDTO = {
@@ -159,7 +177,7 @@ const addSample = async () => {
       body: requestBody,
     })
     toast.add({ severity: 'success', summary: 'Success', detail: 'Sample added', life: 3000 })
-    showAddSampleDialog.value = false
+    addSampleDialogVisible.value = false
     await loadSamples()
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to add sample', life: 3000 })
@@ -176,7 +194,7 @@ const updateCohort = async () => {
 
     if (res.error.value == null) {
       toast.add({ severity: 'success', summary: 'Success', detail: 'Updated the cohort data', life: 3000 })
-      await loadCohort()
+      await refresh()
     } else {
       toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update cohort', life: 3000 })
     }
@@ -218,8 +236,5 @@ h1 {
 
 .cohort-editor {
   padding: 2rem;
-}
-.controls {
-  margin-bottom: 1rem;
 }
 </style>
