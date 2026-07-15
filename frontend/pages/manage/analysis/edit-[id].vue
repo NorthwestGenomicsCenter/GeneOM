@@ -102,7 +102,7 @@
             raised
             label="Add Sample"
             icon="pi pi-plus"
-            @click="showAddSampleDialog = true" />
+            @click="showAddSampleDialog" />
           <Button
               severity="secondary"
               outlined
