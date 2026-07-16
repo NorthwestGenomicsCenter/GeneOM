@@ -19,7 +19,8 @@
     <!-- Main Content with 2 Columns -->
     <main class="main-layout">
       <NuxtLoadingIndicator />
-      <nav class="sidebar">
+      <div class="sidebar-trigger"></div>
+      <nav class="sidebar" :class="{ collapsed: !isNavBarOpen }">
         <Multiomics-Menu/>
       </nav>
 
@@ -117,7 +118,7 @@ body {
   font-family: "Roboto", sans-serif;
   font-weight: 400;
   font-style: normal;
-  margin: 0px;
+  margin: 0;
   min-height: 100% !important;
 
   /* ── Primary ── */
@@ -258,20 +259,58 @@ html, body {
 }
 
 .sidebar {
+  --sidebar-width: 12em;
+  --sidebar-peek: 3em;
+
   background-color: #fff;
   position: sticky;
   top: var(--header-height);
   height: fit-content;
   align-self: start;
-  flex: 0 0 14em;   /* fixed 14em width, no grow/shrink */
+
+  flex: 0 0 var(--sidebar-width);
+  width: var(--sidebar-width);
+  overflow: hidden;
+  white-space: nowrap;
+
+  display: flex;
+  justify-content: flex-end;
+
+  transition:
+      flex-basis 0.3s ease-in-out,
+      width 0.3s ease-in-out,
+      opacity 0.25s ease-in-out,
+      padding 0.3s ease-in-out;
+}
+
+.sidebar > * {
+  flex: 0 0 var(--sidebar-width);
+  width: var(--sidebar-width);
+}
+
+.sidebar.collapsed {
+  flex-basis: 0;
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.sidebar-trigger:hover ~ .sidebar.collapsed,
+.sidebar.collapsed:hover {
+  flex-basis: var(--sidebar-peek);
+  width: var(--sidebar-peek);
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0.1s;
 }
 
 .main-content {
   background-color: #f0f0f0;
-  padding: 0;
+  padding: 0.5em;
   min-width: 0;
   overflow: hidden;
-  flex: 1 1 0;      /* takes remaining space (replaces the 1fr column) */
+  flex: 1 1 0;
 }
 
 /* Footer styles */
@@ -293,6 +332,4 @@ html, body {
   font-size: x-large;
   cursor: pointer;
 }
-
-
 </style>

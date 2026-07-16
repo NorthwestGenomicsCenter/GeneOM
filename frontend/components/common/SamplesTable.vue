@@ -12,6 +12,9 @@
       filterDisplay="menu"
       v-bind="$attrs"
   >
+    <template #header>
+      <InputText v-model="filters.global.value" placeholder="Filter..." />
+    </template>
     <slot name="left" />
 
     <Column header="Name" field="name" :sortable="true" >

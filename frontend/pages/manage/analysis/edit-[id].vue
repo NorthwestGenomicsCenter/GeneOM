@@ -191,7 +191,7 @@ const allSamples = ref<SampleDTO[]>([]);
 const selectedSamples = ref<SampleDTO[]>([]);
 
 // Load the analysis information
-const { data: analysis, refresh } = useApi<AnalysisEditDTO>(`/analysis/edit/${analysisId}`, {
+const { data: analysis, refresh } = useApi<AnalysisEditDTO, AnalysisEditDTO>(`/analysis/edit/${analysisId}`, {
   default: () => ({} as AnalysisEditDTO)
 })
 
