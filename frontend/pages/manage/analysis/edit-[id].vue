@@ -102,7 +102,7 @@
             raised
             label="Add Sample"
             icon="pi pi-plus"
-            @click="showAddSampleDialog = true" />
+            @click="showAddSampleDialog" />
           <Button
               severity="secondary"
               outlined
@@ -112,15 +112,15 @@
               @click="addCohort" />
         </div>
       </template>
-      <Column field="externalLimsId" header="External Sample ID" sortable/>
-      <Column field="description" header="Description" sortable/>
-      <Column field="externalProjectName" header="External Project" sortable/>
-      <Column field="files" header="Data Files" sortable>
+      <Column field="externalLimsId" header="External Sample ID" :sortable="true" />
+      <Column field="description" header="Description" :sortable="true" />
+      <Column field="externalProjectName" header="External Project" :sortable="true" />
+      <Column field="files" header="Data Files" :sortable="true">
         <template #body="{data}">
           {{ data.omicResources?.length }}
         </template>
       </Column>
-      <Column header="Delete" sortable>
+      <Column header="Delete" :sortable="true">
         <template #body="{data}">
           <em class="pi pi-times" @click="confirmRemoveSample($event, data)"/>
         </template>
@@ -132,12 +132,19 @@
       />
     </DataTable>
 
-    <Dialog v-model:visible="showAddSampleDialog" header="Add Sample" modal style="max-width: 90vw;">
+    <Dialog v-model:visible="addSampleDialogVisible" header="Add Sample" modal style="max-width: 90vw;">
       <ClientOnly>
         <form @submit.prevent="addSample">
-          <CommonSamplesTable @update="handleUpdate" />
+          <CommonSamplesTable
+              :samples="allSamples"
+              v-model:selection="selectedSamples">
+            <template #left>
+              <Column selectionMode="multiple" headerStyle="width: 3rem" />
+            </template>
+          </CommonSamplesTable>
+<!--          <CommonSamplesTable @update="handleUpdate" />-->
           <div class="mt-4 flex justify-end gap-2">
-            <Button label="Cancel" severity="secondary" @click="showAddSampleDialog = false" />
+            <Button label="Cancel" severity="secondary" @click="addSampleDialogVisible = false" />
             <Button label="Add" type="submit" />
           </div>
         </form>
@@ -169,10 +176,22 @@ const route = useRoute()
 const toast = useToast()
 
 const analysisId = route.params.id as string
-const showAddSampleDialog = ref(false)
+
+// -- Add Sample Dialog -------------------------------------------------------
+const addSampleDialogVisible = ref(false)
+const showAddSampleDialog = async () => {
+  try {
+    allSamples.value = await useClientApi<SampleDTO[]>("/sample/all");
+    addSampleDialogVisible.value = true;
+  } catch (error) {
+    toast.add({severity: "error", summary: "Unable to Retrieve Samples List", detail: `${error}`, life: 8000})
+  }
+}
+const allSamples = ref<SampleDTO[]>([]);
+const selectedSamples = ref<SampleDTO[]>([]);
 
 // Load the analysis information
-const { data: analysis, refresh } = useApi<AnalysisEditDTO>(`/analysis/edit/${analysisId}`, {
+const { data: analysis, refresh } = useApi<AnalysisEditDTO, AnalysisEditDTO>(`/analysis/edit/${analysisId}`, {
   default: () => ({} as AnalysisEditDTO)
 })
 
@@ -205,11 +224,6 @@ const createCustomReference = async () => {
 const loading = ref(false)
 
 // Select the new samples that are part of this cohort
-const selectedSamples = ref<SampleDTO[]>([]);
-const handleUpdate = (samples: SampleDTO[]) => {
-  selectedSamples.value = samples
-}
-
 const addSample = async () => {
   try {
     const requestBody : AddAnalysisSampleDTO = {
@@ -223,7 +237,7 @@ const addSample = async () => {
     })
     toast.add({ severity: 'success', summary: 'Success', detail: 'Sample added', life: 3000 })
 
-    showAddSampleDialog.value = false
+    addSampleDialogVisible.value = false
     await refresh()
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to add sample', life: 3000 })
@@ -329,7 +343,7 @@ const addCohort = async () => {
     cohortId: cohortId
   }
 
-  const res = await useClientApi(`/analysis/add-cohort`,{
+  await useClientApi(`/analysis/add-cohort`,{
     method: 'POST',
     body: dto
   })
@@ -344,7 +358,7 @@ const addUsers = async () => {
   };
 
   try {
-    const res = await useClientApi("/analysis/add/users", {
+    await useClientApi("/analysis/add/users", {
       method: 'POST',
       body: body
     })
@@ -365,9 +379,6 @@ const addUsers = async () => {
 .cohort-editor {
   margin: 1rem;
   padding: 2rem;
-}
-.controls {
-  margin-bottom: 1rem;
 }
 
 .page-title {

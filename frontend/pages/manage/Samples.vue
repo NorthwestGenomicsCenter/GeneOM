@@ -19,63 +19,71 @@
             @click="importSamples" />
       </div>
     </div>
-    <DataTable
-        :value="samples"
-        stripedRows
-        rowHover
-        scrollable scrollHeight="400px" :virtualScrollerOptions="{ itemSize: 44 }"
-        sort-field="name"
-        :sort-order="1"
-        :rows="10"
-        dataKey="id"
-        v-model:filters="filters"
-        filterDisplay="menu"
-    >
-      <Column header="Name" field="name" :sortable="true" >
-        <template #body="{data}">
-          <span style="width: 22ch; display: block;">
-            {{data.name}}
-          </span>
-        </template>
-      </Column>
-      <Column header="External Lims Id" field="externalLimsId" :sortable="true" />
-      <Column header="External Project Name" field="externalProjectName" :showFilterMatchModes="false" :sortable="true">
-        <template #body="{data}">
-          <span style="width: 54ch; display: block;">
-            {{data.externalProjectName}}
-          </span>
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <h2>Project Name</h2>
-          <Dropdown
-              v-model="filterModel.value"
-              :options="uniqueProjectNames"
-              placeholder="All"
-              showClear
-              class="w-full"
-          />
-        </template>
-      </Column>
-      <Column header="Description" field="description" :sortable="true" >
-        <template #body="{data}">
-          <span style="width: 40ch; display: block;">
-            <CommonTruncate :text="data.description" :stop="30" />
-          </span>
-        </template>
-      </Column>
-      <Column header="Owners" field="users" :sortable="true">
-        <template #body="{data}">
-          <Tag v-for="user in data.users">
-            {{ fullName(user) }}
-          </Tag>
-        </template>
-      </Column>
-      <Column header="edit" >
+    <CommonSamplesTable
+        :samples="samples">
+      <Column header="edit" >-->
         <template #body="{data}">
           <NuxtLink :to="`/manage/samples/edit/${data.id}`">Edit</NuxtLink>
         </template>
       </Column>
-    </DataTable>
+    </CommonSamplesTable>
+<!--    <DataTable-->
+<!--        :value="samples"-->
+<!--        stripedRows-->
+<!--        rowHover-->
+<!--        scrollable scrollHeight="400px" :virtualScrollerOptions="{ itemSize: 44 }"-->
+<!--        sort-field="name"-->
+<!--        :sort-order="1"-->
+<!--        :rows="10"-->
+<!--        dataKey="id"-->
+<!--        v-model:filters="filters"-->
+<!--        filterDisplay="menu"-->
+<!--    >-->
+<!--      <Column header="Name" field="name" :sortable="true" >-->
+<!--        <template #body="{data}">-->
+<!--          <span style="width: 22ch; display: block;">-->
+<!--            {{data.name}}-->
+<!--          </span>-->
+<!--        </template>-->
+<!--      </Column>-->
+<!--      <Column header="External Lims Id" field="externalLimsId" :sortable="true" />-->
+<!--      <Column header="External Project Name" field="externalProjectName" :showFilterMatchModes="false" :sortable="true">-->
+<!--        <template #body="{data}">-->
+<!--          <span style="width: 54ch; display: block;">-->
+<!--            {{data.externalProjectName}}-->
+<!--          </span>-->
+<!--        </template>-->
+<!--        <template #filter="{ filterModel, filterCallback }">-->
+<!--          <h2>Project Name</h2>-->
+<!--          <Dropdown-->
+<!--              v-model="filterModel.value"-->
+<!--              :options="uniqueProjectNames"-->
+<!--              placeholder="All"-->
+<!--              showClear-->
+<!--              class="w-full"-->
+<!--          />-->
+<!--        </template>-->
+<!--      </Column>-->
+<!--      <Column header="Description" field="description" :sortable="true" >-->
+<!--        <template #body="{data}">-->
+<!--          <span style="width: 40ch; display: block;">-->
+<!--            <CommonTruncate :text="data.description" :stop="30" />-->
+<!--          </span>-->
+<!--        </template>-->
+<!--      </Column>-->
+<!--      <Column header="Owners" field="users" :sortable="true">-->
+<!--        <template #body="{data}">-->
+<!--          <Tag v-for="user in data.users">-->
+<!--            {{ fullName(user) }}-->
+<!--          </Tag>-->
+<!--        </template>-->
+<!--      </Column>-->
+<!--      <Column header="edit" >-->
+<!--        <template #body="{data}">-->
+<!--          <NuxtLink :to="`/manage/samples/edit/${data.id}`">Edit</NuxtLink>-->
+<!--        </template>-->
+<!--      </Column>-->
+<!--    </DataTable>-->
   </div>
 
 <!--  <SampleChip :sample="samples[0]" />-->
@@ -100,7 +108,6 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import {FilterMatchMode} from "@primevue/core";
-import SampleChip from '~/components/samples/SampleChip.vue';
 import ImportExternalData from "~/pages/import/ImportExternalData.vue";
 import CreateNewSample from "~/components/samples/CreateNewSample.vue";
 
@@ -154,15 +161,5 @@ const fullName = (user : UserDTO) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-}
-
-.table-header {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.confirmation-content {
-  display: flex;
-  align-items: center;
 }
 </style>

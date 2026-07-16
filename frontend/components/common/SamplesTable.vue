@@ -1,53 +1,80 @@
 <template>
   <DataTable
-    :value="samples"
-    :selectAll="false"
-    v-model:selection="selected"
-    @rowSelect="rowSelect"
-    @rowUnselect="rowSelect"
-    >
+      :value="samples"
+      stripedRows
+      rowHover
+      scrollable scrollHeight="400px" :virtualScrollerOptions="{ itemSize: 44 }"
+      sort-field="name"
+      :sort-order="1"
+      :rows="10"
+      dataKey="id"
+      v-model:filters="filters"
+      filterDisplay="menu"
+      v-bind="$attrs"
+  >
+    <template #header>
+      <InputText v-model="filters.global.value" placeholder="Filter..." />
+    </template>
+    <slot name="left" />
 
-    <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-    <Column header="Name" field="name" />
-    <Column header="External Lims Id" field="externalLimsId" />
-    <Column header="External Project Name" field="externalProjectName" />
-    <Column header="Description" field="description" />
-    <Column header="Owners" field="users">
+    <Column header="Name" field="name" :sortable="true" >
+      <template #body="{data}">
+          <span style="width: 22ch; display: block;">
+            {{data.name}}
+          </span>
+      </template>
+    </Column>
+    <Column header="External Lims Id" field="externalLimsId" :sortable="true" />
+    <Column header="External Project Name" field="externalProjectName" :showFilterMatchModes="false" :sortable="true">
+      <template #body="{data}">
+          <span style="width: 54ch; display: block;">
+            {{data.externalProjectName}}
+          </span>
+      </template>
+      <template #filter="{ filterModel, filterCallback }">
+        <h2>Project Name</h2>
+        <Dropdown
+            v-model="filterModel.value"
+            :options="uniqueProjectNames"
+            placeholder="All"
+            showClear
+            class="w-full"
+        />
+      </template>
+    </Column>
+    <Column header="Description" field="description" :sortable="true" >
+      <template #body="{data}">
+          <span style="width: 40ch; display: block;">
+            <CommonTruncate :text="data.description" :stop="30" />
+          </span>
+      </template>
+    </Column>
+    <Column header="Owners" field="users" :sortable="true">
       <template #body="{data}">
         <Tag v-for="user in data.users">
           {{ fullName(user) }}
         </Tag>
       </template>
     </Column>
+    <slot/>
   </DataTable>
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue';
+import {ref} from 'vue';
 import {FilterMatchMode} from "@primevue/core";
-import SampleChip from '~/components/samples/SampleChip.vue';
-
-definePageMeta({
-  layout: 'default'
-})
-
-const samples = ref<SampleDTO[]>([]);
-const selected = ref<SampleDTO[]>([]);
-
-const loadSamples = async () => {
-  const { data } = await useApi("/sample/all");
-  console.table(data)
-  samples.value = data.value;
-};
-await loadSamples();
-
-const emit = defineEmits<{
-  update: [selected: SampleDTO[]]
+const props = defineProps<{
+  samples: SampleDTO[];
 }>()
 
-const rowSelect = () => {
-  emit("update", selected.value );
-}
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  externalProjectName: { value: null, matchMode: FilterMatchMode.EQUALS }
+});
+
+const uniqueProjectNames = computed(() =>
+    [...new Set(props.samples.map(r => r.externalProjectName).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+)
 
 const fullName = (user : UserDTO) => {
   return `${user.firstName} ${user.lastName}`;
