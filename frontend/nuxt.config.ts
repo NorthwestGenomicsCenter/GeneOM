@@ -32,6 +32,9 @@ export default defineNuxtConfig({
     },
     primevue: {
         autoImport: true,
+        directives: {
+            include: ['Tooltip']
+        },
         options: {
             theme: {
                 ripple: true,

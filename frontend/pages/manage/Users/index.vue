@@ -1,8 +1,7 @@
 <template>
-  <div class="user-management-container">
+  <div class="bordered user-management-container">
     <div class="header">
-      <h2>User Accounts</h2>
-      <Button label="Add User" icon="pi pi-plus" @click="showAddDialog" />
+      <h1>User Accounts</h1>
     </div>
 
     <DataTable
@@ -21,12 +20,14 @@
         v-model:selection="selectedUser"
     >
       <template #header>
-        <div class="table-header">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search" />
-            <InputText v-model="filters.global.value" placeholder="Search users..." />
-          </span>
-        </div>
+        <IconField iconPosition="left">
+          <InputIcon class="pi pi-search" />
+          <InputText
+            v-model="filters.global.value"
+            placeholder="Search users..."
+            size="small"
+          />
+        </IconField>
       </template>
 
       <Column field="firstName" header="First Name" sortable></Column>
@@ -43,14 +44,42 @@
       </Column>
       <Column :exportable="false" style="width: 120px">
         <template #body="{data}">
-          <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm mr-1" @click="editUser(data)" />
-          <Button icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm p-button-danger" @click="confirmDelete(data)" />
+          <Button
+              icon="pi pi-pencil"
+              class="p-button-rounded p-button-text p-button-sm mr-1"
+              v-tooltip.bottom="{
+                value: 'Edit User',
+                showDelay: 500,
+                hideDelay: 200
+              }"
+              @click="editUser(data)"
+          />
+          <Button
+              icon="pi pi-user-minus"
+              class="p-button-rounded p-button-text p-button-sm p-button-danger"
+              v-tooltip.bottom="{
+                value: 'Disable User',
+                showDelay: 500,
+                hideDelay: 200
+              }"
+              @click="confirmDelete(data)"
+          />
         </template>
       </Column>
     </DataTable>
 
+    <div class="footer">
+      <Button label="Add User" icon="pi pi-plus" @click="showAddDialog" />
+    </div>
+
     <!-- Add/Edit Dialog -->
-    <Dialog v-model:visible="userDialog" :header="dialogTitle" :modal="true" class="p-fluid" style="width: 450px">
+    <Dialog
+      v-model:visible="createUserDialogVisible"
+      :header="dialogTitle"
+      :modal="true"
+      class="p-fluid"
+      style="width: 450px"
+    >
       <FloatLabel variant="over" class="field">
         <label for="firstName">First Name</label>
         <InputText id="firstName" v-model.trim="createUser.firstName" required="true" autofocus />
@@ -82,7 +111,6 @@
             display="chip"
         />
       </FloatLabel>
-      {{ createUser }}
 
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" @click="hideDialog" class="p-button-text"/>
@@ -145,7 +173,6 @@ interface User {
   permissions: string[];
 }
 
-const userDialog = ref(false);
 const deleteDialog = ref(false);
 const userToDelete = ref<User | null>(null);
 const selectedUser = ref<User>({} as User);
@@ -166,23 +193,25 @@ const availablePermissions = ref([
 
 const {data: users, refresh} = await useApi<UserDTO[]>("/users/all");
 
-// Create the users
+// -- Create Users ------------------------------------------------------------
+const createUserDialogVisible = ref<boolean>(false);
 const user = ref<User>({} as User);
 const createUser = ref<CreateUserDTO>({} as CreateUserDTO);
 const showAddDialog = () => {
   user.value = {} as User;
   submitted.value = false;
-  userDialog.value = true;
+  createUserDialogVisible.value = true;
+};
+
+const hideDialog = () => {
+  createUserDialogVisible.value = false;
+  submitted.value = false;
 };
 
 const editUser = (userData: User) => {
   user.value = { ...userData };
-  userDialog.value = true;
-};
-
-const hideDialog = () => {
-  userDialog.value = false;
-  submitted.value = false;
+  createUser.value = userData;
+  createUserDialogVisible.value = true;
 };
 
 const saveUser = async () => {
@@ -249,6 +278,13 @@ const dialogTitle = computed(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1em;
+  width: 100%;
 }
 
 .table-header {
